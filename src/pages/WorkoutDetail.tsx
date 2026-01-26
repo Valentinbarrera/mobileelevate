@@ -248,7 +248,19 @@ const WorkoutDetail = () => {
         workoutStarted={workoutStarted}
         isCompleted={completedExercises === exercises.length}
         onStart={handleStartWorkout}
-        onFinish={() => navigate("/")}
+        onFinish={() => navigate("/workout-summary", {
+          state: {
+            summaryData: {
+              workoutName: workoutInfo.title,
+              duration: elapsedTime,
+              exercisesCompleted: completedExercises,
+              totalExercises: exercises.length,
+              setsCompleted: completedSets,
+              totalSets: totalSets,
+              caloriesBurned: Math.round(elapsedTime / 60 * 7.5), // Estimate ~7.5 kcal/min
+            }
+          }
+        })}
       />
 
       {/* Rest Timer Overlay */}
