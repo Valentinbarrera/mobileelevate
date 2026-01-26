@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Play, Pause, RotateCcw, Clock, CheckCircle2, ChevronDown, ChevronUp, Dumbbell, Target, MessageCircle } from "lucide-react";
+import { ArrowLeft, Play, Pause, Clock, Zap, Target, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ExerciseCard from "@/components/workout/ExerciseCard";
 import RestTimer from "@/components/workout/RestTimer";
-import WorkoutHeader from "@/components/workout/WorkoutHeader";
-import WorkoutProgress from "@/components/workout/WorkoutProgress";
-import CoachNote from "@/components/workout/CoachNote";
+import WorkoutHero from "@/components/workout/WorkoutHero";
+import WorkoutExerciseList from "@/components/workout/WorkoutExerciseList";
+import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
+import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 
 export interface Exercise {
   id: string;
@@ -19,6 +20,7 @@ export interface Exercise {
   videoUrl?: string;
   completed: boolean;
   currentSet: number;
+  thumbnail?: string;
 }
 
 const mockExercises: Exercise[] = [
@@ -32,6 +34,7 @@ const mockExercises: Exercise[] = [
     notes: "Mantené la espalda recta y bajá hasta que la rodilla trasera casi toque el suelo.",
     completed: false,
     currentSet: 0,
+    thumbnail: "🏋️",
   },
   {
     id: "2",
@@ -43,6 +46,7 @@ const mockExercises: Exercise[] = [
     notes: "Apretá los glúteos arriba y mantené 2 segundos.",
     completed: false,
     currentSet: 0,
+    thumbnail: "🍑",
   },
   {
     id: "3",
@@ -54,6 +58,7 @@ const mockExercises: Exercise[] = [
     notes: "Sentí el estiramiento en los isquiotibiales. No redondees la espalda.",
     completed: false,
     currentSet: 0,
+    thumbnail: "💪",
   },
   {
     id: "4",
@@ -64,6 +69,7 @@ const mockExercises: Exercise[] = [
     notes: "Pasos largos, rodilla delantera no pasa la punta del pie.",
     completed: false,
     currentSet: 0,
+    thumbnail: "🦵",
   },
   {
     id: "5",
@@ -74,8 +80,19 @@ const mockExercises: Exercise[] = [
     notes: "Subí lento, bajá controlado. Sentí la contracción en los gemelos.",
     completed: false,
     currentSet: 0,
+    thumbnail: "🦶",
   },
 ];
+
+const workoutInfo = {
+  title: "PIERNAS Y GLÚTEOS",
+  subtitle: "Rutina de Profe Martín",
+  duration: "45 min",
+  intensity: "Intermedio",
+  focus: "Tren Inferior",
+  description: "Sesión diseñada para fortalecer y tonificar piernas y glúteos. Enfocada en ejercicios compuestos para maximizar resultados y mejorar la fuerza funcional.",
+  coachNote: "¡Hoy toca darle duro a las piernas! Recordá calentar bien antes de arrancar. Cualquier duda me escribís. 💪",
+};
 
 const WorkoutDetail = () => {
   const navigate = useNavigate();
@@ -139,7 +156,6 @@ const WorkoutDetail = () => {
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
     
-    // Find next incomplete exercise if current is done
     const currentExercise = exercises.find(e => e.id === activeExerciseId);
     if (currentExercise?.completed) {
       const nextExercise = exercises.find(e => !e.completed && e.id !== activeExerciseId);
@@ -159,98 +175,81 @@ const WorkoutDetail = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Header */}
-      <WorkoutHeader 
-        title="Piernas y Glúteos"
-        subtitle="Rutina de tu profe"
-        onBack={() => navigate("/")}
-        elapsedTime={formatTime(elapsedTime)}
-        isActive={workoutStarted}
-        isPaused={isPaused}
-        onPauseToggle={() => setIsPaused(!isPaused)}
+      {/* Active Workout Header - Only when workout started */}
+      <AnimatePresence>
+        {workoutStarted && (
+          <ActiveWorkoutHeader
+            elapsedTime={formatTime(elapsedTime)}
+            isPaused={isPaused}
+            onPauseToggle={() => setIsPaused(!isPaused)}
+            completedExercises={completedExercises}
+            totalExercises={exercises.length}
+            completedSets={completedSets}
+            totalSets={totalSets}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Hero Section - Hidden when workout active */}
+      {!workoutStarted && (
+        <WorkoutHero
+          title={workoutInfo.title}
+          subtitle={workoutInfo.subtitle}
+          duration={workoutInfo.duration}
+          intensity={workoutInfo.intensity}
+          focus={workoutInfo.focus}
+          onBack={() => navigate("/")}
+        />
+      )}
+
+      {/* Exercise List */}
+      <WorkoutExerciseList
+        exercises={exercises}
+        activeExerciseId={activeExerciseId}
+        workoutStarted={workoutStarted}
+        onSelectExercise={setActiveExerciseId}
+        onCompleteSet={handleCompleteSet}
       />
 
-      {/* Progress Bar */}
-      <WorkoutProgress 
-        completedExercises={completedExercises}
-        totalExercises={exercises.length}
-        completedSets={completedSets}
-        totalSets={totalSets}
-      />
-
-      {/* Coach Note */}
-      <CoachNote 
-        coachName="Profe Martín"
-        message="¡Hoy toca darle duro a las piernas! Recordá calentar bien antes de arrancar. Cualquier duda me escribís. 💪"
-      />
-
-      {/* Exercises List */}
-      <div className="px-5 pb-32">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-foreground">Ejercicios</h2>
-          <span className="text-sm text-muted-foreground">
-            {completedExercises}/{exercises.length} completados
-          </span>
-        </div>
-
-        <div className="space-y-3">
-          {exercises.map((exercise, index) => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              index={index + 1}
-              isActive={activeExerciseId === exercise.id}
-              onSelect={() => setActiveExerciseId(exercise.id)}
-              onCompleteSet={() => handleCompleteSet(exercise.id)}
-              workoutStarted={workoutStarted}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Start Workout Button */}
+      {/* Description Section */}
       {!workoutStarted && (
         <motion.div 
-          className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-background via-background to-transparent"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
+          className="px-5 pb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
         >
-          <motion.button
-            onClick={handleStartWorkout}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-4 min-h-[56px] shadow-lg glow-primary"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              <Play className="w-5 h-5 text-primary-foreground fill-current ml-0.5" />
+          <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+            Descripción
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {workoutInfo.description}
+          </p>
+          
+          {/* Coach Note */}
+          <div className="mt-4 p-4 rounded-2xl bg-primary/10 border border-primary/20">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
+                👨‍🏫
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-primary mb-1">Profe Martín</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {workoutInfo.coachNote}
+                </p>
+              </div>
             </div>
-            <span className="text-primary-foreground font-bold text-base tracking-wide">
-              COMENZAR ENTRENAMIENTO
-            </span>
-          </motion.button>
+          </div>
         </motion.div>
       )}
 
-      {/* Finish Workout Button */}
-      {workoutStarted && completedExercises === exercises.length && (
-        <motion.div 
-          className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-background via-background to-transparent"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-        >
-          <motion.button
-            onClick={() => navigate("/")}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-4 min-h-[56px] shadow-lg glow-primary"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <CheckCircle2 className="w-6 h-6 text-primary-foreground" />
-            <span className="text-primary-foreground font-bold text-base tracking-wide">
-              ¡ENTRENAMIENTO COMPLETADO!
-            </span>
-          </motion.button>
-        </motion.div>
-      )}
+      {/* Floating Button */}
+      <WorkoutFloatingButton
+        workoutStarted={workoutStarted}
+        isCompleted={completedExercises === exercises.length}
+        onStart={handleStartWorkout}
+        onFinish={() => navigate("/")}
+      />
 
       {/* Rest Timer Overlay */}
       <AnimatePresence>
