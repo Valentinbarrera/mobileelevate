@@ -9,6 +9,7 @@ import LevelProgress from "@/components/home/LevelProgress";
 import WeeklyProgress from "@/components/home/WeeklyProgress";
 import QuickActions from "@/components/home/QuickActions";
 import MotivationCard from "@/components/home/MotivationCard";
+import BottomNav from "@/components/home/BottomNav";
 
 import workoutHero from "@/assets/workout-hero.jpg";
 import programShred from "@/assets/program-shred.jpg";
@@ -64,6 +65,8 @@ const Index = () => {
       <QuickActions />
       
       <MotivationCard message="No pares ahora. Vas mejor de lo que creés." />
+      
+      <BottomNav />
     </div>
   );
 };
