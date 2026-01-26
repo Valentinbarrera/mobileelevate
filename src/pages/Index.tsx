@@ -24,15 +24,15 @@ const fadeUp = {
 const stagger = {
   animate: {
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.06,
     },
   },
 };
 
 const Index = () => {
   const programs = [
-    { id: "1", title: "6-Week Shred", imageUrl: programShred, label: "Siguiente sesión" },
-    { id: "2", title: "Zen Mode", imageUrl: programZen },
+    { id: "1", title: "6-Week Shred", imageUrl: programShred, label: "Activo", progress: 65 },
+    { id: "2", title: "Zen Mode", imageUrl: programZen, progress: 30 },
   ];
 
   const handleStartWorkout = () => {
@@ -41,7 +41,7 @@ const Index = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-24"
+      className="min-h-screen bg-background pb-28"
       initial="initial"
       animate="animate"
       variants={stagger}
@@ -50,33 +50,37 @@ const Index = () => {
         <Header userName="Camila" streakDays={12} />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.3, delay: 0.05 }}>
-        <Greeting userName="Camila" />
+      <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+        <Greeting 
+          userName="Camila" 
+          todayStatus="Hoy entrenás: Piernas y Glúteos"
+        />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.1 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <ProgressUploadCard />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.15 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <WorkoutCard 
           label="Daily Focus"
           duration="45 MIN"
           title="Explosive Power"
+          intensity="Alta"
           imageUrl={workoutHero}
           onStart={handleStartWorkout}
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.2 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <MetricsSection />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.25 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <ActivePrograms programs={programs} />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.3 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <NutritionSection 
           targetKcal={2500}
           currentPercent={74}
@@ -86,7 +90,7 @@ const Index = () => {
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.35 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <LevelProgress 
           level={14}
           currentXP={1250}
@@ -95,15 +99,15 @@ const Index = () => {
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.4 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <WeeklyProgress completedDays={3} totalDays={5} />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.45 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <QuickActions />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4, delay: 0.5 }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
         <MotivationCard message="No pares ahora. Vas mejor de lo que creés." />
       </motion.div>
       
