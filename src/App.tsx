@@ -8,6 +8,7 @@ import WorkoutDetail from "./pages/WorkoutDetail";
 import WorkoutSummary from "./pages/WorkoutSummary";
 import Routines from "./pages/Routines";
 import Progress from "./pages/Progress";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/routines" element={<Routines />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/workout/:id" element={<WorkoutDetail />} />
           <Route path="/workout-summary" element={<WorkoutSummary />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
