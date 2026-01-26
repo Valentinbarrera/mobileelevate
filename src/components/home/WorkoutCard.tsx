@@ -1,5 +1,6 @@
 import { Play, Clock, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface WorkoutCardProps {
   label: string;
@@ -7,10 +8,18 @@ interface WorkoutCardProps {
   title: string;
   imageUrl: string;
   intensity?: string;
+  workoutId?: string;
   onStart?: () => void;
 }
 
-const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", onStart }: WorkoutCardProps) => {
+const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", workoutId = "1", onStart }: WorkoutCardProps) => {
+  const navigate = useNavigate();
+  
+  const handleStart = () => {
+    if (onStart) onStart();
+    navigate(`/workout/${workoutId}`);
+  };
+
   return (
     <motion.div 
       className="mx-5 mt-5 relative rounded-2xl overflow-hidden shadow-xl"
@@ -50,7 +59,7 @@ const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", onS
           
           {/* CTA Principal - Máxima prominencia */}
           <motion.button 
-            onClick={onStart}
+            onClick={handleStart}
             className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-4 min-h-[56px] shadow-lg glow-primary"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
