@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Play, SkipForward, Plus, Minus } from "lucide-react";
+import { Play, SkipForward, Plus, Minus, Clock } from "lucide-react";
 
 interface RestTimerProps {
   duration: number;
@@ -8,9 +8,20 @@ interface RestTimerProps {
   onSkip: () => void;
 }
 
+const motivationalMessages = [
+  { emoji: "💪", text: "¡Vas muy bien! Mantené el ritmo." },
+  { emoji: "🔥", text: "¡Estás on fire! La siguiente serie va a ser épica." },
+  { emoji: "💧", text: "Aprovechá para hidratarte." },
+  { emoji: "🧘", text: "Respirá profundo y preparate." },
+  { emoji: "⚡", text: "La energía está alta, seguí así." },
+];
+
 const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isPaused, setIsPaused] = useState(false);
+  const [motivationalMessage] = useState(() => 
+    motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]
+  );
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -28,7 +39,7 @@ const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
   }, [timeLeft, isPaused, onComplete]);
 
   const progress = ((duration - timeLeft) / duration) * 100;
-  const circumference = 2 * Math.PI * 120;
+  const circumference = 2 * Math.PI * 110;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   const addTime = (seconds: number) => {
@@ -43,130 +54,157 @@ const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-lg"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
+      </div>
+
       {/* Title */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-center mb-8"
+        className="relative text-center mb-6 z-10"
       >
-        <h2 className="text-2xl font-bold text-foreground mb-2">Descansá</h2>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+          <Clock className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-primary">Tiempo de descanso</span>
+        </div>
+        <h2 className="text-3xl font-black text-foreground mb-2">Descansá</h2>
         <p className="text-muted-foreground">Preparate para la siguiente serie</p>
       </motion.div>
 
       {/* Circular Timer */}
       <motion.div 
-        className="relative"
+        className="relative z-10"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
       >
-        <svg width="280" height="280" className="transform -rotate-90">
+        <svg width="260" height="260" className="transform -rotate-90">
           {/* Background circle */}
           <circle
-            cx="140"
-            cy="140"
-            r="120"
+            cx="130"
+            cy="130"
+            r="110"
             fill="none"
             stroke="hsl(var(--secondary))"
-            strokeWidth="12"
+            strokeWidth="16"
           />
           {/* Progress circle */}
           <motion.circle
-            cx="140"
-            cy="140"
-            r="120"
+            cx="130"
+            cy="130"
+            r="110"
             fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth="12"
+            stroke="url(#timerGradient)"
+            strokeWidth="16"
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className="drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)]"
+            filter="drop-shadow(0 0 12px hsl(var(--primary) / 0.6))"
           />
+          <defs>
+            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="hsl(var(--primary))" />
+              <stop offset="100%" stopColor="hsl(25 95% 53%)" />
+            </linearGradient>
+          </defs>
         </svg>
 
         {/* Time Display */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span 
-            className="text-6xl font-black text-foreground tabular-nums"
+            className="text-7xl font-black text-foreground tabular-nums tracking-tight"
             key={timeLeft}
-            initial={{ scale: 1.1 }}
+            initial={{ scale: 1.15 }}
             animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400 }}
           >
             {formatTime(timeLeft)}
           </motion.span>
-          <span className="text-muted-foreground text-sm mt-2">segundos restantes</span>
+          <span className="text-muted-foreground text-sm mt-2 font-medium">restante</span>
         </div>
       </motion.div>
 
       {/* Time Adjustment Buttons */}
       <motion.div 
-        className="flex items-center gap-4 mt-8"
+        className="flex items-center gap-6 mt-10 z-10"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <button
+        <motion.button
           onClick={() => addTime(-15)}
-          className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
+          className="w-16 h-16 rounded-2xl bg-secondary/80 backdrop-blur-sm border border-border flex flex-col items-center justify-center text-foreground hover:bg-secondary transition-colors"
+          whileTap={{ scale: 0.95 }}
         >
-          <Minus className="w-6 h-6" />
-        </button>
-        <span className="text-muted-foreground text-sm w-16 text-center">±15s</span>
-        <button
+          <Minus className="w-5 h-5" />
+          <span className="text-xs mt-0.5 text-muted-foreground">15s</span>
+        </motion.button>
+        
+        <motion.button
+          onClick={() => setIsPaused(!isPaused)}
+          className={`w-20 h-20 rounded-3xl flex items-center justify-center transition-all ${
+            isPaused 
+              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40" 
+              : "bg-secondary/80 backdrop-blur-sm border border-border text-foreground hover:bg-secondary"
+          }`}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isPaused ? (
+            <Play className="w-8 h-8 ml-1" />
+          ) : (
+            <div className="flex gap-1.5">
+              <div className="w-2 h-7 bg-foreground rounded-full" />
+              <div className="w-2 h-7 bg-foreground rounded-full" />
+            </div>
+          )}
+        </motion.button>
+        
+        <motion.button
           onClick={() => addTime(15)}
-          className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
+          className="w-16 h-16 rounded-2xl bg-secondary/80 backdrop-blur-sm border border-border flex flex-col items-center justify-center text-foreground hover:bg-secondary transition-colors"
+          whileTap={{ scale: 0.95 }}
         >
-          <Plus className="w-6 h-6" />
-        </button>
+          <Plus className="w-5 h-5" />
+          <span className="text-xs mt-0.5 text-muted-foreground">15s</span>
+        </motion.button>
       </motion.div>
 
-      {/* Action Buttons */}
-      <motion.div 
-        className="flex items-center gap-4 mt-8"
+      {/* Skip Button */}
+      <motion.button
+        onClick={onSkip}
+        className="mt-8 px-10 py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-3 shadow-lg glow-primary z-10"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <button
-          onClick={() => setIsPaused(!isPaused)}
-          className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
-        >
-          {isPaused ? (
-            <Play className="w-7 h-7 ml-1" />
-          ) : (
-            <div className="flex gap-1">
-              <div className="w-1.5 h-6 bg-foreground rounded-full" />
-              <div className="w-1.5 h-6 bg-foreground rounded-full" />
-            </div>
-          )}
-        </button>
-        
-        <button
-          onClick={onSkip}
-          className="px-8 py-4 rounded-2xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors"
-        >
-          <SkipForward className="w-5 h-5" />
-          SIGUIENTE SERIE
-        </button>
-      </motion.div>
+        <SkipForward className="w-5 h-5" />
+        SIGUIENTE SERIE
+      </motion.button>
 
       {/* Motivational Message */}
-      <motion.p 
-        className="absolute bottom-12 text-muted-foreground text-center px-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+      <motion.div 
+        className="absolute bottom-10 left-0 right-0 px-8 z-10"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        💪 ¡Vas muy bien! Aprovechá para hidratarte.
-      </motion.p>
+        <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border">
+          <span className="text-2xl">{motivationalMessage.emoji}</span>
+          <p className="text-sm text-muted-foreground font-medium">{motivationalMessage.text}</p>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
