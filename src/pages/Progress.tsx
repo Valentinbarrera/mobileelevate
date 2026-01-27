@@ -1,59 +1,33 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, HelpCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import ProgressPhotoUpload from "@/components/progress/ProgressPhotoUpload";
-import ProgressComparison from "@/components/progress/ProgressComparison";
-import ProgressMetrics from "@/components/progress/ProgressMetrics";
-import ProgressHistory from "@/components/progress/ProgressHistory";
+import { Share2, Bell } from "lucide-react";
 import BottomNav from "@/components/home/BottomNav";
+import FitnessScore from "@/components/progress/FitnessScore";
+import WeightTracker from "@/components/progress/WeightTracker";
+import WeeklyActivity from "@/components/progress/WeeklyActivity";
+import ActivityStreak from "@/components/progress/ActivityStreak";
+import PersonalRecords from "@/components/progress/PersonalRecords";
+import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
 
-export interface ProgressEntry {
-  id: string;
-  date: string;
-  weight: number;
-  bodyFat: number;
-  frontPhoto?: string;
-  sidePhoto?: string;
-}
-
-const mockHistory: ProgressEntry[] = [
+const mockPRs = [
   {
     id: "1",
-    date: "15 de Enero, 2026",
-    weight: 78.5,
-    bodyFat: 12.4,
-    frontPhoto: "📷",
+    name: "Press de Banca",
+    value: "95.0",
+    unit: "kg",
+    improvedDate: "Hace 2 días",
+    icon: "strength" as const,
   },
   {
     id: "2",
-    date: "1 de Enero, 2026",
-    weight: 80.2,
-    bodyFat: 14.1,
-    frontPhoto: "📷",
+    name: "5KM Carrera",
+    value: "22:15",
+    unit: "min",
+    improvedDate: "Hace 1 semana",
+    icon: "cardio" as const,
   },
 ];
 
 const Progress = () => {
-  const navigate = useNavigate();
-  const [frontPhoto, setFrontPhoto] = useState<string | null>(null);
-  const [sidePhoto, setSidePhoto] = useState<string | null>(null);
-  const [weight, setWeight] = useState(78.5);
-  const [bodyFat, setBodyFat] = useState(12.4);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    // Reset photos after save
-    setFrontPhoto(null);
-    setSidePhoto(null);
-  };
-
-  const lastEntry = mockHistory[0];
-
   return (
     <motion.div 
       className="min-h-screen bg-background pb-32"
@@ -67,81 +41,48 @@ const Progress = () => {
         animate={{ y: 0, opacity: 1 }}
       >
         <div className="flex items-center justify-between px-5 py-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <div>
+            <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+              Estadísticas
+            </span>
+            <h1 className="text-xl font-bold text-foreground">Tu Progreso</h1>
+          </div>
           
-          <h1 className="text-lg font-bold text-foreground">Registro de Progreso</h1>
-          
-          <button className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
-            <HelpCircle className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <Share2 className="w-5 h-5" />
+            </button>
+            <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <Bell className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </motion.header>
 
-      <div className="px-5 pt-6 space-y-8">
-        {/* Photo Upload Section */}
-        <ProgressPhotoUpload
-          frontPhoto={frontPhoto}
-          sidePhoto={sidePhoto}
-          onFrontPhotoChange={setFrontPhoto}
-          onSidePhotoChange={setSidePhoto}
+      <div className="px-5 pt-6 space-y-5">
+        {/* Fitness Score */}
+        <FitnessScore score={88} />
+
+        {/* Weight & Activity Row */}
+        <div className="grid grid-cols-2 gap-4">
+          <WeightTracker currentWeight={74.2} trend={-1.2} />
+          <WeeklyActivity totalMinutes={345} goalMet={true} />
+        </div>
+
+        {/* Activity Streak Calendar */}
+        <ActivityStreak 
+          currentStreak={12}
+          month="Enero"
+          year={2026}
+          activeDays={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
         />
 
-        {/* Previous Comparison */}
-        <ProgressComparison lastEntry={lastEntry} />
-
-        {/* Metrics Sliders */}
-        <ProgressMetrics
-          weight={weight}
-          bodyFat={bodyFat}
-          onWeightChange={setWeight}
-          onBodyFatChange={setBodyFat}
-          previousWeight={lastEntry?.weight}
-          previousBodyFat={lastEntry?.bodyFat}
-        />
-
-        {/* Progress History */}
-        <ProgressHistory entries={mockHistory} />
+        {/* Personal Records */}
+        <PersonalRecords records={mockPRs} />
       </div>
 
-      {/* Save Button */}
-      <motion.div 
-        className="fixed bottom-20 left-0 right-0 p-5 z-40"
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none" />
-        
-        <motion.button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="relative w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-5 min-h-[64px] shadow-lg glow-primary disabled:opacity-70"
-          whileHover={{ scale: isSaving ? 1 : 1.02 }}
-          whileTap={{ scale: isSaving ? 1 : 0.98 }}
-        >
-          {isSaving ? (
-            <div className="flex items-center gap-3">
-              <motion.div 
-                className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-              <span className="text-primary-foreground font-bold text-lg">
-                GUARDANDO...
-              </span>
-            </div>
-          ) : (
-            <span className="text-primary-foreground font-bold text-lg tracking-wide">
-              GUARDAR EVOLUCIÓN
-            </span>
-          )}
-        </motion.button>
-      </motion.div>
+      {/* Floating Photo Upload Button */}
+      <ProgressPhotoFAB />
 
       {/* Bottom Navigation */}
       <BottomNav />
