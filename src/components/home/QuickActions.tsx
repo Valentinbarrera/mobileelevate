@@ -1,20 +1,47 @@
-import { Dumbbell, TrendingUp, MessageCircle, Apple } from "lucide-react";
+import { Dumbbell, TrendingUp, MessageCircle, ClipboardCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface QuickAction {
   icon: React.ReactNode;
   label: string;
   sublabel?: string;
   color: string;
-  onClick?: () => void;
+  route?: string;
 }
 
 const QuickActions = () => {
+  const navigate = useNavigate();
+
   const actions: QuickAction[] = [
-    { icon: <Dumbbell className="w-6 h-6" />, label: "Rutinas", sublabel: "Ver todas", color: "text-blue-400" },
-    { icon: <TrendingUp className="w-6 h-6" />, label: "Progreso", sublabel: "Estadísticas", color: "text-green-400" },
-    { icon: <MessageCircle className="w-6 h-6" />, label: "Chat", sublabel: "Con tu coach", color: "text-purple-400" },
-    { icon: <Apple className="w-6 h-6" />, label: "Nutrición", sublabel: "Plan de hoy", color: "text-primary" },
+    { 
+      icon: <Dumbbell className="w-6 h-6" />, 
+      label: "Rutinas", 
+      sublabel: "Ver todas", 
+      color: "text-blue-400",
+      route: "/routines" 
+    },
+    { 
+      icon: <TrendingUp className="w-6 h-6" />, 
+      label: "Progreso", 
+      sublabel: "Estadísticas", 
+      color: "text-green-400",
+      route: "/progress" 
+    },
+    { 
+      icon: <ClipboardCheck className="w-6 h-6" />, 
+      label: "Check-in", 
+      sublabel: "Semanal", 
+      color: "text-purple-400",
+      route: "/checkin" 
+    },
+    { 
+      icon: <MessageCircle className="w-6 h-6" />, 
+      label: "Perfil", 
+      sublabel: "Ajustes", 
+      color: "text-primary",
+      route: "/profile" 
+    },
   ];
 
   return (
@@ -24,7 +51,7 @@ const QuickActions = () => {
         {actions.map((action, index) => (
           <motion.button
             key={index}
-            onClick={action.onClick}
+            onClick={() => action.route && navigate(action.route)}
             className="flex flex-col items-center gap-2 bg-secondary/60 border border-border rounded-2xl p-4 min-h-[88px] hover:border-primary/50 transition-all group"
             whileHover={{ scale: 1.03, y: -2 }}
             whileTap={{ scale: 0.97 }}

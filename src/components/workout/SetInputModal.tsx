@@ -22,6 +22,11 @@ interface SetInputModalProps {
     maxWeight?: number;
     maxReps?: number;
   } | null;
+  previousSetInSession?: {
+    weight: number;
+    reps: number;
+    difficulty: DifficultyLevel;
+  } | null;
 }
 
 const SetInputModal = ({
@@ -35,19 +40,30 @@ const SetInputModal = ({
   targetWeight,
   lastPerformance,
   personalRecord,
+  previousSetInSession,
 }: SetInputModalProps) => {
-  const [weight, setWeight] = useState(lastPerformance?.weight || targetWeight || 20);
-  const [reps, setReps] = useState(lastPerformance?.reps || parseInt(targetReps) || 10);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>("moderate");
+  // Priority: previousSetInSession > lastPerformance > targetWeight
+  const defaultWeight = previousSetInSession?.weight || lastPerformance?.weight || targetWeight || 20;
+  const defaultReps = previousSetInSession?.reps || lastPerformance?.reps || parseInt(targetReps) || 10;
+  const defaultDifficulty = previousSetInSession?.difficulty || "moderate";
+
+  const [weight, setWeight] = useState(defaultWeight);
+  const [reps, setReps] = useState(defaultReps);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(defaultDifficulty);
 
   useEffect(() => {
-    if (lastPerformance) {
+    // Update when modal opens with new values
+    if (previousSetInSession) {
+      setWeight(previousSetInSession.weight);
+      setReps(previousSetInSession.reps);
+      setDifficulty(previousSetInSession.difficulty);
+    } else if (lastPerformance) {
       setWeight(lastPerformance.weight);
       setReps(lastPerformance.reps);
     } else if (targetWeight) {
       setWeight(targetWeight);
     }
-  }, [lastPerformance, targetWeight]);
+  }, [previousSetInSession, lastPerformance, targetWeight]);
 
   const adjustWeight = (delta: number) => {
     setWeight(prev => Math.max(0, prev + delta));

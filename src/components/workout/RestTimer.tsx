@@ -1,11 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Play, SkipForward, Plus, Minus, Clock } from "lucide-react";
+import { Play, SkipForward, Plus, Minus, Clock, Dumbbell } from "lucide-react";
 
 interface RestTimerProps {
   duration: number;
   onComplete: () => void;
   onSkip: () => void;
+  nextExercise?: {
+    name: string;
+    sets: number;
+    reps: string;
+  } | null;
+  enableVibration?: boolean;
+  enableSound?: boolean;
 }
 
 const motivationalMessages = [
@@ -16,17 +23,63 @@ const motivationalMessages = [
   { emoji: "⚡", text: "La energía está alta, seguí así." },
 ];
 
-const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
+const RestTimer = ({ 
+  duration, 
+  onComplete, 
+  onSkip,
+  nextExercise,
+  enableVibration = true,
+  enableSound = true,
+}: RestTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isPaused, setIsPaused] = useState(false);
   const [motivationalMessage] = useState(() => 
     motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]
   );
 
+  // Vibration function
+  const triggerVibration = useCallback(() => {
+    if (enableVibration && 'vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200]); // Pattern: vibrate, pause, vibrate
+    }
+  }, [enableVibration]);
+
+  // Sound function
+  const playSound = useCallback(() => {
+    if (enableSound) {
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } catch (e) {
+        console.log('Audio not available');
+      }
+    }
+  }, [enableSound]);
+
   useEffect(() => {
     if (timeLeft <= 0) {
+      triggerVibration();
+      playSound();
       onComplete();
       return;
+    }
+
+    // Countdown warning at 3 seconds
+    if (timeLeft <= 3 && timeLeft > 0) {
+      if (enableVibration && 'vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
     }
 
     if (!isPaused) {
@@ -36,7 +89,7 @@ const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
 
       return () => clearInterval(interval);
     }
-  }, [timeLeft, isPaused, onComplete]);
+  }, [timeLeft, isPaused, onComplete, triggerVibration, playSound, enableVibration]);
 
   const progress = ((duration - timeLeft) / duration) * 100;
   const circumference = 2 * Math.PI * 110;
@@ -192,6 +245,29 @@ const RestTimer = ({ duration, onComplete, onSkip }: RestTimerProps) => {
         <SkipForward className="w-5 h-5" />
         SIGUIENTE SERIE
       </motion.button>
+
+      {/* Next Exercise Preview */}
+      {nextExercise && (
+        <motion.div 
+          className="mb-6 z-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/10 border border-primary/30">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Dumbbell className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-primary font-semibold uppercase tracking-wider">Siguiente ejercicio</p>
+              <p className="text-foreground font-bold">{nextExercise.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {nextExercise.sets} series × {nextExercise.reps}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Motivational Message */}
       <motion.div 

@@ -302,6 +302,15 @@ const ExerciseTrackingCard = ({
         targetWeight={exercise.target_weight}
         lastPerformance={exercise.lastPerformance}
         personalRecord={exercise.personalRecord}
+        previousSetInSession={
+          completedSetsLocal.length > 0
+            ? {
+                weight: completedSetsLocal[completedSetsLocal.length - 1].weight,
+                reps: completedSetsLocal[completedSetsLocal.length - 1].reps,
+                difficulty: completedSetsLocal[completedSetsLocal.length - 1].difficulty,
+              }
+            : null
+        }
       />
     </>
   );

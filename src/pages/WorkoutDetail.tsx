@@ -45,6 +45,11 @@ const WorkoutDetail = () => {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(60);
+  const [nextExerciseForRest, setNextExerciseForRest] = useState<{
+    name: string;
+    sets: number;
+    reps: string;
+  } | null>(null);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -169,7 +174,22 @@ const WorkoutDetail = () => {
           const isCompleted = newCompletedSets.length >= ex.sets;
           
           if (!isCompleted) {
+            // Show rest timer
             setRestDuration(ex.rest_seconds);
+            
+            // Find next exercise for preview
+            const currentIndex = prev.findIndex(e => e.id === workoutExerciseId);
+            const nextEx = prev[currentIndex + 1];
+            if (nextEx && !nextEx.completed) {
+              setNextExerciseForRest({
+                name: nextEx.exercise?.name || "Ejercicio",
+                sets: nextEx.sets,
+                reps: nextEx.target_reps,
+              });
+            } else {
+              setNextExerciseForRest(null);
+            }
+            
             setShowRestTimer(true);
           } else {
             // Move to next exercise
@@ -359,6 +379,9 @@ const WorkoutDetail = () => {
             duration={restDuration}
             onComplete={handleRestComplete}
             onSkip={handleSkipRest}
+            nextExercise={nextExerciseForRest}
+            enableVibration={true}
+            enableSound={true}
           />
         )}
       </AnimatePresence>
