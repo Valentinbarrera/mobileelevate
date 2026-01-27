@@ -6,6 +6,7 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import ProfileMembership from "@/components/profile/ProfileMembership";
 import ProfileSettings from "@/components/profile/ProfileSettings";
 import BottomNav from "@/components/home/BottomNav";
+import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -31,38 +32,49 @@ const Profile = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-24"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className="min-h-screen bg-background pb-28"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
     >
       {/* Header */}
-      <ProfileHeader onBack={() => navigate(-1)} />
+      <motion.div variants={fadeUp}>
+        <ProfileHeader onBack={() => navigate(-1)} />
+      </motion.div>
 
       {/* Avatar Section */}
-      <ProfileAvatar 
-        name={userData.name}
-        memberType={userData.memberType}
-        memberSince={userData.memberSince}
-        avatar={userData.avatar}
-        isPro={userData.isPro}
-      />
+      <motion.div variants={fadeUp}>
+        <ProfileAvatar 
+          name={userData.name}
+          memberType={userData.memberType}
+          memberSince={userData.memberSince}
+          avatar={userData.avatar}
+          isPro={userData.isPro}
+        />
+      </motion.div>
 
       {/* Stats */}
-      <ProfileStats 
-        totalXp={stats.totalXp}
-        sessions={stats.sessions}
-        medals={stats.medals}
-      />
+      <motion.div variants={fadeUp}>
+        <ProfileStats 
+          totalXp={stats.totalXp}
+          sessions={stats.sessions}
+          medals={stats.medals}
+        />
+      </motion.div>
 
       {/* Membership Card */}
-      <ProfileMembership 
-        plan={membership.plan}
-        nextRenewal={membership.nextRenewal}
-        isPro={userData.isPro}
-      />
+      <motion.div variants={fadeUp}>
+        <ProfileMembership 
+          plan={membership.plan}
+          nextRenewal={membership.nextRenewal}
+          isPro={userData.isPro}
+        />
+      </motion.div>
 
       {/* Settings List */}
-      <ProfileSettings />
+      <motion.div variants={fadeUp}>
+        <ProfileSettings />
+      </motion.div>
 
       {/* Bottom Navigation */}
       <BottomNav />

@@ -5,6 +5,7 @@ import RoutinesTabs from "@/components/routines/RoutinesTabs";
 import ActiveProgram from "@/components/routines/ActiveProgram";
 import RoutinesList from "@/components/routines/RoutinesList";
 import BottomNav from "@/components/home/BottomNav";
+import { staggerContainer, fadeUp } from "@/lib/animations";
 
 export type RoutineStatus = "pending" | "completed" | "in_progress";
 export type TabFilter = "today" | "week" | "completed";
@@ -108,7 +109,6 @@ const Routines = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRoutines = mockRoutines.filter((routine) => {
-    // Filter by tab
     if (activeTab === "today") {
       const today = new Date().toLocaleDateString("es-ES", { weekday: "long" });
       const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
@@ -117,10 +117,8 @@ const Routines = () => {
     if (activeTab === "completed") {
       return routine.status === "completed";
     }
-    // "week" shows all
     return true;
   }).filter((routine) => {
-    // Filter by search
     if (!searchQuery) return true;
     return routine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
            routine.muscleGroups.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -132,43 +130,42 @@ const Routines = () => {
   return (
     <motion.div 
       className="min-h-screen bg-background pb-24"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
     >
-      {/* Header */}
       <RoutinesHeader 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
 
-      {/* Tabs */}
-      <RoutinesTabs 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        completedCount={completedCount}
-      />
+      <motion.div variants={fadeUp}>
+        <RoutinesTabs 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          completedCount={completedCount}
+        />
+      </motion.div>
 
-      {/* Active Program Card */}
-      <ActiveProgram 
-        name={programInfo.name}
-        subtitle={programInfo.subtitle}
-        progress={programInfo.progress}
-      />
+      <motion.div variants={fadeUp}>
+        <ActiveProgram 
+          name={programInfo.name}
+          subtitle={programInfo.subtitle}
+          progress={programInfo.progress}
+        />
+      </motion.div>
 
-      {/* In Progress Highlight */}
       {inProgressRoutine && activeTab !== "completed" && (
         <motion.div 
-          className="px-5 mb-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="px-5 mb-3"
+          variants={fadeUp}
         >
-          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+          <p className="text-label-primary">
             Continuar donde lo dejaste
           </p>
         </motion.div>
       )}
 
-      {/* Routines List */}
       <RoutinesList 
         routines={filteredRoutines}
         emptyMessage={
@@ -180,7 +177,6 @@ const Routines = () => {
         }
       />
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </motion.div>
   );

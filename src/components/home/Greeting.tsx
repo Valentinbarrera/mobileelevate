@@ -1,3 +1,6 @@
+import { fadeUp } from "@/lib/animations";
+import { motion } from "framer-motion";
+
 interface GreetingProps {
   userName: string;
   subtitle?: string;
@@ -10,25 +13,28 @@ const Greeting = ({
   todayStatus = "Hoy entrenás: Piernas y Glúteos"
 }: GreetingProps) => {
   return (
-    <div className="px-5 pt-4 pb-5">
-      {/* Saludo principal - Jerarquía 1 */}
-      <h1 className="text-3xl font-black text-foreground tracking-tight leading-tight">
-        ¡HOLA, <span className="text-gradient-primary">{userName.toUpperCase()}</span>!
+    <motion.div className="px-5 pt-3 pb-4" variants={fadeUp}>
+      {/* Saludo principal */}
+      <h1 className="text-2xl font-black text-foreground tracking-tight leading-tight text-display">
+        ¡Hola, <span className="text-gradient-primary">{userName}</span>!
       </h1>
       
-      {/* Subtítulo - Jerarquía 3 */}
-      <p className="text-muted-foreground text-xs mt-1 uppercase tracking-[0.2em]">
+      {/* Subtítulo */}
+      <p className="text-muted-foreground text-[11px] mt-0.5 uppercase tracking-widest">
         {subtitle}
       </p>
       
-      {/* Estado del día - Jerarquía 2 (más prominente que el subtítulo) */}
-      <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3">
-        <span className="text-2xl">🔥</span>
-        <p className="text-foreground font-semibold text-sm">
+      {/* Estado del día */}
+      <motion.div 
+        className="mt-3 flex items-center gap-2 bg-primary/8 border border-primary/20 rounded-xl px-3.5 py-2.5"
+        whileHover={{ borderColor: "hsl(var(--primary) / 0.4)" }}
+      >
+        <span className="text-xl">🔥</span>
+        <p className="text-foreground font-medium text-sm">
           {todayStatus}
         </p>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
