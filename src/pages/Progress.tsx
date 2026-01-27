@@ -7,6 +7,10 @@ import WeeklyActivity from "@/components/progress/WeeklyActivity";
 import ActivityStreak from "@/components/progress/ActivityStreak";
 import PersonalRecords from "@/components/progress/PersonalRecords";
 import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
+import CheckinCTA from "@/components/checkin/CheckinCTA";
+import CheckinHistoryCard from "@/components/checkin/CheckinHistoryCard";
+import { useCheckins } from "@/hooks/useCheckins";
+import { useAuth } from "@/hooks/useAuth";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const mockPRs = [
@@ -29,6 +33,9 @@ const mockPRs = [
 ];
 
 const Progress = () => {
+  const { user } = useAuth();
+  const { checkins } = useCheckins();
+
   return (
     <motion.div 
       className="min-h-screen bg-background pb-28"
@@ -66,6 +73,13 @@ const Progress = () => {
         </div>
       </motion.header>
 
+      {/* Check-in CTA */}
+      {user && (
+        <motion.div variants={fadeUp}>
+          <CheckinCTA />
+        </motion.div>
+      )}
+
       <div className="px-5 pt-5 space-y-4">
         <motion.div variants={fadeUp}>
           <FitnessScore score={88} />
@@ -92,6 +106,20 @@ const Progress = () => {
         <motion.div variants={fadeUp}>
           <PersonalRecords records={mockPRs} />
         </motion.div>
+
+        {/* Check-in History */}
+        {user && checkins.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+              Historial de Check-ins
+            </h3>
+            <div className="space-y-3">
+              {checkins.slice(0, 3).map((checkin, index) => (
+                <CheckinHistoryCard key={checkin.id} checkin={checkin} index={index} />
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <ProgressPhotoFAB />

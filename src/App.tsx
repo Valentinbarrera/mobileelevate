@@ -13,6 +13,8 @@ import ProgressUpload from "./pages/ProgressUpload";
 import Profile from "./pages/Profile";
 import Achievements from "./pages/Achievements";
 import ExerciseHistory from "./pages/ExerciseHistory";
+import WeeklyCheckin from "./pages/WeeklyCheckin";
+import CheckinDetail from "./pages/CheckinDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
           <Route path="/workout/:id" element={<WorkoutDetail />} />
           <Route path="/workout-summary" element={<WorkoutSummary />} />
           <Route path="/exercise/:id" element={<ExerciseHistory />} />
+          <Route path="/checkin" element={<WeeklyCheckin />} />
+          <Route path="/checkin/:id" element={<CheckinDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
