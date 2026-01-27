@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, ChevronRight, Flame, Droplets, Wheat, Apple, Search, Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";

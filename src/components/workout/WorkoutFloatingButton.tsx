@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { Play, CheckCircle2 } from "lucide-react";
 
@@ -8,12 +9,12 @@ interface WorkoutFloatingButtonProps {
   onFinish: () => void;
 }
 
-const WorkoutFloatingButton = ({
+const WorkoutFloatingButton = React.forwardRef<HTMLDivElement, WorkoutFloatingButtonProps>(({
   workoutStarted,
   isCompleted,
   onStart,
   onFinish,
-}: WorkoutFloatingButtonProps) => {
+}, ref) => {
   // Don't show when workout is in progress (not completed)
   if (workoutStarted && !isCompleted) return null;
 
@@ -76,6 +77,8 @@ const WorkoutFloatingButton = ({
       )}
     </motion.div>
   );
-};
+});
+
+WorkoutFloatingButton.displayName = "WorkoutFloatingButton";
 
 export default WorkoutFloatingButton;
