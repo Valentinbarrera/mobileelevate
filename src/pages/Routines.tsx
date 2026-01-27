@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import RoutinesHeader from "@/components/routines/RoutinesHeader";
 import RoutinesTabs from "@/components/routines/RoutinesTabs";
 import ActiveProgram from "@/components/routines/ActiveProgram";
+import RoutinesWeekView from "@/components/routines/RoutinesWeekView";
 import RoutinesList from "@/components/routines/RoutinesList";
 import BottomNav from "@/components/home/BottomNav";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -61,18 +62,6 @@ const mockRoutines: Routine[] = [
     thumbnail: "🏋️",
   },
   {
-    id: "4",
-    name: "Descanso Activo",
-    dayLabel: "Jueves",
-    status: "pending",
-    duration: "20 min",
-    intensity: "Principiante",
-    muscleGroups: ["Movilidad", "Flexibilidad"],
-    exerciseCount: 8,
-    xpReward: 100,
-    thumbnail: "🧘",
-  },
-  {
     id: "5",
     name: "Hombros y Core",
     dayLabel: "Viernes",
@@ -109,11 +98,6 @@ const Routines = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRoutines = mockRoutines.filter((routine) => {
-    if (activeTab === "today") {
-      const today = new Date().toLocaleDateString("es-ES", { weekday: "long" });
-      const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
-      return routine.dayLabel.toLowerCase() === todayCapitalized.toLowerCase();
-    }
     if (activeTab === "completed") {
       return routine.status === "completed";
     }
@@ -125,11 +109,10 @@ const Routines = () => {
   });
 
   const completedCount = mockRoutines.filter(r => r.status === "completed").length;
-  const inProgressRoutine = mockRoutines.find(r => r.status === "in_progress");
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-24"
+      className="min-h-screen bg-background pb-28"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
@@ -155,27 +138,21 @@ const Routines = () => {
         />
       </motion.div>
 
-      {inProgressRoutine && activeTab !== "completed" && (
-        <motion.div 
-          className="px-5 mb-3"
-          variants={fadeUp}
-        >
-          <p className="text-label-primary">
-            Continuar donde lo dejaste
-          </p>
+      {/* Show week view for week tab, list for completed */}
+      {activeTab === "week" ? (
+        <motion.div variants={fadeUp}>
+          <RoutinesWeekView routines={filteredRoutines} />
         </motion.div>
-      )}
-
-      <RoutinesList 
-        routines={filteredRoutines}
-        emptyMessage={
-          activeTab === "today" 
-            ? "No hay rutina programada para hoy" 
-            : activeTab === "completed"
+      ) : (
+        <RoutinesList 
+          routines={filteredRoutines}
+          emptyMessage={
+            activeTab === "completed"
               ? "Aún no completaste ninguna rutina"
               : "No se encontraron rutinas"
-        }
-      />
+          }
+        />
+      )}
 
       <BottomNav />
     </motion.div>
