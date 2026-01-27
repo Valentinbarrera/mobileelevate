@@ -7,6 +7,7 @@ import WeeklyActivity from "@/components/progress/WeeklyActivity";
 import ActivityStreak from "@/components/progress/ActivityStreak";
 import PersonalRecords from "@/components/progress/PersonalRecords";
 import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
+import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const mockPRs = [
   {
@@ -30,61 +31,70 @@ const mockPRs = [
 const Progress = () => {
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-32"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className="min-h-screen bg-background pb-28"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
     >
       {/* Header */}
       <motion.header 
-        className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 bg-background/98 backdrop-blur-xl border-b border-border/50"
+        variants={fadeUp}
       >
-        <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center justify-between px-5 py-3">
           <div>
-            <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-              Estadísticas
-            </span>
-            <h1 className="text-xl font-bold text-foreground">Tu Progreso</h1>
+            <span className="text-label">Estadísticas</span>
+            <h1 className="text-lg font-bold text-foreground">Tu Progreso</h1>
           </div>
           
           <div className="flex items-center gap-2">
-            <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+            <motion.button 
+              className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-smooth touch-target"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
               <Share2 className="w-5 h-5" />
-            </button>
-            <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+            </motion.button>
+            <motion.button 
+              className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-smooth touch-target"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
               <Bell className="w-5 h-5" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </motion.header>
 
-      <div className="px-5 pt-6 space-y-5">
-        {/* Fitness Score */}
-        <FitnessScore score={88} />
+      <div className="px-5 pt-5 space-y-4">
+        <motion.div variants={fadeUp}>
+          <FitnessScore score={88} />
+        </motion.div>
 
-        {/* Weight & Activity Row */}
-        <div className="grid grid-cols-2 gap-4">
-          <WeightTracker currentWeight={74.2} trend={-1.2} />
-          <WeeklyActivity totalMinutes={345} goalMet={true} />
+        <div className="grid grid-cols-2 gap-3">
+          <motion.div variants={fadeUp}>
+            <WeightTracker currentWeight={74.2} trend={-1.2} />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <WeeklyActivity totalMinutes={345} goalMet={true} />
+          </motion.div>
         </div>
 
-        {/* Activity Streak Calendar */}
-        <ActivityStreak 
-          currentStreak={12}
-          month="Enero"
-          year={2026}
-          activeDays={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
-        />
+        <motion.div variants={fadeUp}>
+          <ActivityStreak 
+            currentStreak={12}
+            month="Enero"
+            year={2026}
+            activeDays={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+          />
+        </motion.div>
 
-        {/* Personal Records */}
-        <PersonalRecords records={mockPRs} />
+        <motion.div variants={fadeUp}>
+          <PersonalRecords records={mockPRs} />
+        </motion.div>
       </div>
 
-      {/* Floating Photo Upload Button */}
       <ProgressPhotoFAB />
-
-      {/* Bottom Navigation */}
       <BottomNav />
     </motion.div>
   );

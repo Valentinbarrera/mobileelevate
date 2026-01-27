@@ -11,23 +11,11 @@ import WeeklyProgress from "@/components/home/WeeklyProgress";
 import QuickActions from "@/components/home/QuickActions";
 import MotivationCard from "@/components/home/MotivationCard";
 import BottomNav from "@/components/home/BottomNav";
+import { staggerContainer, fadeUp } from "@/lib/animations";
 
 import workoutHero from "@/assets/workout-hero.jpg";
 import programShred from "@/assets/program-shred.jpg";
 import programZen from "@/assets/program-zen.jpg";
-
-const fadeUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-};
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.06,
-    },
-  },
-};
 
 const Index = () => {
   const programs = [
@@ -41,46 +29,42 @@ const Index = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-28"
+      className="min-h-screen bg-background pb-24"
+      variants={staggerContainer}
       initial="initial"
       animate="animate"
-      variants={stagger}
     >
-      <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
-        <Header userName="Camila" streakDays={12} />
-      </motion.div>
+      <Header userName="Camila" streakDays={12} />
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+      <motion.div variants={fadeUp}>
         <Greeting 
           userName="Camila" 
           todayStatus="Hoy entrenás: Piernas y Glúteos"
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <ProgressUploadCard />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
-        <WorkoutCard 
-          label="Daily Focus"
-          duration="45 MIN"
-          title="Explosive Power"
-          intensity="Alta"
-          imageUrl={workoutHero}
-          onStart={handleStartWorkout}
-        />
-      </motion.div>
+      <WorkoutCard 
+        label="Daily Focus"
+        duration="45 MIN"
+        title="Explosive Power"
+        intensity="Alta"
+        imageUrl={workoutHero}
+        onStart={handleStartWorkout}
+      />
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <MetricsSection />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <ActivePrograms programs={programs} />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <NutritionSection 
           targetKcal={2500}
           currentPercent={74}
@@ -90,7 +74,7 @@ const Index = () => {
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <LevelProgress 
           level={14}
           currentXP={1250}
@@ -99,15 +83,15 @@ const Index = () => {
         />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <WeeklyProgress completedDays={3} totalDays={5} />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <QuickActions />
       </motion.div>
       
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }}>
+      <motion.div variants={fadeUp}>
         <MotivationCard message="No pares ahora. Vas mejor de lo que creés." />
       </motion.div>
       

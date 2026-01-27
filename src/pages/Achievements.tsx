@@ -6,6 +6,7 @@ import AchievementsTabs from "@/components/achievements/AchievementsTabs";
 import AchievementsStats from "@/components/achievements/AchievementsStats";
 import AchievementsList from "@/components/achievements/AchievementsList";
 import BottomNav from "@/components/home/BottomNav";
+import { staggerContainer, fadeUp } from "@/lib/animations";
 
 export type AchievementCategory = "all" | "workouts" | "consistency" | "progress" | "social";
 export type AchievementStatus = "locked" | "unlocked" | "claimed";
@@ -199,23 +200,25 @@ const Achievements = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-24"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className="min-h-screen bg-background pb-28"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
     >
       {/* Header */}
       <motion.header 
-        className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 bg-background/98 backdrop-blur-xl border-b border-border/50"
+        variants={fadeUp}
       >
-        <div className="flex items-center justify-between px-5 py-4">
-          <button
+        <div className="flex items-center justify-between px-5 py-3">
+          <motion.button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
+            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-foreground hover:bg-muted transition-smooth touch-target"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </motion.button>
           
           <h1 className="text-lg font-bold text-foreground">Logros y Medallas</h1>
           
@@ -226,17 +229,21 @@ const Achievements = () => {
       </motion.header>
 
       {/* Stats Summary */}
-      <AchievementsStats 
-        unlockedCount={unlockedCount}
-        totalCount={mockAchievements.length}
-        totalXp={totalXp}
-      />
+      <motion.div variants={fadeUp}>
+        <AchievementsStats 
+          unlockedCount={unlockedCount}
+          totalCount={mockAchievements.length}
+          totalXp={totalXp}
+        />
+      </motion.div>
 
       {/* Category Tabs */}
-      <AchievementsTabs 
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-      />
+      <motion.div variants={fadeUp}>
+        <AchievementsTabs 
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+      </motion.div>
 
       {/* Achievements List */}
       <AchievementsList achievements={filteredAchievements} />

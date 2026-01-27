@@ -1,6 +1,7 @@
 import { Play, Clock, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { fadeUp } from "@/lib/animations";
 
 interface WorkoutCardProps {
   label: string;
@@ -12,7 +13,15 @@ interface WorkoutCardProps {
   onStart?: () => void;
 }
 
-const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", workoutId = "1", onStart }: WorkoutCardProps) => {
+const WorkoutCard = ({ 
+  label, 
+  duration, 
+  title, 
+  imageUrl, 
+  intensity = "Alta", 
+  workoutId = "1", 
+  onStart 
+}: WorkoutCardProps) => {
   const navigate = useNavigate();
   
   const handleStart = () => {
@@ -23,23 +32,24 @@ const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", wor
   return (
     <motion.div 
       className="mx-5 mt-5 relative rounded-2xl overflow-hidden shadow-xl"
-      whileHover={{ scale: 1.01 }}
+      variants={fadeUp}
+      whileHover={{ scale: 1.005 }}
+      whileTap={{ scale: 0.995 }}
     >
       <div 
         className="relative h-56 bg-cover bg-center"
         style={{ backgroundImage: `url(${imageUrl})` }}
       >
-        {/* Gradient overlay mejorado */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        {/* Gradient overlay optimizado */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/20" />
         
-        {/* Tags superiores - Jerarquía 3 */}
+        {/* Tags superiores */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
-              {label}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 bg-background/60 backdrop-blur-sm rounded-full px-3 py-1.5">
+          <span className="bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-lg">
+            {label}
+          </span>
+          
+          <div className="flex items-center gap-2 bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5">
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-foreground text-xs font-medium">{duration}</span>
@@ -54,20 +64,24 @@ const WorkoutCard = ({ label, duration, title, imageUrl, intensity = "Alta", wor
         
         {/* Contenido inferior */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          {/* Título - Jerarquía 1 */}
-          <h2 className="text-2xl font-black text-foreground mb-4 tracking-tight">{title}</h2>
+          <h2 className="text-2xl font-black text-foreground mb-4 tracking-tight text-display">
+            {title}
+          </h2>
           
-          {/* CTA Principal - Máxima prominencia */}
+          {/* CTA Principal con feedback táctil mejorado */}
           <motion.button 
             onClick={handleStart}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-4 min-h-[56px] shadow-lg glow-primary"
-            whileHover={{ scale: 1.02 }}
+            className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-xl py-4 touch-target-lg shadow-lg glow-primary"
+            whileHover={{ scale: 1.01, boxShadow: "0 0 30px hsl(18 100% 55% / 0.5)" }}
             whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              <Play className="w-5 h-5 text-primary-foreground fill-current ml-0.5" />
+            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+              <Play className="w-4 h-4 text-primary-foreground fill-current ml-0.5" />
             </div>
-            <span className="text-primary-foreground font-bold text-base tracking-wide">EMPEZAR ENTRENAMIENTO</span>
+            <span className="text-primary-foreground font-bold text-sm tracking-wide uppercase">
+              Empezar Entrenamiento
+            </span>
           </motion.button>
         </div>
       </div>
