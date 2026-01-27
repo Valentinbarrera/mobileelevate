@@ -14,7 +14,352 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exercise_history: {
+        Row: {
+          avg_difficulty: Database["public"]["Enums"]["difficulty_level"] | null
+          created_at: string
+          exercise_id: string
+          id: string
+          max_weight: number
+          performed_at: string
+          session_id: string
+          total_reps: number
+          total_volume: number
+          user_id: string
+        }
+        Insert: {
+          avg_difficulty?:
+            | Database["public"]["Enums"]["difficulty_level"]
+            | null
+          created_at?: string
+          exercise_id: string
+          id?: string
+          max_weight: number
+          performed_at?: string
+          session_id: string
+          total_reps: number
+          total_volume: number
+          user_id: string
+        }
+        Update: {
+          avg_difficulty?:
+            | Database["public"]["Enums"]["difficulty_level"]
+            | null
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          max_weight?: number
+          performed_at?: string
+          session_id?: string
+          total_reps?: number
+          total_volume?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_history_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_history_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_sets: {
+        Row: {
+          completed_at: string
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          exercise_id: string
+          id: string
+          is_pr: boolean
+          notes: string | null
+          reps: number
+          session_id: string
+          set_number: number
+          weight: number
+          workout_exercise_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          exercise_id: string
+          id?: string
+          is_pr?: boolean
+          notes?: string | null
+          reps: number
+          session_id: string
+          set_number: number
+          weight: number
+          workout_exercise_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          exercise_id?: string
+          id?: string
+          is_pr?: boolean
+          notes?: string | null
+          reps?: number
+          session_id?: string
+          set_number?: number
+          weight?: number
+          workout_exercise_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_sets_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_sets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_sets_workout_exercise_id_fkey"
+            columns: ["workout_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          equipment: string | null
+          id: string
+          muscle_group: string
+          name: string
+          thumbnail: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          equipment?: string | null
+          id?: string
+          muscle_group: string
+          name: string
+          thumbnail?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          equipment?: string | null
+          id?: string
+          muscle_group?: string
+          name?: string
+          thumbnail?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      personal_records: {
+        Row: {
+          achieved_at: string
+          created_at: string
+          exercise_id: string
+          exercise_set_id: string | null
+          id: string
+          record_type: string
+          reps: number | null
+          user_id: string
+          value: number
+          weight: number | null
+        }
+        Insert: {
+          achieved_at?: string
+          created_at?: string
+          exercise_id: string
+          exercise_set_id?: string | null
+          id?: string
+          record_type: string
+          reps?: number | null
+          user_id: string
+          value: number
+          weight?: number | null
+        }
+        Update: {
+          achieved_at?: string
+          created_at?: string
+          exercise_id?: string
+          exercise_set_id?: string | null
+          id?: string
+          record_type?: string
+          reps?: number | null
+          user_id?: string
+          value?: number
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_records_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_records_exercise_set_id_fkey"
+            columns: ["exercise_set_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_exercises: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          notes: string | null
+          order_index: number
+          rest_seconds: number
+          sets: number
+          target_reps: string
+          target_weight: number | null
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          rest_seconds?: number
+          sets?: number
+          target_reps?: string
+          target_weight?: number | null
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          rest_seconds?: number
+          sets?: number
+          target_reps?: string
+          target_weight?: number | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          overall_difficulty:
+            | Database["public"]["Enums"]["difficulty_level"]
+            | null
+          started_at: string
+          total_duration_seconds: number | null
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          overall_difficulty?:
+            | Database["public"]["Enums"]["difficulty_level"]
+            | null
+          started_at?: string
+          total_duration_seconds?: number | null
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          overall_difficulty?:
+            | Database["public"]["Enums"]["difficulty_level"]
+            | null
+          started_at?: string
+          total_duration_seconds?: number | null
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          image_url: string | null
+          intensity: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          intensity?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          intensity?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +368,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      difficulty_level: "easy" | "moderate" | "hard" | "max_effort"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +495,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      difficulty_level: ["easy", "moderate", "hard", "max_effort"],
+    },
   },
 } as const
