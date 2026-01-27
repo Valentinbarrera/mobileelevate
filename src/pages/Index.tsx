@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
-import ProgressUploadCard from "@/components/home/ProgressUploadCard";
 import WorkoutCard from "@/components/home/WorkoutCard";
 import ActivePrograms from "@/components/home/ActivePrograms";
 import NutritionSection from "@/components/home/NutritionSection";
