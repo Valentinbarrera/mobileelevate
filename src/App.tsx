@@ -22,6 +22,8 @@ import Achievements from "./pages/Achievements";
 import ExerciseHistory from "./pages/ExerciseHistory";
 import WeeklyCheckin from "./pages/WeeklyCheckin";
 import CheckinDetail from "./pages/CheckinDetail";
+import Nutrition from "./pages/Nutrition";
+import Programs from "./pages/Programs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +55,8 @@ const App = () => (
           <Route path="/exercise/:id" element={<ProtectedRoute><ExerciseHistory /></ProtectedRoute>} />
           <Route path="/checkin" element={<ProtectedRoute><WeeklyCheckin /></ProtectedRoute>} />
           <Route path="/checkin/:id" element={<ProtectedRoute><CheckinDetail /></ProtectedRoute>} />
+          <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
+          <Route path="/programs" element={<ProtectedRoute><Programs /></ProtectedRoute>} />
           
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

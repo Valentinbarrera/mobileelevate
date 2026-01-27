@@ -4,7 +4,6 @@ import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
 import ProgressUploadCard from "@/components/home/ProgressUploadCard";
 import WorkoutCard from "@/components/home/WorkoutCard";
-import MetricsSection from "@/components/home/MetricsSection";
 import ActivePrograms from "@/components/home/ActivePrograms";
 import NutritionSection from "@/components/home/NutritionSection";
 import LevelProgress from "@/components/home/LevelProgress";
@@ -42,8 +41,8 @@ const Index = () => {
 
   // Get workout title for today's status
   const todayStatus = todayWorkout 
-    ? `Hoy entrenás: ${todayWorkout.title}` 
-    : "¡Descansá hoy o elegí una rutina!";
+    ? `Hoy: ${todayWorkout.title}` 
+    : "¡Día de descanso activo!";
 
   if (authLoading || loading) {
     return (
@@ -68,11 +67,8 @@ const Index = () => {
           todayStatus={todayStatus}
         />
       </motion.div>
-      
-      <motion.div variants={fadeUp}>
-        <ProgressUploadCard />
-      </motion.div>
-      
+
+      {/* Main Workout Card */}
       {todayWorkout ? (
         <WorkoutCard 
           label="Entrenamiento del Día"
@@ -94,14 +90,30 @@ const Index = () => {
         />
       )}
       
+      {/* Level & XP */}
       <motion.div variants={fadeUp}>
-        <MetricsSection />
+        <LevelProgress 
+          level={userProgress.level}
+          currentXP={userProgress.currentXP}
+          targetXP={userProgress.targetXP}
+          badge={userProgress.badge}
+        />
+      </motion.div>
+
+      {/* Weekly Progress */}
+      <motion.div variants={fadeUp}>
+        <WeeklyProgress 
+          completedDays={weeklyStats.completedWorkouts} 
+          totalDays={weeklyStats.totalWorkouts} 
+        />
       </motion.div>
       
+      {/* Active Programs */}
       <motion.div variants={fadeUp}>
         <ActivePrograms programs={programs} />
       </motion.div>
       
+      {/* Nutrition */}
       <motion.div variants={fadeUp}>
         <NutritionSection 
           targetKcal={2500}
@@ -112,26 +124,12 @@ const Index = () => {
         />
       </motion.div>
       
-      <motion.div variants={fadeUp}>
-        <LevelProgress 
-          level={userProgress.level}
-          currentXP={userProgress.currentXP}
-          targetXP={userProgress.targetXP}
-          badge={userProgress.badge}
-        />
-      </motion.div>
-      
-      <motion.div variants={fadeUp}>
-        <WeeklyProgress 
-          completedDays={weeklyStats.completedWorkouts} 
-          totalDays={weeklyStats.totalWorkouts} 
-        />
-      </motion.div>
-      
+      {/* Quick Actions */}
       <motion.div variants={fadeUp}>
         <QuickActions />
       </motion.div>
       
+      {/* Motivation */}
       <motion.div variants={fadeUp}>
         <MotivationCard message={coachMessage} />
       </motion.div>
