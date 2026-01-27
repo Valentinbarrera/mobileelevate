@@ -1,14 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Play, Pause, Clock, Zap, Target, ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import ExerciseCard from "@/components/workout/ExerciseCard";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkoutSession } from "@/hooks/useWorkoutSession";
 import RestTimer from "@/components/workout/RestTimer";
 import WorkoutHero from "@/components/workout/WorkoutHero";
-import WorkoutExerciseList from "@/components/workout/WorkoutExerciseList";
 import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
+import ExerciseTrackingCard from "@/components/workout/ExerciseTrackingCard";
+import ExerciseListItem from "@/components/workout/ExerciseListItem";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { toast } from "sonner";
+import type { 
+  Workout, 
+  Exercise as DbExercise, 
+  ExerciseWithTracking,
+  DifficultyLevel,
+  ExerciseSet
+} from "@/types/database";
 
+// Legacy Exercise type for backwards compatibility with ExerciseListItem
 export interface Exercise {
   id: string;
   name: string;
@@ -23,90 +35,84 @@ export interface Exercise {
   thumbnail?: string;
 }
 
-const mockExercises: Exercise[] = [
-  {
-    id: "1",
-    name: "Sentadilla Búlgara",
-    sets: 4,
-    reps: "12 c/pierna",
-    weight: "10kg",
-    restSeconds: 60,
-    notes: "Mantené la espalda recta y bajá hasta que la rodilla trasera casi toque el suelo.",
-    completed: false,
-    currentSet: 0,
-    thumbnail: "🏋️",
-  },
-  {
-    id: "2",
-    name: "Hip Thrust",
-    sets: 4,
-    reps: "15",
-    weight: "40kg",
-    restSeconds: 90,
-    notes: "Apretá los glúteos arriba y mantené 2 segundos.",
-    completed: false,
-    currentSet: 0,
-    thumbnail: "🍑",
-  },
-  {
-    id: "3",
-    name: "Peso Muerto Rumano",
-    sets: 3,
-    reps: "12",
-    weight: "30kg",
-    restSeconds: 75,
-    notes: "Sentí el estiramiento en los isquiotibiales. No redondees la espalda.",
-    completed: false,
-    currentSet: 0,
-    thumbnail: "💪",
-  },
-  {
-    id: "4",
-    name: "Zancadas Caminando",
-    sets: 3,
-    reps: "10 c/pierna",
-    restSeconds: 60,
-    notes: "Pasos largos, rodilla delantera no pasa la punta del pie.",
-    completed: false,
-    currentSet: 0,
-    thumbnail: "🦵",
-  },
-  {
-    id: "5",
-    name: "Elevación de Talones",
-    sets: 4,
-    reps: "20",
-    restSeconds: 45,
-    notes: "Subí lento, bajá controlado. Sentí la contracción en los gemelos.",
-    completed: false,
-    currentSet: 0,
-    thumbnail: "🦶",
-  },
-];
-
-const workoutInfo = {
-  title: "PIERNAS Y GLÚTEOS",
-  subtitle: "Rutina de Profe Martín",
-  duration: "45 min",
-  intensity: "Intermedio",
-  focus: "Tren Inferior",
-  description: "Sesión diseñada para fortalecer y tonificar piernas y glúteos. Enfocada en ejercicios compuestos para maximizar resultados y mejorar la fuerza funcional.",
-  coachNote: "¡Hoy toca darle duro a las piernas! Recordá calentar bien antes de arrancar. Cualquier duda me escribís. 💪",
-};
-
 const WorkoutDetail = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
+  const { user, loading: authLoading } = useAuth();
+  
+  const [workout, setWorkout] = useState<Workout | null>(null);
+  const [exercises, setExercises] = useState<ExerciseWithTracking[]>([]);
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(60);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const completedExercises = exercises.filter(e => e.completed).length;
-  const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
-  const completedSets = exercises.reduce((acc, e) => acc + e.currentSet, 0);
+  const workoutId = id || "11111111-1111-1111-1111-111111111111";
+  const { session, startSession, completeSet, finishSession, getLastPerformance, getPersonalRecords } = useWorkoutSession(workoutId);
+
+  // Fetch workout data
+  useEffect(() => {
+    const fetchWorkout = async () => {
+      try {
+        // Fetch workout
+        const { data: workoutData, error: workoutError } = await supabase
+          .from("workouts")
+          .select("*")
+          .eq("id", workoutId)
+          .single();
+
+        if (workoutError) throw workoutError;
+        setWorkout(workoutData as Workout);
+
+        // Fetch workout exercises with exercise details
+        const { data: exercisesData, error: exercisesError } = await supabase
+          .from("workout_exercises")
+          .select(`
+            *,
+            exercise:exercises(*)
+          `)
+          .eq("workout_id", workoutId)
+          .order("order_index");
+
+        if (exercisesError) throw exercisesError;
+
+        // Transform to ExerciseWithTracking
+        const exercisesWithTracking: ExerciseWithTracking[] = await Promise.all(
+          (exercisesData || []).map(async (we) => {
+            let lastPerformance = null;
+            let personalRecord = null;
+
+            if (user) {
+              lastPerformance = await getLastPerformance(we.exercise_id);
+              personalRecord = await getPersonalRecords(we.exercise_id);
+            }
+
+            return {
+              ...we,
+              exercise: we.exercise as DbExercise,
+              completed: false,
+              currentSet: 0,
+              completedSets: [],
+              lastPerformance,
+              personalRecord,
+            } as ExerciseWithTracking;
+          })
+        );
+
+        setExercises(exercisesWithTracking);
+      } catch (error) {
+        console.error("Error fetching workout:", error);
+        toast.error("Error al cargar el entrenamiento");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkout();
+  }, [workoutId, user, getLastPerformance, getPersonalRecords]);
 
   // Workout timer
   useEffect(() => {
@@ -125,49 +131,118 @@ const WorkoutDetail = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStartWorkout = () => {
-    setWorkoutStarted(true);
-    if (exercises.length > 0) {
-      setActiveExerciseId(exercises[0].id);
+  const handleStartWorkout = async () => {
+    if (!user) {
+      toast.error("Debés iniciar sesión para entrenar", {
+        action: {
+          label: "Iniciar sesión",
+          onClick: () => navigate("/auth"),
+        },
+      });
+      return;
+    }
+
+    const newSession = await startSession();
+    if (newSession) {
+      setWorkoutStarted(true);
+      if (exercises.length > 0) {
+        setActiveExerciseId(exercises[0].id);
+      }
     }
   };
 
-  const handleCompleteSet = useCallback((exerciseId: string) => {
-    setExercises(prev => prev.map(ex => {
-      if (ex.id === exerciseId) {
-        const newCurrentSet = ex.currentSet + 1;
-        const isCompleted = newCurrentSet >= ex.sets;
-        
-        if (!isCompleted) {
-          setRestDuration(ex.restSeconds);
-          setShowRestTimer(true);
+  const handleCompleteSet = useCallback(async (
+    workoutExerciseId: string,
+    exerciseId: string,
+    setNumber: number,
+    weight: number,
+    reps: number,
+    difficulty: DifficultyLevel
+  ): Promise<ExerciseSet | null> => {
+    const result = await completeSet(workoutExerciseId, exerciseId, setNumber, weight, reps, difficulty);
+    
+    if (result) {
+      // Update local state
+      setExercises(prev => prev.map(ex => {
+        if (ex.id === workoutExerciseId) {
+          const newCompletedSets = [...ex.completedSets, result];
+          const isCompleted = newCompletedSets.length >= ex.sets;
+          
+          if (!isCompleted) {
+            setRestDuration(ex.rest_seconds);
+            setShowRestTimer(true);
+          } else {
+            // Move to next exercise
+            const currentIndex = prev.findIndex(e => e.id === workoutExerciseId);
+            const nextExercise = prev[currentIndex + 1];
+            if (nextExercise && !nextExercise.completed) {
+              setTimeout(() => setActiveExerciseId(nextExercise.id), 500);
+            }
+          }
+
+          return {
+            ...ex,
+            currentSet: newCompletedSets.length,
+            completedSets: newCompletedSets,
+            completed: isCompleted,
+          };
         }
-        
-        return {
-          ...ex,
-          currentSet: newCurrentSet,
-          completed: isCompleted,
-        };
-      }
-      return ex;
-    }));
-  }, []);
+        return ex;
+      }));
+    }
+
+    return result;
+  }, [completeSet]);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
-    
-    const currentExercise = exercises.find(e => e.id === activeExerciseId);
-    if (currentExercise?.completed) {
-      const nextExercise = exercises.find(e => !e.completed && e.id !== activeExerciseId);
-      if (nextExercise) {
-        setActiveExerciseId(nextExercise.id);
-      }
-    }
-  }, [exercises, activeExerciseId]);
+  }, []);
 
   const handleSkipRest = () => {
     setShowRestTimer(false);
   };
+
+  const handleFinishWorkout = async () => {
+    const completedSession = await finishSession(elapsedTime, undefined, undefined);
+    
+    const completedExercises = exercises.filter(e => e.completed).length;
+    const completedSets = exercises.reduce((acc, e) => acc + e.completedSets.length, 0);
+    const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
+    
+    navigate("/workout-summary", {
+      state: {
+        summaryData: {
+          workoutName: workout?.title || "Entrenamiento",
+          duration: elapsedTime,
+          exercisesCompleted: completedExercises,
+          totalExercises: exercises.length,
+          setsCompleted: completedSets,
+          totalSets: totalSets,
+          caloriesBurned: Math.round(elapsedTime / 60 * 7.5),
+        }
+      }
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!workout) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Entrenamiento no encontrado</p>
+      </div>
+    );
+  }
+
+  const completedExercises = exercises.filter(e => e.completed).length;
+  const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
+  const completedSets = exercises.reduce((acc, e) => acc + e.completedSets.length, 0);
 
   return (
     <motion.div 
@@ -175,7 +250,7 @@ const WorkoutDetail = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Active Workout Header - Only when workout started */}
+      {/* Active Workout Header */}
       <AnimatePresence>
         {workoutStarted && (
           <ActiveWorkoutHeader
@@ -190,29 +265,70 @@ const WorkoutDetail = () => {
         )}
       </AnimatePresence>
 
-      {/* Hero Section - Hidden when workout active */}
+      {/* Hero Section */}
       {!workoutStarted && (
         <WorkoutHero
-          title={workoutInfo.title}
-          subtitle={workoutInfo.subtitle}
-          duration={workoutInfo.duration}
-          intensity={workoutInfo.intensity}
-          focus={workoutInfo.focus}
+          title={workout.title.toUpperCase()}
+          subtitle={workout.description || ""}
+          duration={`${workout.duration_minutes} min`}
+          intensity={workout.intensity}
+          focus="Entrenamiento"
           onBack={() => navigate("/")}
         />
       )}
 
       {/* Exercise List */}
-      <WorkoutExerciseList
-        exercises={exercises}
-        activeExerciseId={activeExerciseId}
-        workoutStarted={workoutStarted}
-        onSelectExercise={setActiveExerciseId}
-        onCompleteSet={handleCompleteSet}
-      />
+      <div className="px-5 pb-32">
+        <motion.div 
+          className="flex items-center justify-between mb-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <h2 className="text-xs font-semibold text-primary uppercase tracking-wider">
+            Lista de Ejercicios
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {exercises.length} ejercicios
+          </span>
+        </motion.div>
+
+        <div className="space-y-3">
+          {exercises.map((exercise, index) => (
+            workoutStarted ? (
+              <ExerciseTrackingCard
+                key={exercise.id}
+                exercise={exercise}
+                index={index}
+                isActive={activeExerciseId === exercise.id}
+                onSelect={() => setActiveExerciseId(exercise.id)}
+                onCompleteSet={handleCompleteSet}
+                workoutStarted={workoutStarted}
+              />
+            ) : (
+              <ExerciseListItem
+                key={exercise.id}
+                exercise={{
+                  id: exercise.id,
+                  name: exercise.exercise?.name || "",
+                  sets: exercise.sets,
+                  reps: exercise.target_reps,
+                  weight: exercise.target_weight ? `${exercise.target_weight}kg` : undefined,
+                  restSeconds: exercise.rest_seconds,
+                  notes: exercise.notes || undefined,
+                  completed: false,
+                  currentSet: 0,
+                  thumbnail: exercise.exercise?.thumbnail || undefined,
+                }}
+                index={index + 1}
+              />
+            )
+          ))}
+        </div>
+      </div>
 
       {/* Description Section */}
-      {!workoutStarted && (
+      {!workoutStarted && workout.description && (
         <motion.div 
           className="px-5 pb-8"
           initial={{ opacity: 0, y: 20 }}
@@ -223,44 +339,17 @@ const WorkoutDetail = () => {
             Descripción
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {workoutInfo.description}
+            {workout.description}
           </p>
-          
-          {/* Coach Note */}
-          <div className="mt-4 p-4 rounded-2xl bg-primary/10 border border-primary/20">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
-                👨‍🏫
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-primary mb-1">Profe Martín</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {workoutInfo.coachNote}
-                </p>
-              </div>
-            </div>
-          </div>
         </motion.div>
       )}
 
       {/* Floating Button */}
       <WorkoutFloatingButton
         workoutStarted={workoutStarted}
-        isCompleted={completedExercises === exercises.length}
+        isCompleted={completedExercises === exercises.length && exercises.length > 0}
         onStart={handleStartWorkout}
-        onFinish={() => navigate("/workout-summary", {
-          state: {
-            summaryData: {
-              workoutName: workoutInfo.title,
-              duration: elapsedTime,
-              exercisesCompleted: completedExercises,
-              totalExercises: exercises.length,
-              setsCompleted: completedSets,
-              totalSets: totalSets,
-              caloriesBurned: Math.round(elapsedTime / 60 * 7.5), // Estimate ~7.5 kcal/min
-            }
-          }
-        })}
+        onFinish={handleFinishWorkout}
       />
 
       {/* Rest Timer Overlay */}
