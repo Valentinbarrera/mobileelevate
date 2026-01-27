@@ -223,7 +223,11 @@ const Auth = () => {
             )}
 
             {isLogin && (
-              <button type="button" className="text-sm text-muted-foreground text-center w-full">
+              <button 
+                type="button" 
+                onClick={() => navigate("/reset-password")}
+                className="text-sm text-muted-foreground text-center w-full hover:text-primary transition-colors"
+              >
                 ¿Olvidaste tu contraseña?
               </button>
             )}

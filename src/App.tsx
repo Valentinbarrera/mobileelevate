@@ -7,6 +7,8 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import UpdatePassword from "./pages/UpdatePassword";
 import Welcome from "./pages/Welcome";
 import GoalSelection from "./pages/onboarding/GoalSelection";
 import DataHub from "./pages/onboarding/DataHub";
@@ -34,6 +36,8 @@ const App = () => (
           {/* Public routes - redirect to home if logged in */}
           <Route path="/welcome" element={<PublicRoute><Welcome /></PublicRoute>} />
           <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+          <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/onboarding/goal" element={<PublicRoute><GoalSelection /></PublicRoute>} />
           <Route path="/onboarding/data" element={<PublicRoute><DataHub /></PublicRoute>} />
           

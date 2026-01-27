@@ -273,6 +273,63 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          bmi: number | null
+          bmr: number | null
+          created_at: string
+          display_name: string | null
+          gender: string | null
+          goal: string | null
+          height: number | null
+          id: string
+          level: number | null
+          streak_days: number | null
+          updated_at: string
+          user_id: string
+          weight: number | null
+          xp_total: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          bmi?: number | null
+          bmr?: number | null
+          created_at?: string
+          display_name?: string | null
+          gender?: string | null
+          goal?: string | null
+          height?: number | null
+          id?: string
+          level?: number | null
+          streak_days?: number | null
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+          xp_total?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          bmi?: number | null
+          bmr?: number | null
+          created_at?: string
+          display_name?: string | null
+          gender?: string | null
+          goal?: string | null
+          height?: number | null
+          id?: string
+          level?: number | null
+          streak_days?: number | null
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
+          xp_total?: number | null
+        }
+        Relationships: []
+      }
       weekly_checkins: {
         Row: {
           back_photo_url: string | null
