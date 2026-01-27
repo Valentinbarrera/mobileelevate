@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface RoutinesHeaderProps {
   searchQuery: string;
@@ -7,48 +8,49 @@ interface RoutinesHeaderProps {
 }
 
 const RoutinesHeader = ({ searchQuery, onSearchChange }: RoutinesHeaderProps) => {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return (
-    <motion.header 
-      className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg"
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+    <motion.div 
+      className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
     >
-      <div className="px-5 pt-6 pb-4">
-        {/* Title Section */}
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-4 pt-safe">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-black text-foreground">Mis Rutinas</h1>
-            <p className="text-sm text-muted-foreground">Tu plan de entrenamiento personalizado</p>
-          </div>
-          
-          {/* Profile Avatar */}
-          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">JD</span>
+            <h1 className="text-2xl font-black text-foreground tracking-tight">
+              Rutinas
+            </h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Calendar className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground capitalize">
+                {formattedDate}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 relative">
+        <div className="pb-4">
+          <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar rutinas..."
+            <Input
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-secondary/80 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              placeholder="Buscar rutina o músculo..."
+              className="pl-11 h-12 rounded-2xl bg-secondary/50 border-border/50 focus:border-primary/50 transition-all"
             />
           </div>
-          
-          <motion.button
-            className="w-12 h-12 rounded-xl bg-secondary/80 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            whileTap={{ scale: 0.95 }}
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-          </motion.button>
         </div>
       </div>
-    </motion.header>
+    </motion.div>
   );
 };
 

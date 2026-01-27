@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 import workoutHeroImage from "@/assets/workout-hero.jpg";
 
 interface ActiveProgramProps {
@@ -11,17 +11,13 @@ interface ActiveProgramProps {
 const ActiveProgram = ({ name, subtitle, progress }: ActiveProgramProps) => {
   return (
     <motion.div 
-      className="px-5 mb-6"
+      className="px-4 mb-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}
     >
-      <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
-        Programa Activo
-      </p>
-      
       <motion.div
-        className="relative rounded-3xl overflow-hidden"
+        className="relative rounded-2xl overflow-hidden"
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
@@ -29,30 +25,36 @@ const ActiveProgram = ({ name, subtitle, progress }: ActiveProgramProps) => {
         <img 
           src={workoutHeroImage}
           alt="Program"
-          className="w-full h-44 object-cover"
+          className="w-full h-32 object-cover"
         />
         
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
         
         {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-5">
-          <p className="text-xs text-white/70 uppercase tracking-wider mb-1">{subtitle}</p>
-          <h3 className="text-2xl font-black text-white mb-4">{name}</h3>
-          
-          {/* Progress Bar */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-primary rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              />
+        <div className="absolute inset-0 flex items-center justify-between p-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Trophy className="w-4 h-4 text-primary" />
+              <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Programa Activo</p>
             </div>
-            <span className="text-sm font-bold text-white">{progress}%</span>
-            <ChevronRight className="w-5 h-5 text-white/60" />
+            <h3 className="text-lg font-black text-white mb-2">{name}</h3>
+            
+            {/* Progress Bar */}
+            <div className="flex items-center gap-3 max-w-[200px]">
+              <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-primary rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                />
+              </div>
+              <span className="text-xs font-bold text-white">{progress}%</span>
+            </div>
           </div>
+          
+          <ChevronRight className="w-6 h-6 text-white/60" />
         </div>
       </motion.div>
     </motion.div>
