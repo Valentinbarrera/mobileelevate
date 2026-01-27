@@ -1,5 +1,6 @@
 import { fadeUp } from "@/lib/animations";
 import { motion } from "framer-motion";
+import { Zap } from "lucide-react";
 
 interface GreetingProps {
   userName: string;
@@ -13,24 +14,19 @@ const Greeting = ({
   todayStatus = "Hoy entrenás: Piernas y Glúteos"
 }: GreetingProps) => {
   return (
-    <motion.div className="px-5 pt-3 pb-4" variants={fadeUp}>
+    <motion.div className="px-4 pt-3 pb-3" variants={fadeUp}>
       {/* Saludo principal */}
-      <h1 className="text-2xl font-black text-foreground tracking-tight leading-tight text-display">
+      <h1 className="text-xl font-black text-foreground tracking-tight leading-tight text-display">
         ¡Hola, <span className="text-gradient-primary">{userName}</span>!
       </h1>
       
-      {/* Subtítulo */}
-      <p className="text-muted-foreground text-[11px] mt-0.5 uppercase tracking-widest">
-        {subtitle}
-      </p>
-      
-      {/* Estado del día */}
+      {/* Estado del día - Más prominente */}
       <motion.div 
-        className="mt-3 flex items-center gap-2 bg-primary/8 border border-primary/20 rounded-xl px-3.5 py-2.5"
+        className="mt-2 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-xl px-3 py-2"
         whileHover={{ borderColor: "hsl(var(--primary) / 0.4)" }}
       >
-        <span className="text-xl">🔥</span>
-        <p className="text-foreground font-medium text-sm">
+        <Zap className="w-4 h-4 text-primary flex-shrink-0" />
+        <p className="text-foreground font-medium text-sm truncate">
           {todayStatus}
         </p>
       </motion.div>

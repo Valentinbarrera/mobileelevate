@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Flame } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface WeeklyProgressProps {
   completedDays: number;
@@ -7,34 +8,40 @@ interface WeeklyProgressProps {
 }
 
 const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
+  const navigate = useNavigate();
   const days = [
-    { short: 'L', full: 'Lun' },
-    { short: 'M', full: 'Mar' },
-    { short: 'M', full: 'Mie' },
-    { short: 'J', full: 'Jue' },
-    { short: 'V', full: 'Vie' },
-    { short: 'S', full: 'Sab' },
-    { short: 'D', full: 'Dom' },
+    { short: 'L', full: 'LUN' },
+    { short: 'M', full: 'MAR' },
+    { short: 'M', full: 'MIE' },
+    { short: 'J', full: 'JUE' },
+    { short: 'V', full: 'VIE' },
+    { short: 'S', full: 'SAB' },
+    { short: 'D', full: 'DOM' },
   ];
   
   const progressPercent = (completedDays / totalDays) * 100;
   
   return (
     <motion.div 
-      className="mx-5 mt-6 bg-secondary/60 border border-border rounded-2xl p-5"
+      className="mx-4 mt-4 bg-card border border-border rounded-2xl p-4 cursor-pointer"
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
+      whileTap={{ scale: 0.99 }}
+      onClick={() => navigate("/routines")}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-foreground font-bold text-sm tracking-wide uppercase">Progreso Semanal</h3>
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-foreground font-black text-lg">{completedDays}</span>
-          <span className="text-muted-foreground text-sm">/ {totalDays} entrenos</span>
+          <Flame className="w-4 h-4 text-primary" />
+          <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Progreso Semanal</h3>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-foreground font-black text-sm">{completedDays}</span>
+          <span className="text-muted-foreground text-xs">/ {totalDays}</span>
         </div>
       </div>
       
       {/* Barra de progreso principal */}
-      <div className="h-3 bg-muted rounded-full overflow-hidden mb-5">
+      <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
         <motion.div 
           className="h-full bg-gradient-primary rounded-full"
           initial={{ width: 0 }}
@@ -43,8 +50,8 @@ const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
         />
       </div>
       
-      {/* Días de la semana */}
-      <div className="flex justify-between gap-1">
+      {/* Días de la semana - Compacto */}
+      <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => {
           const isCompleted = index < completedDays;
           const isToday = index === completedDays;
@@ -52,25 +59,23 @@ const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
           return (
             <motion.div 
               key={index} 
-              className="flex flex-col items-center gap-2 flex-1"
+              className="flex flex-col items-center gap-1"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.03 }}
             >
-              <motion.div 
-                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all
+              <div 
+                className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs transition-all
                   ${isCompleted 
-                    ? 'bg-gradient-primary text-primary-foreground shadow-lg' 
+                    ? 'bg-gradient-primary text-primary-foreground' 
                     : isToday 
                       ? 'border-2 border-primary text-primary bg-primary/10' 
-                      : 'bg-muted/50 text-muted-foreground'
+                      : 'bg-secondary/50 text-muted-foreground'
                   }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
               >
-                {isCompleted ? <Check className="w-5 h-5" strokeWidth={3} /> : day.short}
-              </motion.div>
-              <span className={`text-[10px] font-medium uppercase tracking-wider ${
+                {isCompleted ? <Check className="w-4 h-4" strokeWidth={3} /> : day.short}
+              </div>
+              <span className={`text-[8px] font-medium uppercase tracking-wide ${
                 isToday ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'
               }`}>
                 {day.full}

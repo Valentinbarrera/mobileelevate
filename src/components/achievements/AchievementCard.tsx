@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { Lock, Check, Sparkles } from "lucide-react";
 import type { Achievement } from "@/pages/Achievements";
@@ -38,127 +39,132 @@ const rarityConfig = {
   },
 };
 
-const AchievementCard = ({ achievement, index }: AchievementCardProps) => {
-  const rarity = rarityConfig[achievement.rarity];
-  const isLocked = achievement.status === "locked";
-  const isUnlocked = achievement.status === "unlocked";
-  const isClaimed = achievement.status === "claimed";
+const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
+  ({ achievement, index }, ref) => {
+    const rarity = rarityConfig[achievement.rarity];
+    const isLocked = achievement.status === "locked";
+    const isUnlocked = achievement.status === "unlocked";
+    const isClaimed = achievement.status === "claimed";
 
-  return (
-    <motion.div
-      className={`relative overflow-hidden rounded-2xl border p-4 ${
-        isLocked 
-          ? "bg-card/50 border-border opacity-60" 
-          : `${rarity.bg} ${rarity.border} ${isUnlocked ? `shadow-lg ${rarity.glow}` : ""}`
-      }`}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.35 + index * 0.05 }}
-      whileHover={{ scale: isLocked ? 1 : 1.02 }}
-    >
-      {/* Unlocked glow effect */}
-      {isUnlocked && (
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"
-          animate={{ opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
-
-      {/* Status Badge */}
-      <div className="absolute top-3 right-3">
-        {isLocked && (
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
-            <Lock className="w-3 h-3 text-muted-foreground" />
-          </div>
-        )}
-        {isUnlocked && (
-          <motion.div 
-            className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            <Sparkles className="w-3 h-3 text-primary-foreground" />
-          </motion.div>
-        )}
-        {isClaimed && (
-          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-            <Check className="w-3 h-3 text-white" />
-          </div>
-        )}
-      </div>
-
-      {/* Icon */}
-      <motion.div 
-        className={`text-4xl mb-3 ${isLocked ? "grayscale opacity-50" : ""}`}
-        animate={isUnlocked ? { 
-          rotate: [0, -5, 5, 0],
-          scale: [1, 1.1, 1],
-        } : {}}
-        transition={{ duration: 2, repeat: Infinity }}
+    return (
+      <motion.div
+        ref={ref}
+        className={`relative overflow-hidden rounded-2xl border p-4 ${
+          isLocked 
+            ? "bg-card/50 border-border opacity-60" 
+            : `${rarity.bg} ${rarity.border} ${isUnlocked ? `shadow-lg ${rarity.glow}` : ""}`
+        }`}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.35 + index * 0.05 }}
+        whileHover={{ scale: isLocked ? 1 : 1.02 }}
       >
-        {achievement.icon}
-      </motion.div>
+        {/* Unlocked glow effect */}
+        {isUnlocked && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"
+            animate={{ opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
 
-      {/* Name */}
-      <h4 className={`font-bold text-sm mb-1 ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
-        {achievement.name}
-      </h4>
-
-      {/* Description */}
-      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-        {achievement.description}
-      </p>
-
-      {/* Progress Bar (for locked achievements) */}
-      {isLocked && achievement.progress !== undefined && achievement.maxProgress && (
-        <div className="mb-3">
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-foreground">Progreso</span>
-            <span className="font-semibold text-foreground">
-              {achievement.progress}/{achievement.maxProgress}
-            </span>
-          </div>
-          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+        {/* Status Badge */}
+        <div className="absolute top-3 right-3">
+          {isLocked && (
+            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
+              <Lock className="w-3 h-3 text-muted-foreground" />
+            </div>
+          )}
+          {isUnlocked && (
             <motion.div 
-              className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            />
-          </div>
+              className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <Sparkles className="w-3 h-3 text-primary-foreground" />
+            </motion.div>
+          )}
+          {isClaimed && (
+            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-bold uppercase tracking-wider ${rarity.labelColor}`}>
-          {rarity.label}
-        </span>
-        <span className="text-xs font-bold text-primary">+{achievement.xpReward} XP</span>
-      </div>
-
-      {/* Claim Button */}
-      {isUnlocked && (
-        <motion.button
-          className="w-full mt-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+        {/* Icon */}
+        <motion.div 
+          className={`text-4xl mb-3 ${isLocked ? "grayscale opacity-50" : ""}`}
+          animate={isUnlocked ? { 
+            rotate: [0, -5, 5, 0],
+            scale: [1, 1.1, 1],
+          } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
         >
-          RECLAMAR
-        </motion.button>
-      )}
+          {achievement.icon}
+        </motion.div>
 
-      {/* Unlocked Date */}
-      {isClaimed && achievement.unlockedAt && (
-        <p className="text-[10px] text-muted-foreground mt-2 text-center">
-          Desbloqueado: {achievement.unlockedAt}
+        {/* Name */}
+        <h4 className={`font-bold text-sm mb-1 ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
+          {achievement.name}
+        </h4>
+
+        {/* Description */}
+        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+          {achievement.description}
         </p>
-      )}
-    </motion.div>
-  );
-};
+
+        {/* Progress Bar (for locked achievements) */}
+        {isLocked && achievement.progress !== undefined && achievement.maxProgress && (
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-muted-foreground">Progreso</span>
+              <span className="font-semibold text-foreground">
+                {achievement.progress}/{achievement.maxProgress}
+              </span>
+            </div>
+            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${rarity.labelColor}`}>
+            {rarity.label}
+          </span>
+          <span className="text-xs font-bold text-primary">+{achievement.xpReward} XP</span>
+        </div>
+
+        {/* Claim Button */}
+        {isUnlocked && (
+          <motion.button
+            className="w-full mt-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            RECLAMAR
+          </motion.button>
+        )}
+
+        {/* Unlocked Date */}
+        {isClaimed && achievement.unlockedAt && (
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+            Desbloqueado: {achievement.unlockedAt}
+          </p>
+        )}
+      </motion.div>
+    );
+  }
+);
+
+AchievementCard.displayName = "AchievementCard";
 
 export default AchievementCard;

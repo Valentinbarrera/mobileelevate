@@ -1,3 +1,4 @@
+import React from "react";
 import { Home, Dumbbell, TrendingUp, Trophy, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -10,7 +11,7 @@ interface NavItem {
   label: string;
 }
 
-const BottomNav = () => {
+const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,7 +62,7 @@ const BottomNav = () => {
   const activeTab = getActiveTab();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50">
+    <nav ref={ref} className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50">
       <div className="flex items-stretch justify-around px-2 pb-safe">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
@@ -112,6 +113,8 @@ const BottomNav = () => {
       </div>
     </nav>
   );
-};
+});
+
+BottomNav.displayName = "BottomNav";
 
 export default BottomNav;
