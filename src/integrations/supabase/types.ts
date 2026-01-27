@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_feedback: {
+        Row: {
+          badges: string[] | null
+          checkin_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          message: string
+          nutrition_adjustment: string | null
+          progress_rating: number | null
+          training_adjustment: string | null
+          updated_at: string
+        }
+        Insert: {
+          badges?: string[] | null
+          checkin_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          message: string
+          nutrition_adjustment?: string | null
+          progress_rating?: number | null
+          training_adjustment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          badges?: string[] | null
+          checkin_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          nutrition_adjustment?: string | null
+          progress_rating?: number | null
+          training_adjustment?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_feedback_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_checkins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_history: {
         Row: {
           avg_difficulty: Database["public"]["Enums"]["difficulty_level"] | null
@@ -226,6 +273,81 @@ export type Database = {
           },
         ]
       }
+      weekly_checkins: {
+        Row: {
+          back_photo_url: string | null
+          body_fat_percentage: number | null
+          challenges: string | null
+          created_at: string
+          energy_level: Database["public"]["Enums"]["energy_level"]
+          front_photo_url: string | null
+          id: string
+          notes: string | null
+          nutrition_adherence: Database["public"]["Enums"]["adherence_level"]
+          side_photo_url: string | null
+          sleep_quality: number | null
+          soreness_level: number | null
+          stress_level: number | null
+          submitted_at: string
+          training_adherence: Database["public"]["Enums"]["adherence_level"]
+          user_id: string
+          week_number: number
+          weight: number | null
+          wins: string | null
+          workouts_completed: number
+          workouts_planned: number
+          year: number
+        }
+        Insert: {
+          back_photo_url?: string | null
+          body_fat_percentage?: number | null
+          challenges?: string | null
+          created_at?: string
+          energy_level?: Database["public"]["Enums"]["energy_level"]
+          front_photo_url?: string | null
+          id?: string
+          notes?: string | null
+          nutrition_adherence?: Database["public"]["Enums"]["adherence_level"]
+          side_photo_url?: string | null
+          sleep_quality?: number | null
+          soreness_level?: number | null
+          stress_level?: number | null
+          submitted_at?: string
+          training_adherence?: Database["public"]["Enums"]["adherence_level"]
+          user_id: string
+          week_number: number
+          weight?: number | null
+          wins?: string | null
+          workouts_completed?: number
+          workouts_planned?: number
+          year: number
+        }
+        Update: {
+          back_photo_url?: string | null
+          body_fat_percentage?: number | null
+          challenges?: string | null
+          created_at?: string
+          energy_level?: Database["public"]["Enums"]["energy_level"]
+          front_photo_url?: string | null
+          id?: string
+          notes?: string | null
+          nutrition_adherence?: Database["public"]["Enums"]["adherence_level"]
+          side_photo_url?: string | null
+          sleep_quality?: number | null
+          soreness_level?: number | null
+          stress_level?: number | null
+          submitted_at?: string
+          training_adherence?: Database["public"]["Enums"]["adherence_level"]
+          user_id?: string
+          week_number?: number
+          weight?: number | null
+          wins?: string | null
+          workouts_completed?: number
+          workouts_planned?: number
+          year?: number
+        }
+        Relationships: []
+      }
       workout_exercises: {
         Row: {
           created_at: string
@@ -365,10 +487,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_week_info: {
+        Args: never
+        Returns: {
+          week_number: number
+          year: number
+        }[]
+      }
     }
     Enums: {
+      adherence_level: "poor" | "fair" | "good" | "excellent"
       difficulty_level: "easy" | "moderate" | "hard" | "max_effort"
+      energy_level: "very_low" | "low" | "moderate" | "high" | "very_high"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -496,7 +626,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      adherence_level: ["poor", "fair", "good", "excellent"],
       difficulty_level: ["easy", "moderate", "hard", "max_effort"],
+      energy_level: ["very_low", "low", "moderate", "high", "very_high"],
     },
   },
 } as const
