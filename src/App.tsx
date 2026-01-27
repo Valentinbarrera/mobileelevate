@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PublicRoute from "@/components/auth/PublicRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
@@ -29,22 +31,26 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding/goal" element={<GoalSelection />} />
-          <Route path="/onboarding/data" element={<DataHub />} />
-          <Route path="/routines" element={<Routines />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/progress/upload" element={<ProgressUpload />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/workout/:id" element={<WorkoutDetail />} />
-          <Route path="/workout-summary" element={<WorkoutSummary />} />
-          <Route path="/exercise/:id" element={<ExerciseHistory />} />
-          <Route path="/checkin" element={<WeeklyCheckin />} />
-          <Route path="/checkin/:id" element={<CheckinDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Public routes - redirect to home if logged in */}
+          <Route path="/welcome" element={<PublicRoute><Welcome /></PublicRoute>} />
+          <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+          <Route path="/onboarding/goal" element={<PublicRoute><GoalSelection /></PublicRoute>} />
+          <Route path="/onboarding/data" element={<PublicRoute><DataHub /></PublicRoute>} />
+          
+          {/* Protected routes - require authentication */}
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
+          <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
+          <Route path="/progress/upload" element={<ProtectedRoute><ProgressUpload /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+          <Route path="/workout/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
+          <Route path="/workout-summary" element={<ProtectedRoute><WorkoutSummary /></ProtectedRoute>} />
+          <Route path="/exercise/:id" element={<ProtectedRoute><ExerciseHistory /></ProtectedRoute>} />
+          <Route path="/checkin" element={<ProtectedRoute><WeeklyCheckin /></ProtectedRoute>} />
+          <Route path="/checkin/:id" element={<ProtectedRoute><CheckinDetail /></ProtectedRoute>} />
+          
+          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
