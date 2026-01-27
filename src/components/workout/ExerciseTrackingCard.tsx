@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, CheckCircle2, MessageSquare, Clock, Trophy, TrendingUp } from "lucide-react";
+import { ChevronDown, CheckCircle2, MessageSquare, Clock, Trophy, TrendingUp, Play } from "lucide-react";
 import type { ExerciseWithTracking, DifficultyLevel, ExerciseSet } from "@/types/database";
 import { difficultyColors } from "@/types/database";
 import SetInputModal from "./SetInputModal";
-
+import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 interface ExerciseTrackingCardProps {
   exercise: ExerciseWithTracking;
   index: number;
@@ -68,6 +68,8 @@ const ExerciseTrackingCard = ({
   const currentSet = completedSetsLocal.length;
   const isCompleted = currentSet >= exercise.sets;
   const setsArray = Array.from({ length: exercise.sets }, (_, i) => i);
+  const [showVideo, setShowVideo] = useState(false);
+  const hasVideo = !!exercise.exercise?.video_url;
 
   return (
     <>
@@ -89,8 +91,8 @@ const ExerciseTrackingCard = ({
           onClick={handleToggle}
           className="w-full p-4 flex items-center gap-4"
         >
-          {/* Thumbnail/Status */}
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
+          {/* Thumbnail/Status with Video Indicator */}
+          <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-2xl overflow-hidden ${
             isCompleted
               ? "bg-emerald-500/20 border-2 border-emerald-500"
               : isActive
@@ -100,7 +102,14 @@ const ExerciseTrackingCard = ({
             {isCompleted ? (
               <CheckCircle2 className="w-7 h-7 text-emerald-500" />
             ) : (
-              exercise.exercise?.thumbnail || "💪"
+              <>
+                {exercise.exercise?.thumbnail || "💪"}
+                {hasVideo && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Play className="w-4 h-4 text-white" fill="white" />
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -155,6 +164,34 @@ const ExerciseTrackingCard = ({
               className="overflow-hidden"
             >
               <div className="px-4 pb-4 space-y-4">
+                {/* Video Player Toggle */}
+                {hasVideo && (
+                  <div className="space-y-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowVideo(!showVideo); }}
+                      className="flex items-center gap-2 text-sm text-primary font-medium hover:text-primary/80 transition-colors"
+                    >
+                      <Play className="w-4 h-4" />
+                      {showVideo ? "Ocultar video" : "Ver video demostrativo"}
+                    </button>
+                    <AnimatePresence>
+                      {showVideo && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                        >
+                          <ExerciseVideoPlayer
+                            videoUrl={exercise.exercise?.video_url || ""}
+                            exerciseName={exercise.exercise?.name || "Ejercicio"}
+                            compact
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 {/* Last Performance */}
                 {exercise.lastPerformance && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
