@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Share2, Bell } from "lucide-react";
+import { Share2, Bell, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/home/BottomNav";
 import FitnessScore from "@/components/progress/FitnessScore";
 import WeightTracker from "@/components/progress/WeightTracker";
@@ -9,32 +10,47 @@ import PersonalRecords from "@/components/progress/PersonalRecords";
 import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
 import CheckinCTA from "@/components/checkin/CheckinCTA";
 import CheckinHistoryCard from "@/components/checkin/CheckinHistoryCard";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { useCheckins } from "@/hooks/useCheckins";
 import { useAuth } from "@/hooks/useAuth";
+import { useProgressData } from "@/hooks/useProgressData";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
-const mockPRs = [
-  {
-    id: "1",
-    name: "Press de Banca",
-    value: "95.0",
-    unit: "kg",
-    improvedDate: "Hace 2 días",
-    icon: "strength" as const,
-  },
-  {
-    id: "2",
-    name: "5KM Carrera",
-    value: "22:15",
-    unit: "min",
-    improvedDate: "Hace 1 semana",
-    icon: "cardio" as const,
-  },
-];
-
 const Progress = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { checkins } = useCheckins();
+  const { 
+    personalRecords, 
+    fitnessScore, 
+    currentWeight, 
+    weightTrend,
+    totalMinutesThisWeek,
+    activeDaysThisMonth,
+    currentStreak,
+    loading 
+  } = useProgressData();
+
+  const currentMonth = new Date().toLocaleString('es-AR', { month: 'long' });
+  const currentYear = new Date().getFullYear();
+
+  // Format PRs for display component
+  const formattedPRs = personalRecords.slice(0, 5).map(pr => ({
+    id: pr.id,
+    name: pr.name,
+    value: pr.value,
+    unit: pr.unit,
+    improvedDate: pr.improvedDate,
+    icon: pr.icon,
+  }));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -60,14 +76,14 @@ const Progress = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              <Share2 className="w-5 h-5" />
+              <Filter className="w-5 h-5" />
             </motion.button>
             <motion.button 
               className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-smooth touch-target"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              <Bell className="w-5 h-5" />
+              <Share2 className="w-5 h-5" />
             </motion.button>
           </div>
         </div>
@@ -82,30 +98,38 @@ const Progress = () => {
 
       <div className="px-5 pt-5 space-y-4">
         <motion.div variants={fadeUp}>
-          <FitnessScore score={88} />
+          <FitnessScore score={fitnessScore || 50} />
         </motion.div>
 
         <div className="grid grid-cols-2 gap-3">
           <motion.div variants={fadeUp}>
-            <WeightTracker currentWeight={74.2} trend={-1.2} />
+            <WeightTracker 
+              currentWeight={currentWeight || 70} 
+              trend={weightTrend} 
+            />
           </motion.div>
           <motion.div variants={fadeUp}>
-            <WeeklyActivity totalMinutes={345} goalMet={true} />
+            <WeeklyActivity 
+              totalMinutes={totalMinutesThisWeek} 
+              goalMet={totalMinutesThisWeek >= 150} 
+            />
           </motion.div>
         </div>
 
         <motion.div variants={fadeUp}>
           <ActivityStreak 
-            currentStreak={12}
-            month="Enero"
-            year={2026}
-            activeDays={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+            currentStreak={currentStreak}
+            month={currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1)}
+            year={currentYear}
+            activeDays={activeDaysThisMonth}
           />
         </motion.div>
 
-        <motion.div variants={fadeUp}>
-          <PersonalRecords records={mockPRs} />
-        </motion.div>
+        {formattedPRs.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <PersonalRecords records={formattedPRs} />
+          </motion.div>
+        )}
 
         {/* Check-in History */}
         {user && checkins.length > 0 && (

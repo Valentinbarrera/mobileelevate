@@ -1,4 +1,4 @@
-import { Home, Dumbbell, TrendingUp, MessageCircle, User } from "lucide-react";
+import { Home, Dumbbell, TrendingUp, Trophy, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -37,11 +37,11 @@ const BottomNav = () => {
       label: "Progreso" 
     },
     { 
-      id: "chat", 
-      path: "/chat",
-      icon: <MessageCircle className="w-5 h-5" strokeWidth={1.5} />,
-      activeIcon: <MessageCircle className="w-5 h-5" strokeWidth={2.5} />,
-      label: "Chat" 
+      id: "achievements", 
+      path: "/achievements",
+      icon: <Trophy className="w-5 h-5" strokeWidth={1.5} />,
+      activeIcon: <Trophy className="w-5 h-5" strokeWidth={2.5} />,
+      label: "Logros" 
     },
     { 
       id: "profile", 
