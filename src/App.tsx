@@ -8,6 +8,7 @@ import WorkoutDetail from "./pages/WorkoutDetail";
 import WorkoutSummary from "./pages/WorkoutSummary";
 import Routines from "./pages/Routines";
 import Progress from "./pages/Progress";
+import ProgressUpload from "./pages/ProgressUpload";
 import Profile from "./pages/Profile";
 import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/routines" element={<Routines />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/progress/upload" element={<ProgressUpload />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/workout/:id" element={<WorkoutDetail />} />

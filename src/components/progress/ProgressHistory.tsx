@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { TrendingDown, ChevronRight, Scale, Percent } from "lucide-react";
-import type { ProgressEntry } from "@/pages/Progress";
+import type { ProgressEntry } from "@/types/progress";
 
 interface ProgressHistoryProps {
   entries: ProgressEntry[];
