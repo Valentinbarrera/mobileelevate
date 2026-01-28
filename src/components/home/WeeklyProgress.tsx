@@ -1,3 +1,4 @@
+import React, { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Check, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +8,8 @@ interface WeeklyProgressProps {
   totalDays: number;
 }
 
-const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
+const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
+  ({ completedDays, totalDays }, ref) => {
   const navigate = useNavigate();
   const days = [
     { short: 'L', full: 'LUN' },
@@ -23,6 +25,7 @@ const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
   
   return (
     <motion.div 
+      ref={ref}
       className="mx-4 mt-4 bg-card border border-border rounded-2xl p-4 cursor-pointer"
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       whileTap={{ scale: 0.99 }}
@@ -86,6 +89,8 @@ const WeeklyProgress = ({ completedDays, totalDays }: WeeklyProgressProps) => {
       </div>
     </motion.div>
   );
-};
+});
+
+WeeklyProgress.displayName = "WeeklyProgress";
 
 export default WeeklyProgress;

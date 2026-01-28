@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProfileHeader from "@/components/profile/ProfileHeader";
@@ -6,29 +7,96 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import ProfileMembership from "@/components/profile/ProfileMembership";
 import ProfileSettings from "@/components/profile/ProfileSettings";
 import BottomNav from "@/components/home/BottomNav";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
+import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { student, isAuthenticated } = useCoachAuthContext();
+  const { user } = useAuth();
+  const { getWeeklyProgress } = useCoachWeeklyProgress();
+  
+  const [stats, setStats] = useState({
+    totalXp: 0,
+    sessions: 0,
+    medals: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
+  // Fetch user stats from local DB
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get total completed sessions
+        const { data: sessions } = await supabase
+          .from("workout_sessions")
+          .select("id")
+          .eq("user_id", user.id)
+          .not("completed_at", "is", null);
+
+        // Get total PRs
+        const { data: prs } = await supabase
+          .from("personal_records")
+          .select("id")
+          .eq("user_id", user.id);
+
+        // Get total volume for XP calculation
+        const { data: sets } = await supabase
+          .from("exercise_sets")
+          .select("weight, reps, session_id")
+          .limit(1000);
+
+        const totalVolume = sets?.reduce((acc, s) => acc + (s.weight * s.reps), 0) || 0;
+        const sessionCount = sessions?.length || 0;
+        const xp = Math.floor(totalVolume / 10) + (sessionCount * 100);
+
+        setStats({
+          totalXp: xp,
+          sessions: sessionCount,
+          medals: prs?.length || 0,
+        });
+      } catch (error) {
+        console.error("Error fetching profile stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [user]);
+
+  // Use Coach student data if available, otherwise fallback
   const userData = {
-    name: "Juan Pérez",
-    memberType: "ELEVATE PRO MEMBER",
-    memberSince: "Socio desde Enero 2024",
-    avatar: "👨‍💼",
-    isPro: true,
-  };
-
-  const stats = {
-    totalXp: 12450,
-    sessions: 48,
-    medals: 12,
+    name: student?.name || user?.email?.split('@')[0] || "Atleta",
+    memberType: isAuthenticated ? "ELEVATE ALUMNO" : "ELEVATE MEMBER",
+    memberSince: student?.created_at 
+      ? `Alumno desde ${new Date(student.created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+      : "Bienvenido",
+    avatar: student?.avatar_url || "💪",
+    isPro: isAuthenticated,
   };
 
   const membership = {
-    plan: "ELEVATE PRO",
-    nextRenewal: "12 Mar, 2025",
+    plan: isAuthenticated ? "ELEVATE COACH" : "PLAN BÁSICO",
+    nextRenewal: "Activo",
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <motion.div 

@@ -38,8 +38,12 @@ const ProfileAvatar = ({
             }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className="w-full h-full rounded-full bg-background flex items-center justify-center text-5xl">
-              {avatar}
+            <div className="w-full h-full rounded-full bg-background flex items-center justify-center text-5xl overflow-hidden">
+              {avatar.startsWith('http') ? (
+                <img src={avatar} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                avatar
+              )}
             </div>
           </motion.div>
           
