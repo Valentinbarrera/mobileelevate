@@ -1,13 +1,14 @@
 /**
  * Workout Detail page that loads exercises from Coach database
  * Uses routine_day_id from route params or navigation state
+ * Persists workout data to local Lovable Cloud database
  */
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
-import { useCoachHomeData, TodayRoutineDay } from "@/hooks/useCoachHomeData";
-import { useAlumnoRoutineDetail } from "@/hooks/useAlumnoRoutines";
+import { useCoachHomeData } from "@/hooks/useCoachHomeData";
+import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
 import RestTimer from "@/components/workout/RestTimer";
 import WorkoutHero from "@/components/workout/WorkoutHero";
 import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
@@ -16,6 +17,7 @@ import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
+import type { DifficultyLevel } from "@/types/database";
 
 interface CompletedSet {
   setNumber: number;
@@ -45,6 +47,16 @@ const CoachWorkoutDetail = () => {
   const routineDay = useMemo(() => {
     return allDays.find(d => d.id === routineDayId) || null;
   }, [allDays, routineDayId]);
+
+  const routineId = (location.state as any)?.routineId || activeRoutine?.id || "";
+  
+  // Session persistence hook
+  const { 
+    session, 
+    startSession, 
+    completeSet: persistSet, 
+    finishSession 
+  } = useCoachWorkoutSession(routineDayId || "", routineId);
 
   // State
   const [exerciseStates, setExerciseStates] = useState<Map<string, ExerciseState>>(new Map());
@@ -93,7 +105,7 @@ const CoachWorkoutDetail = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStartWorkout = () => {
+  const handleStartWorkout = async () => {
     if (!isAuthenticated) {
       toast.error("Debés iniciar sesión para entrenar", {
         action: {
@@ -104,28 +116,45 @@ const CoachWorkoutDetail = () => {
       return;
     }
 
-    setWorkoutStarted(true);
-    if (routineDay?.exercises.length) {
-      setActiveExerciseId(routineDay.exercises[0].id);
+    // Start session in database
+    const newSession = await startSession();
+    if (newSession) {
+      setWorkoutStarted(true);
+      if (routineDay?.exercises.length) {
+        setActiveExerciseId(routineDay.exercises[0].id);
+      }
+      toast.success("¡Entrenamiento iniciado!");
     }
-    toast.success("¡Entrenamiento iniciado!");
   };
 
-  const handleCompleteSet = useCallback((
+  const handleCompleteSet = useCallback(async (
     exerciseId: string,
     setNumber: number,
     weight: number,
     reps: number,
     difficulty: string
   ) => {
+    if (!routineDay) return;
+
+    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return;
+
+    // Persist to database
+    if (session) {
+      await persistSet(
+        exercise,
+        setNumber,
+        weight,
+        reps,
+        difficulty as DifficultyLevel
+      );
+    }
+
     setExerciseStates(prev => {
       const newStates = new Map(prev);
       const state = newStates.get(exerciseId);
       
-      if (!state || !routineDay) return prev;
-
-      const exercise = routineDay.exercises.find(e => e.id === exerciseId);
-      if (!exercise) return prev;
+      if (!state) return prev;
 
       const newCompletedSet: CompletedSet = {
         setNumber,
@@ -175,7 +204,7 @@ const CoachWorkoutDetail = () => {
 
       return newStates;
     });
-  }, [routineDay]);
+  }, [routineDay, session, persistSet]);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
@@ -185,7 +214,7 @@ const CoachWorkoutDetail = () => {
     setShowRestTimer(false);
   };
 
-  const handleFinishWorkout = () => {
+  const handleFinishWorkout = async () => {
     const exercises = routineDay?.exercises || [];
     const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
     const completedSets = exercises.reduce((acc, e) => {
@@ -193,6 +222,11 @@ const CoachWorkoutDetail = () => {
       return acc + (state?.completedSets.length || 0);
     }, 0);
     const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
+
+    // Persist session completion
+    if (session) {
+      await finishSession(elapsedTime, `Routine day: ${routineDay?.name}`);
+    }
     
     navigate("/workout-summary", {
       state: {

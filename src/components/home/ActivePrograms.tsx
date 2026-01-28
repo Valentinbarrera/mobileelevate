@@ -1,3 +1,4 @@
+import React, { forwardRef } from "react";
 import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -14,11 +15,12 @@ interface ActiveProgramsProps {
   programs: Program[];
 }
 
-const ActivePrograms = ({ programs }: ActiveProgramsProps) => {
+const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
+  ({ programs }, ref) => {
   const navigate = useNavigate();
 
   return (
-    <div className="mt-5">
+    <div ref={ref} className="mt-5">
       {/* Header de sección con CTA */}
       <div className="flex items-center justify-between px-4 mb-3">
         <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Programas Activos</h3>
@@ -77,6 +79,8 @@ const ActivePrograms = ({ programs }: ActiveProgramsProps) => {
       </div>
     </div>
   );
-};
+});
+
+ActivePrograms.displayName = "ActivePrograms";
 
 export default ActivePrograms;
