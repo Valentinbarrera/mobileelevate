@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, Dumbbell, Flame } from "lucide-react";
-import type { Routine } from "@/pages/Routines";
+import type { Routine } from "@/types/routine";
 
 interface WeekDaySelectorProps {
   routines: Routine[];
