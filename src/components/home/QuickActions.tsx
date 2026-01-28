@@ -1,3 +1,4 @@
+import React from "react";
 import { Dumbbell, TrendingUp, MessageCircle, ClipboardCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ interface QuickAction {
   route?: string;
 }
 
-const QuickActions = () => {
+const QuickActions = React.forwardRef<HTMLDivElement, object>((_, ref) => {
   const navigate = useNavigate();
 
   const actions: QuickAction[] = [
@@ -45,7 +46,7 @@ const QuickActions = () => {
   ];
 
   return (
-    <div className="px-5 mt-6">
+    <div ref={ref} className="px-5 mt-6">
       <h3 className="text-foreground font-bold text-sm tracking-wide uppercase mb-4">Accesos Rápidos</h3>
       <div className="grid grid-cols-4 gap-3">
         {actions.map((action, index) => (
@@ -73,6 +74,8 @@ const QuickActions = () => {
       </div>
     </div>
   );
-};
+});
+
+QuickActions.displayName = "QuickActions";
 
 export default QuickActions;

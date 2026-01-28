@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import type { Routine } from "@/pages/Routines";
+import type { Routine } from "@/types/routine";
 import WeekDaySelector from "./WeekDaySelector";
 import DayRoutineDetail from "./DayRoutineDetail";
 

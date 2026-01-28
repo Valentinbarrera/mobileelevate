@@ -1,157 +1,132 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Dumbbell, Loader2 } from "lucide-react";
 import RoutinesHeader from "@/components/routines/RoutinesHeader";
 import RoutinesTabs from "@/components/routines/RoutinesTabs";
-import ActiveProgram from "@/components/routines/ActiveProgram";
-import RoutinesWeekView from "@/components/routines/RoutinesWeekView";
-import RoutinesList from "@/components/routines/RoutinesList";
+import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import BottomNav from "@/components/home/BottomNav";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
+import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
 
-export type RoutineStatus = "pending" | "completed" | "in_progress";
 export type TabFilter = "today" | "week" | "completed";
-
-export interface Routine {
-  id: string;
-  name: string;
-  dayLabel: string;
-  status: RoutineStatus;
-  duration: string;
-  intensity: "Principiante" | "Intermedio" | "Avanzado";
-  muscleGroups: string[];
-  exerciseCount: number;
-  xpReward: number;
-  thumbnail?: string;
-}
-
-const mockRoutines: Routine[] = [
-  {
-    id: "1",
-    name: "Pecho y Tríceps",
-    dayLabel: "Lunes",
-    status: "completed",
-    duration: "45 min",
-    intensity: "Intermedio",
-    muscleGroups: ["Pecho", "Tríceps"],
-    exerciseCount: 6,
-    xpReward: 200,
-    thumbnail: "💪",
-  },
-  {
-    id: "2",
-    name: "Piernas y Glúteos",
-    dayLabel: "Martes",
-    status: "in_progress",
-    duration: "50 min",
-    intensity: "Avanzado",
-    muscleGroups: ["Cuádriceps", "Glúteos", "Isquios"],
-    exerciseCount: 7,
-    xpReward: 250,
-    thumbnail: "🦵",
-  },
-  {
-    id: "3",
-    name: "Espalda y Bíceps",
-    dayLabel: "Miércoles",
-    status: "pending",
-    duration: "45 min",
-    intensity: "Intermedio",
-    muscleGroups: ["Espalda", "Bíceps"],
-    exerciseCount: 6,
-    xpReward: 200,
-    thumbnail: "🏋️",
-  },
-  {
-    id: "5",
-    name: "Hombros y Core",
-    dayLabel: "Viernes",
-    status: "pending",
-    duration: "40 min",
-    intensity: "Intermedio",
-    muscleGroups: ["Hombros", "Abdomen"],
-    exerciseCount: 6,
-    xpReward: 180,
-    thumbnail: "🎯",
-  },
-  {
-    id: "6",
-    name: "Full Body HIIT",
-    dayLabel: "Sábado",
-    status: "pending",
-    duration: "35 min",
-    intensity: "Avanzado",
-    muscleGroups: ["Full Body"],
-    exerciseCount: 10,
-    xpReward: 300,
-    thumbnail: "🔥",
-  },
-];
-
-const programInfo = {
-  name: "VOLUMEN ÉLITE",
-  subtitle: "8 semanas • Hipertrofia",
-  progress: 35,
-};
 
 const Routines = () => {
   const [activeTab, setActiveTab] = useState<TabFilter>("week");
   const [searchQuery, setSearchQuery] = useState("");
+  const { student, isAuthenticated } = useCoachAuthContext();
 
-  const filteredRoutines = mockRoutines.filter((routine) => {
-    if (activeTab === "completed") {
-      return routine.status === "completed";
-    }
-    return true;
-  }).filter((routine) => {
-    if (!searchQuery) return true;
-    return routine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           routine.muscleGroups.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Fetch routines from Coach database
+  const { data: routines, isLoading, error } = useAlumnoRoutines({
+    studentId: student?.id || null,
+    status: activeTab === "completed" ? "completed" : "active",
   });
 
-  const completedCount = mockRoutines.filter(r => r.status === "completed").length;
+  // Filter by search query
+  const filteredRoutines = (routines || []).filter((assignment) => {
+    if (!searchQuery) return true;
+    const routine = assignment.routine;
+    if (!routine) return false;
+    return (
+      routine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      routine.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+  const completedCount = (routines || []).filter(
+    (r) => r.status === "completed"
+  ).length;
+
+  // Show message if not authenticated with Coach
+  if (!isAuthenticated) {
+    return (
+      <motion.div
+        className="min-h-screen bg-background pb-28 flex flex-col items-center justify-center px-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+          <Dumbbell className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground mb-2">
+          Conecta tu cuenta
+        </h2>
+        <p className="text-muted-foreground text-sm text-center mb-4">
+          Inicia sesión con tu cuenta de Elevate Coach para ver las rutinas
+          asignadas por tu entrenador.
+        </p>
+        <BottomNav />
+      </motion.div>
+    );
+  }
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-background pb-28"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
     >
-      <RoutinesHeader 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <RoutinesHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <motion.div variants={fadeUp}>
-        <RoutinesTabs 
+        <RoutinesTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
           completedCount={completedCount}
         />
       </motion.div>
 
-      <motion.div variants={fadeUp}>
-        <ActiveProgram 
-          name={programInfo.name}
-          subtitle={programInfo.subtitle}
-          progress={programInfo.progress}
-        />
-      </motion.div>
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      )}
 
-      {/* Show week view for week tab, list for completed */}
-      {activeTab === "week" ? (
-        <motion.div variants={fadeUp}>
-          <RoutinesWeekView routines={filteredRoutines} />
-        </motion.div>
-      ) : (
-        <RoutinesList 
-          routines={filteredRoutines}
-          emptyMessage={
-            activeTab === "completed"
+      {/* Error state */}
+      {error && (
+        <div className="px-5 py-16 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <Dumbbell className="w-8 h-8 text-destructive" />
+          </div>
+          <p className="text-destructive text-sm">Error al cargar rutinas</p>
+          <p className="text-muted-foreground text-xs mt-1">
+            {(error as Error).message}
+          </p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && !error && filteredRoutines.length === 0 && (
+        <motion.div
+          className="px-5 py-16 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
+            <Dumbbell className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-foreground font-semibold">No hay rutinas</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {activeTab === "completed"
               ? "Aún no completaste ninguna rutina"
-              : "No se encontraron rutinas"
-          }
-        />
+              : "Tu coach no te ha asignado rutinas todavía"}
+          </p>
+        </motion.div>
+      )}
+
+      {/* Routine list */}
+      {!isLoading && !error && filteredRoutines.length > 0 && (
+        <div className="px-5 mt-4 space-y-3">
+          {filteredRoutines.map((assignment, index) => (
+            <AlumnoRoutineCard
+              key={assignment.id}
+              assignment={assignment}
+              index={index}
+            />
+          ))}
+        </div>
       )}
 
       <BottomNav />

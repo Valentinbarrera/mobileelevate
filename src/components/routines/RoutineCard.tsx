@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Clock, CheckCircle2, PlayCircle, ChevronRight, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Routine } from "@/pages/Routines";
+import type { Routine } from "@/types/routine";
 
 interface RoutineCardProps {
   routine: Routine;

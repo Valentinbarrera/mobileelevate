@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Flame, ChevronRight, Play, CheckCircle2, Dumbbell, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Routine } from "@/pages/Routines";
+import type { Routine } from "@/types/routine";
 import { Button } from "@/components/ui/button";
 
 interface DayRoutineDetailProps {

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Dumbbell } from "lucide-react";
-import type { Routine } from "@/pages/Routines";
+import type { Routine } from "@/types/routine";
 import RoutineCard from "./RoutineCard";
 
 interface RoutinesListProps {
