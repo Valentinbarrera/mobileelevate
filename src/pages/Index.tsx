@@ -4,6 +4,8 @@ import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
 import ProgressUploadCard from "@/components/home/ProgressUploadCard";
 import WorkoutCard from "@/components/home/WorkoutCard";
+import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
+import RestDayCard from "@/components/home/RestDayCard";
 import ActivePrograms from "@/components/home/ActivePrograms";
 import NutritionSection from "@/components/home/NutritionSection";
 import LevelProgress from "@/components/home/LevelProgress";
@@ -14,7 +16,8 @@ import BottomNav from "@/components/home/BottomNav";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useHomeData } from "@/hooks/useHomeData";
-import { useAuth } from "@/hooks/useAuth";
+import { useCoachHomeData } from "@/hooks/useCoachHomeData";
+import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
 
 import workoutHero from "@/assets/workout-hero.jpg";
 import programShred from "@/assets/program-shred.jpg";
@@ -22,29 +25,39 @@ import programZen from "@/assets/program-zen.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { todayWorkout, weeklyStats, userProgress, coachMessage, loading } = useHomeData();
+  const { student, isAuthenticated } = useCoachAuthContext();
+  const { weeklyStats, userProgress, coachMessage, loading: homeLoading } = useHomeData();
+  const { 
+    activeRoutine, 
+    todayRoutineDay, 
+    allDays,
+    loading: coachLoading 
+  } = useCoachHomeData();
 
-  const programs = [
+  const loading = homeLoading || coachLoading;
+
+  // Build programs from coach data
+  const programs = activeRoutine ? [
+    { 
+      id: activeRoutine.id, 
+      title: activeRoutine.name, 
+      imageUrl: activeRoutine.imageUrl || programShred, 
+      label: "Activo", 
+      progress: Math.round((allDays.filter(d => d.dayNumber <= new Date().getDay()).length / allDays.length) * 100) || 0
+    },
+  ] : [
     { id: "1", title: "6-Week Shred", imageUrl: programShred, label: "Activo", progress: 65 },
-    { id: "2", title: "Zen Mode", imageUrl: programZen, progress: 30 },
   ];
 
-  const handleStartWorkout = () => {
-    if (todayWorkout) {
-      navigate(`/workout/${todayWorkout.id}`);
-    }
-  };
+  const userName = student?.name || "Atleta";
+  const displayName = userName.split(' ')[0]; // First name only
 
-  const userName = user?.email?.split('@')[0] || "Camila";
-  const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
-
-  // Get workout title for today's status
-  const todayStatus = todayWorkout 
-    ? `Hoy: ${todayWorkout.title}` 
+  // Get today's status
+  const todayStatus = todayRoutineDay 
+    ? `Hoy: ${todayRoutineDay.name}` 
     : "¡Día de descanso activo!";
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -73,25 +86,26 @@ const Index = () => {
         <ProgressUploadCard />
       </motion.div>
 
-      {/* Main Workout Card */}
-      {todayWorkout ? (
-        <WorkoutCard 
-          label="Entrenamiento del Día"
-          duration={`${todayWorkout.duration_minutes} MIN`}
-          title={todayWorkout.title}
-          intensity={todayWorkout.intensity}
-          imageUrl={todayWorkout.image_url || workoutHero}
-          workoutId={todayWorkout.id}
-          onStart={handleStartWorkout}
-        />
+      {/* Main Workout Card - Show Coach routine if available */}
+      {isAuthenticated && todayRoutineDay && activeRoutine ? (
+        <motion.div variants={fadeUp}>
+          <CoachWorkoutCard 
+            routineDay={todayRoutineDay} 
+            routineInfo={activeRoutine} 
+          />
+        </motion.div>
+      ) : isAuthenticated && !todayRoutineDay ? (
+        <motion.div variants={fadeUp}>
+          <RestDayCard />
+        </motion.div>
       ) : (
         <WorkoutCard 
-          label="Daily Focus"
+          label="Entrenamiento del Día"
           duration="45 MIN"
           title="Explosive Power"
           intensity="Alta"
           imageUrl={workoutHero}
-          onStart={handleStartWorkout}
+          onStart={() => navigate("/workout/1")}
         />
       )}
       

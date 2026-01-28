@@ -15,8 +15,10 @@ import Welcome from "./pages/Welcome";
 import GoalSelection from "./pages/onboarding/GoalSelection";
 import DataHub from "./pages/onboarding/DataHub";
 import WorkoutDetail from "./pages/WorkoutDetail";
+import CoachWorkoutDetail from "./pages/CoachWorkoutDetail";
 import WorkoutSummary from "./pages/WorkoutSummary";
 import Routines from "./pages/Routines";
+import RoutineDetail from "./pages/RoutineDetail";
 import Progress from "./pages/Progress";
 import ProgressUpload from "./pages/ProgressUpload";
 import Profile from "./pages/Profile";
@@ -50,11 +52,13 @@ const App = () => (
             {/* Protected routes - require authentication */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
+            <Route path="/routine/:id" element={<ProtectedRoute><RoutineDetail /></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
             <Route path="/progress/upload" element={<ProtectedRoute><ProgressUpload /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-            <Route path="/workout/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
+            <Route path="/workout/:id" element={<ProtectedRoute><CoachWorkoutDetail /></ProtectedRoute>} />
+            <Route path="/workout-legacy/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><WorkoutSummary /></ProtectedRoute>} />
             <Route path="/exercise/:id" element={<ProtectedRoute><ExerciseHistory /></ProtectedRoute>} />
             <Route path="/checkin" element={<ProtectedRoute><WeeklyCheckin /></ProtectedRoute>} />
