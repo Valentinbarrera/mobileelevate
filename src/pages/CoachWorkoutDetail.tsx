@@ -3,7 +3,7 @@
  * Uses routine_day_id from route params or navigation state
  * Persists workout data to local Lovable Cloud database
  */
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
@@ -15,6 +15,7 @@ import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
+import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import type { DifficultyLevel } from "@/types/database";
@@ -71,6 +72,14 @@ const CoachWorkoutDetail = () => {
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  
+  // Exercise completed modal state
+  const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
+  const [completedExerciseInfo, setCompletedExerciseInfo] = useState<{
+    name: string;
+    nextExercise: { name: string; sets: number; reps: string } | null;
+    isLastExercise: boolean;
+  } | null>(null);
 
   // Initialize exercise states
   useEffect(() => {
@@ -176,32 +185,36 @@ const CoachWorkoutDetail = () => {
         completed: isCompleted,
       });
 
-      // Handle rest timer or move to next exercise
+      // Handle rest timer or show exercise completed modal
       if (!isCompleted) {
+        // Not completed yet - show rest timer
         setRestDuration(exercise.restSeconds || 60);
         
-        // Find next exercise
-        const currentIndex = routineDay.exercises.findIndex(e => e.id === exerciseId);
-        const nextEx = routineDay.exercises[currentIndex + 1];
-        if (nextEx) {
-          setNextExerciseForRest({
-            name: nextEx.name,
-            sets: nextEx.sets,
-            reps: nextEx.reps,
-          });
-        } else {
-          setNextExerciseForRest(null);
-        }
+        // Set current exercise as next for rest timer hint
+        setNextExerciseForRest({
+          name: exercise.name,
+          sets: exercise.sets,
+          reps: exercise.reps,
+        });
         
         setShowRestTimer(true);
       } else {
-        // Move to next exercise
+        // Exercise completed - show celebration modal
         const currentIndex = routineDay.exercises.findIndex(e => e.id === exerciseId);
         const nextExercise = routineDay.exercises[currentIndex + 1];
-        if (nextExercise) {
-          setTimeout(() => setActiveExerciseId(nextExercise.id), 500);
-        }
-        toast.success("¡Ejercicio completado!");
+        const isLastExercise = currentIndex === routineDay.exercises.length - 1;
+        
+        setCompletedExerciseInfo({
+          name: exercise.name,
+          nextExercise: nextExercise ? {
+            name: nextExercise.name,
+            sets: nextExercise.sets,
+            reps: nextExercise.reps,
+          } : null,
+          isLastExercise,
+        });
+        
+        setShowExerciseCompleted(true);
       }
 
       return newStates;
@@ -217,6 +230,23 @@ const CoachWorkoutDetail = () => {
   const handleSkipRest = () => {
     setShowRestTimer(false);
   };
+
+  // Handle exercise completed modal actions
+  const handleGoToNextExercise = useCallback(() => {
+    if (!routineDay || !completedExerciseInfo?.nextExercise) return;
+    
+    const nextEx = routineDay.exercises.find(e => e.name === completedExerciseInfo.nextExercise?.name);
+    if (nextEx) {
+      setActiveExerciseId(nextEx.id);
+    }
+    setShowExerciseCompleted(false);
+    setCompletedExerciseInfo(null);
+  }, [routineDay, completedExerciseInfo]);
+
+  const handleCloseExerciseCompleted = useCallback(() => {
+    setShowExerciseCompleted(false);
+    setCompletedExerciseInfo(null);
+  }, []);
 
   const handleFinishWorkout = async () => {
     const exercises = routineDay?.exercises || [];
@@ -376,6 +406,18 @@ const CoachWorkoutDetail = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Exercise Completed Modal */}
+      <ExerciseCompletedModal
+        isOpen={showExerciseCompleted}
+        onClose={handleCloseExerciseCompleted}
+        onGoToNext={handleGoToNextExercise}
+        completedExerciseName={completedExerciseInfo?.name || ""}
+        nextExercise={completedExerciseInfo?.nextExercise}
+        isLastExercise={completedExerciseInfo?.isLastExercise}
+        totalCompleted={completedExercises}
+        totalExercises={exercises.length}
+      />
     </motion.div>
   );
 };

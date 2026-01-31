@@ -96,13 +96,13 @@ const CoachExerciseCard = ({
   return (
     <>
       <motion.div
-        className={`bg-card border rounded-2xl overflow-hidden transition-all ${
+        className={`relative bg-card border rounded-2xl overflow-hidden transition-all ${
           isActive 
             ? "border-primary shadow-lg shadow-primary/10" 
             : isCompleted 
-              ? "border-emerald-500/30 bg-emerald-500/5" 
+              ? "border-emerald-500/40 bg-emerald-500/5" 
               : "border-border"
-        }`}
+        } ${isCompleted ? "opacity-70" : ""}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
@@ -111,6 +111,20 @@ const CoachExerciseCard = ({
           setExpanded(!expanded);
         }}
       >
+        {/* Completed overlay badge */}
+        {isCompleted && (
+          <motion.div 
+            className="absolute top-3 right-3 z-10"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <Check className="w-5 h-5 text-white" strokeWidth={3} />
+            </div>
+          </motion.div>
+        )}
+
         {/* Header */}
         <div className="p-4 flex items-center gap-4">
           {/* Status indicator */}
@@ -138,9 +152,14 @@ const CoachExerciseCard = ({
               {exercise.name}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-muted-foreground">
+              <span className={`text-xs ${isCompleted ? "text-emerald-500/70" : "text-muted-foreground"}`}>
                 {state.currentSet}/{exercise.sets} series • {exercise.reps} reps
               </span>
+              {isCompleted && (
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
+                  ✓ Listo
+                </span>
+              )}
             </div>
           </div>
 
