@@ -133,21 +133,23 @@ const CoachWorkoutDetail = () => {
     weight: number,
     reps: number,
     difficulty: string
-  ) => {
-    if (!routineDay) return;
+  ): Promise<boolean> => {
+    if (!routineDay) return false;
 
     const exercise = routineDay.exercises.find(e => e.id === exerciseId);
-    if (!exercise) return;
+    if (!exercise) return false;
 
     // Persist to database
+    let savedSuccessfully = true;
     if (session) {
-      await persistSet(
+      const result = await persistSet(
         exercise,
         setNumber,
         weight,
         reps,
         difficulty as DifficultyLevel
       );
+      savedSuccessfully = result !== null;
     }
 
     setExerciseStates(prev => {
@@ -204,6 +206,8 @@ const CoachWorkoutDetail = () => {
 
       return newStates;
     });
+
+    return savedSuccessfully;
   }, [routineDay, session, persistSet]);
 
   const handleRestComplete = useCallback(() => {
