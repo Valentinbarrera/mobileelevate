@@ -2,10 +2,12 @@
  * Hook para manejar sesiones de entrenamiento con datos del Coach
  * Guarda workout_sessions y exercise_sets en la DB local (Lovable Cloud)
  * Las rutinas vienen del Coach, el tracking se guarda localmente
+ * Incluye soporte offline-first con sincronización automática
  */
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useOfflineSync } from "./useOfflineSync";
 import type { DifficultyLevel } from "@/types/database";
 import { toast } from "sonner";
 
@@ -30,6 +32,7 @@ interface CompletedSet {
   difficulty: DifficultyLevel;
   completedAt: Date;
   isPR?: boolean;
+  savedOffline?: boolean;
 }
 
 interface CoachWorkoutSession {
@@ -45,6 +48,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   const { user } = useAuth();
   const [session, setSession] = useState<CoachWorkoutSession | null>(null);
   const [loading, setLoading] = useState(false);
+  const { addPendingSet, isOnline } = useOfflineSync();
 
   // Start a new workout session
   const startSession = useCallback(async () => {
@@ -107,7 +111,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     }
   }, [user, routineDayId, routineId]);
 
-  // Complete a set and save it
+  // Complete a set and save it (with offline fallback)
   const completeSet = useCallback(async (
     exercise: CoachExercise,
     setNumber: number,
@@ -181,7 +185,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         workoutExerciseId = defaultWE?.id || exercise.id;
       }
 
-      // Save the exercise set
+      // Try to save the exercise set to the server
       const { data, error } = await supabase
         .from("exercise_sets")
         .insert({
@@ -196,7 +200,32 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If online save fails, store offline
+        console.warn("Server save failed, storing offline:", error);
+        
+        addPendingSet({
+          sessionId: session.id,
+          exerciseId,
+          workoutExerciseId,
+          setNumber,
+          weight,
+          reps,
+          difficulty,
+          createdAt: new Date().toISOString(),
+        });
+
+        toast.warning("Serie guardada localmente. Se sincronizará cuando haya conexión.");
+
+        return {
+          setNumber,
+          weight,
+          reps,
+          difficulty,
+          completedAt: new Date(),
+          savedOffline: true,
+        };
+      }
 
       const completedSet: CompletedSet = {
         setNumber,
@@ -214,10 +243,36 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       return completedSet;
     } catch (error) {
       console.error("Error completing set:", error);
+      
+      // Fallback to offline storage on any error
+      if (!isOnline) {
+        addPendingSet({
+          sessionId: session.id,
+          exerciseId: exercise.exerciseId,
+          workoutExerciseId: exercise.id,
+          setNumber,
+          weight,
+          reps,
+          difficulty,
+          createdAt: new Date().toISOString(),
+        });
+
+        toast.warning("Sin conexión. Serie guardada localmente.");
+
+        return {
+          setNumber,
+          weight,
+          reps,
+          difficulty,
+          completedAt: new Date(),
+          savedOffline: true,
+        };
+      }
+
       toast.error("Error al guardar la serie");
       return null;
     }
-  }, [session, user]);
+  }, [session, user, addPendingSet, isOnline]);
 
   // Finish the workout session
   const finishSession = useCallback(async (
