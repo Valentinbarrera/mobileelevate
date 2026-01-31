@@ -4,13 +4,16 @@
  * - Editable number inputs
  * - Coach notes inside modal
  * - Loading spinner on save
+ * - 1RM estimation display
+ * - Quick video access
  */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronUp, ChevronDown, Trophy, TrendingUp, Flame, MessageSquare } from "lucide-react";
+import { X, ChevronUp, ChevronDown, Trophy, TrendingUp, Flame, MessageSquare, Play, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { estimatedOneRepMax } from "@/lib/strength-calculations";
 import type { DifficultyLevel } from "@/types/database";
 
 interface SetInputModalV2Props {
@@ -22,6 +25,8 @@ interface SetInputModalV2Props {
   totalSets: number;
   targetReps: string;
   coachNotes?: string | null;
+  videoUrl?: string | null;
+  onShowVideo?: () => void;
   lastPerformance?: {
     weight: number;
     reps: number;
@@ -29,6 +34,7 @@ interface SetInputModalV2Props {
   personalRecord?: {
     maxWeight?: number;
     maxReps?: number;
+    max1RM?: number;
   } | null;
   previousSetInSession?: {
     weight: number;
@@ -53,6 +59,8 @@ const SetInputModalV2 = ({
   totalSets,
   targetReps,
   coachNotes,
+  videoUrl,
+  onShowVideo,
   lastPerformance,
   personalRecord,
   previousSetInSession,
@@ -70,6 +78,14 @@ const SetInputModalV2 = ({
 
   const weightInputRef = useRef<HTMLInputElement>(null);
   const repsInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate estimated 1RM
+  const estimated1RM = useMemo(() => {
+    if (weight > 0 && reps > 0) {
+      return estimatedOneRepMax(weight, reps);
+    }
+    return 0;
+  }, [weight, reps]);
 
   // Reset state when modal opens with new values
   useEffect(() => {
@@ -160,30 +176,59 @@ const SetInputModalV2 = ({
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <div>
+              <div className="flex-1">
                 <p className="text-xs text-primary font-semibold uppercase tracking-wider">
                   Serie {setNumber} de {totalSets}
                 </p>
                 <h3 className="text-xl font-bold text-foreground mt-1">{exerciseName}</h3>
               </div>
-              <button
-                onClick={onClose}
-                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
-                disabled={isLoading}
-              >
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Video button */}
+                {videoUrl && onShowVideo && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowVideo();
+                    }}
+                    className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center"
+                    disabled={isLoading}
+                    title="Ver técnica"
+                  >
+                    <Play className="w-4 h-4 text-primary ml-0.5" />
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
+                  disabled={isLoading}
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
             </div>
 
-            {/* Last Performance Hint */}
-            {lastPerformance && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
-                <TrendingUp className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                <span className="text-sm text-blue-500">
-                  Anterior: <strong>{lastPerformance.weight}kg × {lastPerformance.reps} reps</strong>
-                </span>
-              </div>
-            )}
+            {/* Info pills row: Last Performance + 1RM Estimate */}
+            <div className="flex gap-2 mb-4">
+              {/* Last Performance Hint */}
+              {lastPerformance && (
+                <div className="flex-1 flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                  <TrendingUp className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <span className="text-xs text-blue-500">
+                    Anterior: <strong>{lastPerformance.weight}kg × {lastPerformance.reps}</strong>
+                  </span>
+                </div>
+              )}
+              
+              {/* 1RM Estimate */}
+              {estimated1RM > 0 && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <Target className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  <span className="text-xs text-purple-500">
+                    1RM: <strong>{estimated1RM}kg</strong>
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* Coach Notes */}
             {coachNotes && (

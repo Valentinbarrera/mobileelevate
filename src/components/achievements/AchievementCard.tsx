@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Check, Sparkles } from "lucide-react";
 import type { Achievement } from "@/pages/Achievements";
+import AchievementCelebration from "./AchievementCelebration";
 
 interface AchievementCardProps {
   achievement: Achievement;
   index: number;
+  onClaim?: (achievement: Achievement) => void;
 }
 
 const rarityConfig = {
@@ -40,11 +42,17 @@ const rarityConfig = {
 };
 
 const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
-  ({ achievement, index }, ref) => {
+  ({ achievement, index, onClaim }, ref) => {
+    const [showCelebration, setShowCelebration] = useState(false);
     const rarity = rarityConfig[achievement.rarity];
     const isLocked = achievement.status === "locked";
     const isUnlocked = achievement.status === "unlocked";
     const isClaimed = achievement.status === "claimed";
+
+    const handleClaim = () => {
+      setShowCelebration(true);
+      onClaim?.(achievement);
+    };
 
     return (
       <motion.div
@@ -149,6 +157,7 @@ const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
+            onClick={handleClaim}
           >
             RECLAMAR
           </motion.button>
@@ -160,6 +169,19 @@ const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
             Desbloqueado: {achievement.unlockedAt}
           </p>
         )}
+
+        {/* Celebration Modal */}
+        <AchievementCelebration
+          isOpen={showCelebration}
+          onClose={() => setShowCelebration(false)}
+          achievement={{
+            name: achievement.name,
+            description: achievement.description,
+            icon: achievement.icon,
+            xpReward: achievement.xpReward,
+            rarity: achievement.rarity,
+          }}
+        />
       </motion.div>
     );
   }
