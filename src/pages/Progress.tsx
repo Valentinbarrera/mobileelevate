@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Share2, Filter, TrendingUp } from "lucide-react";
 import BottomNav from "@/components/home/BottomNav";
@@ -6,6 +7,7 @@ import WeightTracker from "@/components/progress/WeightTracker";
 import WeeklyActivity from "@/components/progress/WeeklyActivity";
 import ActivityStreak from "@/components/progress/ActivityStreak";
 import PersonalRecords from "@/components/progress/PersonalRecords";
+import VolumeProgressChart from "@/components/progress/VolumeProgressChart";
 import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
 import CheckinCTA from "@/components/checkin/CheckinCTA";
 import CheckinHistoryCard from "@/components/checkin/CheckinHistoryCard";
@@ -26,6 +28,7 @@ const Progress = () => {
     totalMinutesThisWeek,
     currentStreak,
     activeDaysThisMonth,
+    weeklyVolume,
     loading 
   } = useProgressData();
 
@@ -41,6 +44,24 @@ const Progress = () => {
     improvedDate: pr.improvedDate,
     icon: pr.icon,
   })) || [];
+
+  // Format weekly volume for chart
+  const chartData = useMemo(() => {
+    if (!weeklyVolume || weeklyVolume.length === 0) {
+      // Generate sample data for demo
+      return [
+        { date: "2026-01-06", volume: 2800, label: "Sem 1" },
+        { date: "2026-01-13", volume: 3200, label: "Sem 2" },
+        { date: "2026-01-20", volume: 2950, label: "Sem 3" },
+        { date: "2026-01-27", volume: 3500, label: "Sem 4" },
+      ];
+    }
+    return weeklyVolume.map((wv, index) => ({
+      date: wv.week,
+      volume: wv.volume,
+      label: `Sem ${index + 1}`,
+    }));
+  }, [weeklyVolume]);
 
   if (loading) {
     return (
@@ -122,6 +143,11 @@ const Progress = () => {
             year={currentYear}
             activeDays={activeDaysThisMonth ?? []}
           />
+        </motion.div>
+
+        {/* Volume Progress Chart */}
+        <motion.div variants={fadeUp}>
+          <VolumeProgressChart data={chartData} title="Volumen Semanal" />
         </motion.div>
 
         {formattedPRs.length > 0 && (

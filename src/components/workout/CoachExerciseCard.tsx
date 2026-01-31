@@ -295,6 +295,11 @@ const CoachExerciseCard = ({
         totalSets={exercise.sets}
         targetReps={exercise.reps}
         coachNotes={exercise.notes}
+        videoUrl={exercise.videoUrl}
+        onShowVideo={() => {
+          setShowSetInput(false);
+          setShowVideo(true);
+        }}
         lastPerformance={lastPerformance}
         personalRecord={personalRecord}
         previousSetInSession={previousSetInSession}
