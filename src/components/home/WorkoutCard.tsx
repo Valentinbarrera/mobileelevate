@@ -1,3 +1,4 @@
+import React from "react";
 import { Play, Clock, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,7 @@ interface WorkoutCardProps {
   onStart?: () => void;
 }
 
-const WorkoutCard = ({ 
+const WorkoutCard = React.forwardRef<HTMLDivElement, WorkoutCardProps>(({ 
   label, 
   duration, 
   title, 
@@ -21,7 +22,7 @@ const WorkoutCard = ({
   intensity = "Alta", 
   workoutId = "1", 
   onStart 
-}: WorkoutCardProps) => {
+}, ref) => {
   const navigate = useNavigate();
   
   const handleStart = () => {
@@ -31,6 +32,7 @@ const WorkoutCard = ({
 
   return (
     <motion.div 
+      ref={ref}
       className="mx-5 mt-5 relative rounded-2xl overflow-hidden shadow-xl"
       variants={fadeUp}
       whileHover={{ scale: 1.005 }}
@@ -87,6 +89,8 @@ const WorkoutCard = ({
       </div>
     </motion.div>
   );
-};
+});
+
+WorkoutCard.displayName = "WorkoutCard";
 
 export default WorkoutCard;
