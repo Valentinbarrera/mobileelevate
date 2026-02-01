@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { Dumbbell } from "lucide-react";
 import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
@@ -277,11 +278,56 @@ const CoachWorkoutDetail = () => {
     });
   };
 
+  // Loading state with timeout to show error if data not found
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadingTimeout(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Loading state
-  if (!routineDay) {
+  if (!routineDay && !loadingTimeout) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Error state: No routine found
+  if (!routineDay) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
+        >
+          <Dumbbell className="w-10 h-10 text-primary" />
+        </motion.div>
+        <h2 className="text-xl font-bold text-foreground mb-2">
+          Rutina no encontrada
+        </h2>
+        <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+          {isAuthenticated 
+            ? "Esta rutina no está disponible o aún no tenés asignada una rutina para hoy."
+            : "Debés iniciar sesión con tu cuenta de Elevate Coach para acceder a tus rutinas personalizadas."
+          }
+        </p>
+        <motion.button
+          onClick={() => navigate(isAuthenticated ? "/routines" : "/coach-login")}
+          className="px-6 py-3 bg-gradient-primary rounded-xl text-primary-foreground font-semibold"
+          whileTap={{ scale: 0.98 }}
+        >
+          {isAuthenticated ? "Ver mis Rutinas" : "Iniciar Sesión Coach"}
+        </motion.button>
+        <button
+          onClick={() => navigate("/")}
+          className="mt-4 text-muted-foreground text-sm"
+        >
+          Volver al Inicio
+        </button>
       </div>
     );
   }

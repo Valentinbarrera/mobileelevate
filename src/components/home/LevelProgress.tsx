@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Sparkles } from "lucide-react";
@@ -10,7 +11,12 @@ interface LevelProgressProps {
   badge?: string;
 }
 
-const LevelProgress = ({ level, currentXP, targetXP, badge }: LevelProgressProps) => {
+const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({ 
+  level, 
+  currentXP, 
+  targetXP, 
+  badge 
+}, ref) => {
   const navigate = useNavigate();
   const progressPercent = (currentXP / targetXP) * 100;
   
@@ -24,6 +30,7 @@ const LevelProgress = ({ level, currentXP, targetXP, badge }: LevelProgressProps
   
   return (
     <motion.div 
+      ref={ref}
       className="mx-4 mt-4 bg-card border border-border rounded-2xl p-4 cursor-pointer"
       variants={fadeUp}
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
@@ -78,6 +85,8 @@ const LevelProgress = ({ level, currentXP, targetXP, badge }: LevelProgressProps
       </div>
     </motion.div>
   );
-};
+});
+
+LevelProgress.displayName = "LevelProgress";
 
 export default LevelProgress;

@@ -89,20 +89,24 @@ export function useHomeData() {
     return streak;
   }, []);
 
-  // Calculate user level from XP
-  const calculateLevel = useCallback((totalVolume: number, completedWorkouts: number): UserProgress => {
-    const xp = Math.floor(totalVolume / 10) + (completedWorkouts * 100);
-    const level = Math.floor(xp / 1000) + 1;
-    const currentXP = xp % 1000;
-    const targetXP = 1000;
+  // Calculate user level from profile data or XP
+  const calculateLevel = useCallback((xpTotal: number, level: number): UserProgress => {
+    // Use actual profile values from the DB
+    const LEVEL_THRESHOLDS = [0, 500, 1200, 2500, 5000, 8000, 12000, 18000, 25000, 35000];
+    
+    const currentThreshold = LEVEL_THRESHOLDS[level - 1] || 0;
+    const nextThreshold = LEVEL_THRESHOLDS[level] || LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1] + 10000;
+    
+    const currentXP = xpTotal - currentThreshold;
+    const targetXP = nextThreshold - currentThreshold;
     
     let badge = "Principiante";
-    if (level >= 20) badge = "Elite Athlete";
-    else if (level >= 15) badge = "Pro Trainer";
-    else if (level >= 10) badge = "Fitness Warrior";
-    else if (level >= 5) badge = "Rising Star";
+    if (level >= 5) badge = "Elite";
+    else if (level >= 4) badge = "Avanzado";
+    else if (level >= 3) badge = "Intermedio";
+    else if (level >= 2) badge = "Aprendiz";
     
-    return { level, currentXP, targetXP, badge };
+    return { level, currentXP: Math.max(0, currentXP), targetXP, badge };
   }, []);
 
   // Generate coach message based on stats
@@ -180,6 +184,17 @@ export function useHomeData() {
 
       // If user is logged in, fetch their stats
       if (user) {
+        // Get user profile for XP and level
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("xp_total, level, streak_days")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+        }
+
         // Get sessions from this week
         const startOfWeek = new Date();
         startOfWeek.setHours(0, 0, 0, 0);
@@ -219,7 +234,9 @@ export function useHomeData() {
         const completedSessions = sessions?.filter(s => s.completed_at) || [];
         const totalVolume = sets?.reduce((acc, set) => acc + (set.weight * set.reps), 0) || 0;
         const totalMinutes = completedSessions.reduce((acc, s) => acc + (s.total_duration_seconds || 0), 0) / 60;
-        const streak = calculateStreak(allSessions as WorkoutSession[] || []);
+        
+        // Use streak from profile or calculate from sessions
+        const streak = profile?.streak_days || calculateStreak(allSessions as WorkoutSession[] || []);
 
         const stats: WeeklyStats = {
           completedWorkouts: completedSessions.length,
@@ -230,7 +247,12 @@ export function useHomeData() {
         };
 
         setWeeklyStats(stats);
-        setUserProgress(calculateLevel(totalVolume, completedSessions.length));
+        
+        // Use profile data for XP/level
+        const xpTotal = profile?.xp_total || 0;
+        const level = profile?.level || 1;
+        setUserProgress(calculateLevel(xpTotal, level));
+        
         setCoachMessage(generateCoachMessage(stats));
       }
     } catch (error) {
