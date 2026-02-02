@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Dumbbell, TrendingUp, Trophy, User } from "lucide-react";
+import { Home, Dumbbell, Plus, Trophy, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -9,7 +9,15 @@ interface NavItem {
   icon: React.ReactNode;
   activeIcon: React.ReactNode;
   label: string;
+  isCenter?: boolean;
 }
+
+// Haptic feedback utility
+const triggerHaptic = () => {
+  if (navigator.vibrate) {
+    navigator.vibrate(10); // Light vibration
+  }
+};
 
 const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
@@ -33,9 +41,10 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
     { 
       id: "progress", 
       path: "/progress",
-      icon: <TrendingUp className="w-5 h-5" strokeWidth={1.5} />,
-      activeIcon: <TrendingUp className="w-5 h-5" strokeWidth={2.5} />,
-      label: "Progreso" 
+      icon: <Plus className="w-6 h-6" strokeWidth={2} />,
+      activeIcon: <Plus className="w-6 h-6" strokeWidth={2.5} />,
+      label: "Progreso",
+      isCenter: true
     },
     { 
       id: "achievements", 
@@ -61,49 +70,120 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
 
   const activeTab = getActiveTab();
 
+  const handleNavClick = (item: NavItem) => {
+    triggerHaptic();
+    navigate(item.path);
+  };
+
   return (
-    <nav ref={ref} className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50">
-      <div className="flex items-stretch justify-around px-2 pb-safe">
+    <nav 
+      ref={ref} 
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'rgba(10, 10, 10, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '0.5px solid rgba(255, 255, 255, 0.08)',
+      }}
+    >
+      <div className="flex items-end justify-around px-2 pb-safe pt-1">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
+          
+          // Center floating button
+          if (item.isCenter) {
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleNavClick(item)}
+                className="relative flex flex-col items-center -mt-4"
+                whileTap={{ scale: 0.9 }}
+              >
+                {/* Floating circle button */}
+                <motion.div 
+                  className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                  style={{
+                    boxShadow: '0 4px 20px hsl(18 100% 55% / 0.4)',
+                  }}
+                  animate={{
+                    scale: isActive ? 1.05 : 1,
+                  }}
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <span className="text-primary-foreground">
+                    {item.icon}
+                  </span>
+                </motion.div>
+                
+                {/* Label for center button */}
+                <span className="text-[10px] font-medium text-primary mt-1">
+                  {item.label}
+                </span>
+              </motion.button>
+            );
+          }
           
           return (
             <motion.button
               key={item.id}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item)}
               className="relative flex-1 flex flex-col items-center justify-center py-2 touch-target"
               whileTap={{ scale: 0.92 }}
               transition={{ duration: 0.1 }}
             >
-              {/* Fondo activo con animación suave */}
+              {/* Icon with bounce animation */}
+              <motion.div 
+                className="relative z-10 mb-1"
+                animate={{ 
+                  scale: isActive ? [1, 1.2, 1.1] : 1,
+                  y: isActive ? -2 : 0
+                }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 500, 
+                  damping: 15,
+                  duration: 0.3
+                }}
+              >
+                <motion.span 
+                  className={isActive ? "text-primary" : "text-muted-foreground"}
+                  animate={{ opacity: isActive ? 1 : 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isActive ? item.activeIcon : item.icon}
+                </motion.span>
+              </motion.div>
+              
+              {/* Active indicator dot */}
               {isActive && (
                 <motion.div 
-                  className="absolute inset-x-2 inset-y-1 bg-primary/12 rounded-xl"
-                  layoutId="activeNavTab"
-                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"
+                  layoutId="activeNavDot"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ 
+                    scale: 1, 
+                    opacity: 1,
+                    boxShadow: '0 0 8px hsl(18 100% 55% / 0.8)'
+                  }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 500, 
+                    damping: 25 
+                  }}
+                  style={{
+                    boxShadow: '0 0 8px hsl(18 100% 55% / 0.8)',
+                  }}
                 />
               )}
               
-              {/* Icono con transición de escala */}
-              <motion.div 
-                className="relative z-10 mb-0.5"
-                animate={{ 
-                  scale: isActive ? 1.1 : 1,
-                  y: isActive ? -1 : 0
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <span className={isActive ? "text-primary" : "text-muted-foreground"}>
-                  {isActive ? item.activeIcon : item.icon}
-                </span>
-              </motion.div>
-              
-              {/* Label con animación de opacidad */}
+              {/* Label with opacity animation */}
               <motion.span 
                 className={`text-[10px] font-medium relative z-10 ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
-                animate={{ opacity: isActive ? 1 : 0.7 }}
+                animate={{ opacity: isActive ? 1 : 0.5 }}
+                transition={{ duration: 0.2 }}
               >
                 {item.label}
               </motion.span>
