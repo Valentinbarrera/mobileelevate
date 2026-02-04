@@ -7,7 +7,7 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import ProfileMembership from "@/components/profile/ProfileMembership";
 import ProfileSettings from "@/components/profile/ProfileSettings";
 import BottomNav from "@/components/home/BottomNav";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import PageLoading from "@/components/ui/page-loading";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
 import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
@@ -91,11 +91,7 @@ const Profile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PageLoading message="Cargando perfil..." />;
   }
 
   return (

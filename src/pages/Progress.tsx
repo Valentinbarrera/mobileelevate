@@ -11,7 +11,7 @@ import VolumeProgressChart from "@/components/progress/VolumeProgressChart";
 import ProgressPhotoFAB from "@/components/progress/ProgressPhotoFAB";
 import CheckinCTA from "@/components/checkin/CheckinCTA";
 import CheckinHistoryCard from "@/components/checkin/CheckinHistoryCard";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import PageLoading from "@/components/ui/page-loading";
 import { useCheckins } from "@/hooks/useCheckins";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgressData } from "@/hooks/useProgressData";
@@ -64,11 +64,7 @@ const Progress = () => {
   }, [weeklyVolume]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PageLoading message="Analizando tu progreso..." />;
   }
 
   return (
