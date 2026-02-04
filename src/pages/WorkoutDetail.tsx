@@ -10,7 +10,7 @@ import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import ExerciseTrackingCard from "@/components/workout/ExerciseTrackingCard";
 import ExerciseListItem from "@/components/workout/ExerciseListItem";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import PageLoading from "@/components/ui/page-loading";
 import { toast } from "sonner";
 import type { 
   Workout, 
@@ -289,11 +289,7 @@ const WorkoutDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PageLoading message="Preparando entrenamiento..." />;
   }
 
   if (!workout) {

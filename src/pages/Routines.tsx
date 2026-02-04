@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import PageLoading from "@/components/ui/page-loading";
 import { Dumbbell, Loader2 } from "lucide-react";
 import RoutinesHeader from "@/components/routines/RoutinesHeader";
 import RoutinesTabs from "@/components/routines/RoutinesTabs";
@@ -78,11 +79,7 @@ const Routines = () => {
       </motion.div>
 
       {/* Loading state */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        </div>
-      )}
+      {isLoading && <PageLoading message="Cargando rutinas..." />}
 
       {/* Error state */}
       {error && (

@@ -13,7 +13,7 @@ import WeeklyProgress from "@/components/home/WeeklyProgress";
 import QuickActions from "@/components/home/QuickActions";
 import MotivationCard from "@/components/home/MotivationCard";
 import BottomNav from "@/components/home/BottomNav";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import PageLoading from "@/components/ui/page-loading";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useHomeData } from "@/hooks/useHomeData";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -58,11 +58,7 @@ const Index = () => {
     : "¡Día de descanso activo!";
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PageLoading message="Cargando tu entrenamiento..." />;
   }
 
   return (
