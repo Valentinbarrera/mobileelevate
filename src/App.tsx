@@ -57,8 +57,8 @@ const App = () => (
             <Route path="/progress/upload" element={<ProtectedRoute><ProgressUpload /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-            <Route path="/workout/:id" element={<ProtectedRoute><CoachWorkoutDetail /></ProtectedRoute>} />
-            <Route path="/workout-legacy/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
+            <Route path="/workout/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
+            <Route path="/coach-workout/:id" element={<ProtectedRoute><CoachWorkoutDetail /></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><WorkoutSummary /></ProtectedRoute>} />
             <Route path="/exercise/:id" element={<ProtectedRoute><ExerciseHistory /></ProtectedRoute>} />
             <Route path="/checkin" element={<ProtectedRoute><WeeklyCheckin /></ProtectedRoute>} />
