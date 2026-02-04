@@ -55,21 +55,65 @@ const WorkoutDetail = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const workoutId = id || "11111111-1111-1111-1111-111111111111";
-  const { session, startSession, completeSet, finishSession, getLastPerformance, getPersonalRecords } = useWorkoutSession(workoutId);
+  const [resolvedWorkoutId, setResolvedWorkoutId] = useState<string | null>(null);
+  
+  // Resolve workout ID - handle both UUID and non-UUID cases
+  useEffect(() => {
+    const resolveWorkoutId = async () => {
+      // Check if the ID looks like a valid UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (id && uuidRegex.test(id)) {
+        setResolvedWorkoutId(id);
+      } else {
+        // If not a valid UUID, fetch the first available workout
+        try {
+          const { data, error } = await supabase
+            .from("workouts")
+            .select("id")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (data && !error) {
+            setResolvedWorkoutId(data.id);
+          } else {
+            setResolvedWorkoutId(null);
+          }
+        } catch (err) {
+          console.error("Error resolving workout ID:", err);
+          setResolvedWorkoutId(null);
+        }
+      }
+    };
+    
+    resolveWorkoutId();
+  }, [id]);
+
+  const { session, startSession, completeSet, finishSession, getLastPerformance, getPersonalRecords } = useWorkoutSession(resolvedWorkoutId || "");
 
   // Fetch workout data
   useEffect(() => {
+    if (!resolvedWorkoutId) {
+      setLoading(false);
+      return;
+    }
+
     const fetchWorkout = async () => {
       try {
         // Fetch workout
         const { data: workoutData, error: workoutError } = await supabase
           .from("workouts")
           .select("*")
-          .eq("id", workoutId)
-          .single();
+          .eq("id", resolvedWorkoutId)
+          .maybeSingle();
 
         if (workoutError) throw workoutError;
+        if (!workoutData) {
+          setLoading(false);
+          return;
+        }
+        
         setWorkout(workoutData as Workout);
 
         // Fetch workout exercises with exercise details
@@ -79,7 +123,7 @@ const WorkoutDetail = () => {
             *,
             exercise:exercises(*)
           `)
-          .eq("workout_id", workoutId)
+          .eq("workout_id", resolvedWorkoutId)
           .order("order_index");
 
         if (exercisesError) throw exercisesError;
@@ -117,7 +161,7 @@ const WorkoutDetail = () => {
     };
 
     fetchWorkout();
-  }, [workoutId, user, getLastPerformance, getPersonalRecords]);
+  }, [resolvedWorkoutId, user, getLastPerformance, getPersonalRecords]);
 
   // Workout timer
   useEffect(() => {
