@@ -12,6 +12,7 @@ import LevelProgress from "@/components/home/LevelProgress";
 import WeeklyProgress from "@/components/home/WeeklyProgress";
 import QuickActions from "@/components/home/QuickActions";
 import MotivationCard from "@/components/home/MotivationCard";
+import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
 import BottomNav from "@/components/home/BottomNav";
 import PageLoading from "@/components/ui/page-loading";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -84,25 +85,35 @@ const Index = () => {
 
       {/* Main Workout Card - Show Coach routine if available */}
       {isAuthenticated && todayRoutineDay && activeRoutine ? (
-        <motion.div variants={fadeUp}>
-          <CoachWorkoutCard 
-            routineDay={todayRoutineDay} 
-            routineInfo={activeRoutine} 
-          />
-        </motion.div>
+        <>
+          <motion.div variants={fadeUp}>
+            <CoachWorkoutCard 
+              routineDay={todayRoutineDay} 
+              routineInfo={activeRoutine} 
+            />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <ViewAllRoutinesLink />
+          </motion.div>
+        </>
       ) : isAuthenticated && !todayRoutineDay ? (
         <motion.div variants={fadeUp}>
           <RestDayCard />
         </motion.div>
       ) : (
-        <WorkoutCard 
-          label="Entrenamiento del Día"
-          duration="45 MIN"
-          title="Explosive Power"
-          intensity="Alta"
-          imageUrl={workoutHero}
-          onStart={() => navigate("/workout/1")}
-        />
+        <>
+          <WorkoutCard 
+            label="Entrenamiento del Día"
+            duration="45 MIN"
+            title="Explosive Power"
+            intensity="Alta"
+            imageUrl={workoutHero}
+            onStart={() => navigate("/workout/1")}
+          />
+          <motion.div variants={fadeUp}>
+            <ViewAllRoutinesLink />
+          </motion.div>
+        </>
       )}
       
       {/* Level & XP */}
