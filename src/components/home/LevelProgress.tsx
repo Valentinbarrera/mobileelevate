@@ -31,7 +31,7 @@ const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({
   return (
     <motion.div 
       ref={ref}
-      className="mx-4 mt-4 bg-card border border-border rounded-2xl p-4 cursor-pointer"
+      className="bg-card border border-border rounded-2xl p-4 cursor-pointer"
       variants={fadeUp}
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       whileTap={{ scale: 0.99 }}

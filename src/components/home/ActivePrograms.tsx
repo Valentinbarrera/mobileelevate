@@ -20,9 +20,10 @@ const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
   const navigate = useNavigate();
 
   return (
-    <div ref={ref} className="mt-5">
+    <div ref={ref}>
       {/* Header de sección con CTA */}
       <div className="flex items-center justify-between px-4 mb-3">
+
         <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Programas Activos</h3>
         <motion.button 
           className="text-primary text-xs font-semibold flex items-center gap-0.5 hover:opacity-80 transition-opacity min-h-[44px] px-2"

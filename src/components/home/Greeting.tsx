@@ -14,7 +14,7 @@ const Greeting = ({
   todayStatus = "Hoy entrenás: Piernas y Glúteos"
 }: GreetingProps) => {
   return (
-    <motion.div className="px-4 pt-3 pb-3" variants={fadeUp}>
+    <motion.div className="pt-2 pb-1" variants={fadeUp}>
       {/* Saludo principal */}
       <h1 className="text-xl font-black text-foreground tracking-tight leading-tight text-display">
         ¡Hola, <span className="text-gradient-primary">{userName}</span>!
