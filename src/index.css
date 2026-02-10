@@ -269,4 +269,10 @@
   .skeleton-pulse {
     @apply animate-pulse bg-gradient-to-r from-secondary via-muted to-secondary bg-[length:200%_100%];
   }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(200%);
+    }
+  }
 }

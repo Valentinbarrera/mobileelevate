@@ -14,7 +14,7 @@ import QuickActions from "@/components/home/QuickActions";
 import MotivationCard from "@/components/home/MotivationCard";
 import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
 import BottomNav from "@/components/home/BottomNav";
-import PageLoading from "@/components/ui/page-loading";
+import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useHomeData } from "@/hooks/useHomeData";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -59,7 +59,7 @@ const Index = () => {
     : "¡Día de descanso activo!";
 
   if (loading) {
-    return <PageLoading message="Cargando tu entrenamiento..." />;
+    return <HomeSkeleton />;
   }
 
   return (

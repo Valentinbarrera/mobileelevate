@@ -15,7 +15,7 @@ const RestDayCard = ({ nextWorkoutDay }: RestDayCardProps) => {
 
   return (
     <motion.div 
-      className="mx-5 mt-5 relative rounded-2xl overflow-hidden shadow-lg bg-card border border-border"
+      className="relative rounded-2xl overflow-hidden shadow-lg bg-card border border-border"
       variants={fadeUp}
     >
       <div className="p-6">
