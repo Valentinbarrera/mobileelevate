@@ -36,13 +36,13 @@ const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) =>
 
   return (
     <motion.div 
-      className="mx-5 mt-5 relative rounded-2xl overflow-hidden shadow-xl bg-card border border-border"
+      className="relative rounded-2xl overflow-hidden shadow-xl bg-card border border-border"
       variants={fadeUp}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}
     >
       {/* Header with gradient */}
-      <div className="relative h-56 bg-gradient-to-br from-primary/20 via-primary/10 to-background">
+      <div className="relative h-52 bg-gradient-to-br from-primary/20 via-primary/10 to-background">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
@@ -51,65 +51,63 @@ const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) =>
         </div>
         
         {/* Tags superiores */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-lg">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg">
               Día {routineDay.dayNumber}
             </span>
             <span className="bg-card/80 backdrop-blur-md text-foreground text-[10px] font-medium px-2 py-1 rounded-lg border border-border">
               {routineInfo.name}
             </span>
           </div>
-          
-          <div className="flex items-center gap-2 bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-foreground text-xs font-medium">{routineDay.estimatedDuration} MIN</span>
-            </div>
-            <div className="w-px h-3 bg-border" />
-            <div className="flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-primary" />
-              <span className="text-foreground text-xs font-medium capitalize">{intensityLabel}</span>
-            </div>
-          </div>
         </div>
 
         {/* Center icon */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10">
-          <Dumbbell className="w-32 h-32 text-primary" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.07]">
+          <Dumbbell className="w-28 h-28 text-primary" />
         </div>
         
         {/* Contenido inferior */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-card via-card/80 to-transparent">
-          <h2 className="text-2xl font-black text-foreground mb-2 tracking-tight text-display">
-            {routineDay.name}
-          </h2>
-
-          {/* Exercise count and muscle groups */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Dumbbell className="w-4 h-4" />
-              <span className="text-sm">{routineDay.totalExercises} ejercicios</span>
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-card via-card/90 to-transparent">
+          {/* Meta info row */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">{routineDay.estimatedDuration} min</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+            <div className="flex items-center gap-1 text-primary">
+              <Zap className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium capitalize">{intensityLabel}</span>
             </div>
             {muscleGroups.length > 0 && (
               <>
-                <div className="w-1 h-1 rounded-full bg-muted-foreground" />
-                <span className="text-sm text-muted-foreground capitalize">
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                <span className="text-xs text-muted-foreground capitalize truncate">
                   {muscleGroups.join(", ")}
                 </span>
               </>
             )}
           </div>
+
+          <h2 className="text-xl font-black text-foreground mb-3 tracking-tight text-display leading-tight">
+            {routineDay.name}
+          </h2>
+
+          <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+            <Dumbbell className="w-3.5 h-3.5" />
+            <span className="text-xs">{routineDay.totalExercises} ejercicios</span>
+          </div>
           
           {/* CTA Principal */}
           <motion.button 
             onClick={handleStart}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-xl py-4 touch-target-lg shadow-lg glow-primary"
+            className="w-full flex items-center justify-center gap-2.5 bg-gradient-primary rounded-xl py-3.5 touch-target-lg shadow-lg glow-primary"
             whileHover={{ scale: 1.01, boxShadow: "0 0 30px hsl(18 100% 55% / 0.5)" }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
               <Play className="w-4 h-4 text-primary-foreground fill-current ml-0.5" />
             </div>
             <span className="text-primary-foreground font-bold text-sm tracking-wide uppercase">
