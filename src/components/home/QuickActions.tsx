@@ -46,8 +46,8 @@ const QuickActions = React.forwardRef<HTMLDivElement, object>((_, ref) => {
   ];
 
   return (
-    <div ref={ref} className="px-5 mt-6">
-      <h3 className="text-foreground font-bold text-sm tracking-wide uppercase mb-4">Accesos Rápidos</h3>
+    <div ref={ref}>
+      <h3 className="text-foreground font-bold text-xs tracking-wide uppercase mb-3">Accesos Rápidos</h3>
       <div className="grid grid-cols-4 gap-3">
         {actions.map((action, index) => (
           <motion.button

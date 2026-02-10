@@ -64,101 +64,112 @@ const Index = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-background pb-24"
+      className="min-h-screen bg-background pb-28"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
     >
       <Header userName={displayName} streakDays={weeklyStats.streak} />
       
-      <motion.div variants={fadeUp}>
-        <Greeting 
-          userName={displayName} 
-          todayStatus={todayStatus}
-        />
-      </motion.div>
-
-      {/* Progress Upload Card */}
-      <motion.div variants={fadeUp}>
-        <ProgressUploadCard />
-      </motion.div>
-
-      {/* Main Workout Card - Show Coach routine if available */}
-      {isAuthenticated && todayRoutineDay && activeRoutine ? (
-        <>
-          <motion.div variants={fadeUp}>
-            <CoachWorkoutCard 
-              routineDay={todayRoutineDay} 
-              routineInfo={activeRoutine} 
-            />
-          </motion.div>
-          <motion.div variants={fadeUp}>
-            <ViewAllRoutinesLink />
-          </motion.div>
-        </>
-      ) : isAuthenticated && !todayRoutineDay ? (
+      {/* === HERO ZONE: Greeting + Today's CTA === */}
+      <div className="px-4 space-y-3 mt-1">
         <motion.div variants={fadeUp}>
-          <RestDayCard />
-        </motion.div>
-      ) : (
-        <>
-          <WorkoutCard 
-            label="Entrenamiento del Día"
-            duration="45 MIN"
-            title="Explosive Power"
-            intensity="Alta"
-            imageUrl={workoutHero}
-            onStart={() => navigate("/workout/1")}
+          <Greeting 
+            userName={displayName} 
+            todayStatus={todayStatus}
           />
-          <motion.div variants={fadeUp}>
-            <ViewAllRoutinesLink />
-          </motion.div>
-        </>
-      )}
-      
-      {/* Level & XP */}
-      <motion.div variants={fadeUp}>
-        <LevelProgress 
-          level={userProgress.level}
-          currentXP={userProgress.currentXP}
-          targetXP={userProgress.targetXP}
-          badge={userProgress.badge}
-        />
-      </motion.div>
+        </motion.div>
 
-      {/* Weekly Progress */}
-      <motion.div variants={fadeUp}>
-        <WeeklyProgress 
-          completedDays={weeklyStats.completedWorkouts} 
-          totalDays={weeklyStats.totalWorkouts} 
-        />
-      </motion.div>
+        <motion.div variants={fadeUp}>
+          <ProgressUploadCard />
+        </motion.div>
+      </div>
+
+      {/* === PRIMARY ACTION: Today's Workout === */}
+      <div className="px-4 mt-5">
+        {isAuthenticated && todayRoutineDay && activeRoutine ? (
+          <>
+            <motion.div variants={fadeUp}>
+              <CoachWorkoutCard 
+                routineDay={todayRoutineDay} 
+                routineInfo={activeRoutine} 
+              />
+            </motion.div>
+            <motion.div variants={fadeUp} className="mt-2">
+              <ViewAllRoutinesLink />
+            </motion.div>
+          </>
+        ) : isAuthenticated && !todayRoutineDay ? (
+          <motion.div variants={fadeUp}>
+            <RestDayCard />
+          </motion.div>
+        ) : (
+          <>
+            <WorkoutCard 
+              label="Entrenamiento del Día"
+              duration="45 MIN"
+              title="Explosive Power"
+              intensity="Alta"
+              imageUrl={workoutHero}
+              onStart={() => navigate("/workout/1")}
+            />
+            <motion.div variants={fadeUp} className="mt-2">
+              <ViewAllRoutinesLink />
+            </motion.div>
+          </>
+        )}
+      </div>
       
-      {/* Active Programs */}
-      <motion.div variants={fadeUp}>
+      {/* === STATS ZONE: Level + Weekly === */}
+      <div className="px-4 mt-6 space-y-4">
+        <motion.div variants={fadeUp}>
+          <LevelProgress 
+            level={userProgress.level}
+            currentXP={userProgress.currentXP}
+            targetXP={userProgress.targetXP}
+            badge={userProgress.badge}
+          />
+        </motion.div>
+
+        <motion.div variants={fadeUp}>
+          <WeeklyProgress 
+            completedDays={weeklyStats.completedWorkouts} 
+            totalDays={weeklyStats.totalWorkouts} 
+          />
+        </motion.div>
+      </div>
+      
+      {/* === PROGRAMS === */}
+      <motion.div variants={fadeUp} className="mt-6">
         <ActivePrograms programs={programs} />
       </motion.div>
       
-      {/* Nutrition */}
-      <motion.div variants={fadeUp}>
-        <NutritionSection 
-          targetKcal={2500}
-          currentPercent={74}
-          protein={{ current: 142, target: 180 }}
-          carbs={{ current: 210, target: 280 }}
-          nextMeal="Salmon & Quinoa Bowl"
-        />
-      </motion.div>
+      {/* === NUTRITION === */}
+      <div className="px-4 mt-6">
+        <motion.div variants={fadeUp}>
+          <NutritionSection 
+            targetKcal={2500}
+            currentPercent={74}
+            protein={{ current: 142, target: 180 }}
+            carbs={{ current: 210, target: 280 }}
+            nextMeal="Salmon & Quinoa Bowl"
+          />
+        </motion.div>
+      </div>
       
-      {/* Quick Actions */}
-      <motion.div variants={fadeUp}>
-        <QuickActions />
-      </motion.div>
+      {/* === QUICK ACTIONS === */}
+      <div className="px-4 mt-6">
+        <motion.div variants={fadeUp}>
+          <QuickActions />
+        </motion.div>
+      </div>
       
-      {/* Motivation */}
-      <motion.div variants={fadeUp}>
-        <MotivationCard message={coachMessage} />
-      </motion.div>
+      {/* === MOTIVATION === */}
+      <div className="px-4 mt-6 mb-2">
+        <motion.div variants={fadeUp}>
+          <MotivationCard message={coachMessage} />
+        </motion.div>
+      </div>
       
       <BottomNav />
     </motion.div>

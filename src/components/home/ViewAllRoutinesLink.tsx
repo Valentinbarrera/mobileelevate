@@ -8,7 +8,7 @@ const ViewAllRoutinesLink = () => {
   return (
     <motion.button
       onClick={() => navigate("/routines")}
-      className="mx-5 mt-3 w-[calc(100%-2.5rem)] flex items-center justify-between px-4 py-3 rounded-xl bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all group"
+      className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all group"
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center gap-2.5">

@@ -13,7 +13,7 @@ const MotivationCard = React.forwardRef<HTMLDivElement, MotivationCardProps>(
     return (
       <motion.div 
         ref={ref}
-        className="mx-5 mt-5 mb-6 bg-gradient-to-br from-primary/15 via-primary/8 to-transparent border border-primary/25 rounded-2xl p-4 relative overflow-hidden"
+        className="bg-gradient-to-br from-primary/15 via-primary/8 to-transparent border border-primary/25 rounded-2xl p-4 relative overflow-hidden"
         variants={fadeUp}
       >
         {/* Efecto de brillo sutil */}

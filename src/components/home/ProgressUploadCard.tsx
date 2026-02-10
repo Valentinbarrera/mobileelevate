@@ -9,7 +9,7 @@ const ProgressUploadCard = () => {
   return (
     <motion.button 
       onClick={() => navigate("/progress/upload")}
-      className="mx-5 flex items-center justify-between w-[calc(100%-2.5rem)] bg-secondary/50 border border-border hover:border-primary/40 rounded-xl px-4 py-3.5 transition-smooth group touch-target"
+      className="flex items-center justify-between w-full bg-secondary/50 border border-border hover:border-primary/40 rounded-xl px-4 py-3 transition-smooth group touch-target"
       variants={fadeUp}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}

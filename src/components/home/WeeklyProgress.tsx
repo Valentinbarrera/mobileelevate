@@ -26,7 +26,7 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
   return (
     <motion.div 
       ref={ref}
-      className="mx-4 mt-4 bg-card border border-border rounded-2xl p-4 cursor-pointer"
+      className="bg-card border border-border rounded-2xl p-4 cursor-pointer"
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       whileTap={{ scale: 0.99 }}
       onClick={() => navigate("/routines")}
