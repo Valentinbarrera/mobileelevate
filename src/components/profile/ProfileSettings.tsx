@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { User, Bell, Link2, HeadphonesIcon, ChevronRight, LogOut, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface SettingItem {
   icon: React.ElementType;
@@ -7,40 +9,25 @@ interface SettingItem {
   sublabel?: string;
   isConnected?: boolean;
   hasChevron?: boolean;
-  isDanger?: boolean;
 }
 
 const settingsItems: SettingItem[] = [
-  {
-    icon: User,
-    label: "Configuración de Cuenta",
-    hasChevron: true,
-  },
-  {
-    icon: Bell,
-    label: "Notificaciones",
-    hasChevron: true,
-  },
-  {
-    icon: Link2,
-    label: "Apple Health / Strava",
-    sublabel: "VINCULADO",
-    isConnected: true,
-    hasChevron: true,
-  },
-  {
-    icon: HeadphonesIcon,
-    label: "Soporte con Coach",
-    hasChevron: true,
-  },
-  {
-    icon: Shield,
-    label: "Privacidad y Seguridad",
-    hasChevron: true,
-  },
+  { icon: User, label: "Configuración de Cuenta", hasChevron: true },
+  { icon: Bell, label: "Notificaciones", hasChevron: true },
+  { icon: Link2, label: "Apple Health / Strava", sublabel: "VINCULADO", isConnected: true, hasChevron: true },
+  { icon: HeadphonesIcon, label: "Soporte con Coach", hasChevron: true },
+  { icon: Shield, label: "Privacidad y Seguridad", hasChevron: true },
 ];
 
 const ProfileSettings = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/welcome");
+  };
+
   return (
     <motion.div 
       className="px-5"
@@ -48,12 +35,10 @@ const ProfileSettings = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
     >
-      {/* Section Title */}
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
         Ajustes & Configuración
       </h3>
 
-      {/* Settings List */}
       <div className="space-y-2">
         {settingsItems.map((item, index) => (
           <motion.button
@@ -64,27 +49,18 @@ const ProfileSettings = () => {
             transition={{ delay: 0.65 + index * 0.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* Icon */}
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
               <item.icon className="w-5 h-5 text-primary" />
             </div>
-
-            {/* Label */}
             <div className="flex-1">
               <p className="font-semibold text-foreground">{item.label}</p>
               {item.sublabel && (
-                <p className={`text-xs font-semibold mt-0.5 ${
-                  item.isConnected ? "text-emerald-500" : "text-muted-foreground"
-                }`}>
+                <p className={`text-xs font-semibold mt-0.5 ${item.isConnected ? "text-emerald-500" : "text-muted-foreground"}`}>
                   {item.sublabel}
                 </p>
               )}
             </div>
-
-            {/* Chevron */}
-            {item.hasChevron && (
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            )}
+            {item.hasChevron && <ChevronRight className="w-5 h-5 text-muted-foreground" />}
           </motion.button>
         ))}
 
@@ -95,6 +71,7 @@ const ProfileSettings = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.9 }}
           whileTap={{ scale: 0.98 }}
+          onClick={handleLogout}
         >
           <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
             <LogOut className="w-5 h-5 text-red-500" />
@@ -103,7 +80,6 @@ const ProfileSettings = () => {
         </motion.button>
       </div>
 
-      {/* App Version */}
       <motion.p 
         className="text-center text-xs text-muted-foreground mt-8 mb-4"
         initial={{ opacity: 0 }}
