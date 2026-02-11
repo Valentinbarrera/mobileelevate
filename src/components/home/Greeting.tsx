@@ -1,6 +1,5 @@
 import { fadeUp } from "@/lib/animations";
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
 
 interface GreetingProps {
   userName: string;
@@ -14,16 +13,14 @@ const Greeting = ({
   todayStatus
 }: GreetingProps) => {
   return (
-    <motion.div className="pt-4 pb-1" variants={fadeUp}>
-      {/* Saludo grande estilo bold italic */}
-      <h1 className="text-4xl font-black text-foreground tracking-tight leading-[1.1] italic">
-        ¡HOLA,
+    <motion.div className="pt-3 pb-1" variants={fadeUp}>
+      <h1 className="text-[2.2rem] font-black text-foreground tracking-tight leading-[1.05] italic uppercase">
+        ¡Hola,
         <br />
-        {userName.toUpperCase()}!
+        <span className="text-gradient-primary">{userName}!</span>
       </h1>
       
-      {/* Subtítulo */}
-      <p className="text-muted-foreground text-sm mt-1.5">
+      <p className="text-muted-foreground text-[13px] mt-1">
         {subtitle}
       </p>
     </motion.div>
