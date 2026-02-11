@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, User, Activity, Zap, Flame, Sofa } from "lucide-react";
+import { Minus, Plus, User, Activity, Zap, Flame, Sofa, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import OnboardingLayout from "@/components/onboarding/OnboardingLayout";
 
 type Gender = "M" | "F";
 type ActivityLevel = "sedentary" | "light" | "moderate" | "intense";
@@ -23,17 +24,14 @@ const DataHub = () => {
   const [gender, setGender] = useState<Gender>("M");
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
 
-  // Calculated values
   const [bmi, setBmi] = useState(0);
   const [bmr, setBmr] = useState(0);
 
   useEffect(() => {
-    // Calculate BMI
     const heightInMeters = height / 100;
     const calculatedBmi = weight / (heightInMeters * heightInMeters);
     setBmi(Math.round(calculatedBmi * 10) / 10);
 
-    // Calculate BMR using Mifflin-St Jeor
     let calculatedBmr;
     if (gender === "M") {
       calculatedBmr = 10 * weight + 6.25 * height - 5 * age + 5;
@@ -45,13 +43,7 @@ const DataHub = () => {
 
   const handleContinue = () => {
     const userData = {
-      weight,
-      height,
-      age,
-      gender,
-      activityLevel,
-      bmi,
-      bmr,
+      weight, height, age, gender, activityLevel, bmi, bmr,
       goal: localStorage.getItem("onboarding_goal"),
     };
     localStorage.setItem("onboarding_data", JSON.stringify(userData));
@@ -59,232 +51,266 @@ const DataHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col px-6 pt-6 pb-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 mb-6"
-      >
-        <button
-          onClick={() => navigate("/onboarding/goal")}
-          className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <span className="text-xs font-bold text-primary tracking-widest">
-          PASO 02/02
-        </span>
-      </motion.div>
-
-      {/* Title */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-6"
-      >
-        <h1 className="text-2xl font-black text-foreground leading-tight">
-          CUÉNTANOS SOBRE TI
-        </h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          Personaliza tu algoritmo de entrenamiento con tus datos biométricos exactos.
-        </p>
-      </motion.div>
-
-      {/* Sliders Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-6 flex-1"
-      >
-        {/* Weight Slider */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-muted-foreground">PESO ACTUAL</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-primary">{weight}</span>
-              <span className="text-sm text-muted-foreground">KG</span>
-            </div>
-          </div>
-          <Slider
-            value={[weight]}
-            onValueChange={(v) => setWeight(Math.round(v[0] * 10) / 10)}
-            min={40}
-            max={150}
-            step={0.5}
-            className="py-2"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>40kg</span>
-            <span>95kg</span>
-            <span>150kg</span>
-          </div>
-        </div>
-
-        {/* Height Slider */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-muted-foreground">ALTURA</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-primary">{height}</span>
-              <span className="text-sm text-muted-foreground">CM</span>
-            </div>
-          </div>
-          <Slider
-            value={[height]}
-            onValueChange={(v) => setHeight(Math.round(v[0]))}
-            min={140}
-            max={220}
-            step={1}
-            className="py-2"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>140cm</span>
-            <span>180cm</span>
-            <span>220cm</span>
-          </div>
-        </div>
-
-        {/* Age & Gender Row */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Age */}
-          <div className="space-y-2">
-            <span className="text-sm font-medium text-muted-foreground">EDAD</span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setAge(Math.max(16, age - 1))}
-                className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="text-xl font-bold text-foreground w-12 text-center">{age}</span>
-              <button
-                onClick={() => setAge(Math.min(80, age + 1))}
-                className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div className="space-y-2">
-            <span className="text-sm font-medium text-muted-foreground">GÉNERO</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setGender("M")}
-                className={`flex-1 h-10 rounded-xl font-bold text-sm transition-all ${
-                  gender === "M"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card border border-border text-muted-foreground"
-                }`}
-              >
-                M
-              </button>
-              <button
-                onClick={() => setGender("F")}
-                className={`flex-1 h-10 rounded-xl font-bold text-sm transition-all ${
-                  gender === "F"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card border border-border text-muted-foreground"
-                }`}
-              >
-                F
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Activity Level */}
-        <div className="space-y-3">
-          <span className="text-sm font-medium text-muted-foreground">NIVEL DE ACTIVIDAD</span>
-          <div className="grid grid-cols-4 gap-2">
-            {activityLevels.map((level) => {
-              const isSelected = activityLevel === level.id;
-              const Icon = level.icon;
-              return (
-                <button
-                  key={level.id}
-                  onClick={() => setActivityLevel(level.id)}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                    isSelected
-                      ? "bg-primary/20 border border-primary"
-                      : "bg-card border border-border"
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className={`text-[9px] font-bold ${isSelected ? "text-primary" : "text-muted-foreground"}`}>
-                    {level.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Real-time Feedback Card */}
+    <OnboardingLayout currentStep={2} totalSteps={3} onBack={() => navigate("/onboarding/goal")}>
+      <div className="flex-1 flex flex-col px-5 pt-4 pb-8 overflow-y-auto">
+        {/* Title */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-card border border-border rounded-2xl p-4"
+          transition={{ delay: 0.1 }}
+          className="mb-5"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold text-primary tracking-widest">
-              ESTIMACIÓN SAAS
-            </span>
-            <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Flame className="w-3.5 h-3.5 text-primary" />
-            </div>
-          </div>
-          
-          <h3 className="text-lg font-bold text-foreground mb-3">
-            METABOLISMO BASAL
-          </h3>
-          
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-foreground">{bmr.toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground">KCAL/DÍA</span>
-              </div>
-              <div className="flex items-center gap-1 mt-1">
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  ))}
-                </div>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  NIVEL DE PRECISIÓN: ALTO
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <span className="text-xs text-muted-foreground">BMI</span>
-              <p className="text-xl font-bold text-foreground">{bmi}</p>
-            </div>
-          </div>
+          <p className="text-xs font-bold text-primary tracking-[0.2em] mb-2">DATOS BIOMÉTRICOS</p>
+          <h1 className="text-2xl font-black text-foreground leading-[1.1]">
+            CUÉNTANOS
+          </h1>
+          <h1 className="text-2xl font-black leading-[1.1]">
+            <span className="text-gradient-primary italic">SOBRE TI</span>
+          </h1>
         </motion.div>
-      </motion.div>
 
-      {/* Continue Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="pt-4"
-      >
-        <Button
-          onClick={handleContinue}
-          className="w-full h-14 rounded-2xl bg-gradient-primary text-primary-foreground font-bold text-base glow-primary"
+        {/* Sliders Section */}
+        <div className="space-y-5 flex-1">
+          {/* Weight */}
+          <motion.div
+            className="space-y-2.5"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-muted-foreground tracking-wider">PESO</span>
+              <div className="flex items-baseline gap-1">
+                <motion.span
+                  key={weight}
+                  className="text-2xl font-black text-primary tabular-nums"
+                  initial={{ scale: 1.15, opacity: 0.7 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {weight}
+                </motion.span>
+                <span className="text-xs text-muted-foreground font-bold">KG</span>
+              </div>
+            </div>
+            <Slider
+              value={[weight]}
+              onValueChange={(v) => setWeight(Math.round(v[0] * 10) / 10)}
+              min={40} max={150} step={0.5}
+              className="py-2"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground/50 font-medium">
+              <span>40</span><span>95</span><span>150</span>
+            </div>
+          </motion.div>
+
+          {/* Height */}
+          <motion.div
+            className="space-y-2.5"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-muted-foreground tracking-wider">ALTURA</span>
+              <div className="flex items-baseline gap-1">
+                <motion.span
+                  key={height}
+                  className="text-2xl font-black text-primary tabular-nums"
+                  initial={{ scale: 1.15, opacity: 0.7 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {height}
+                </motion.span>
+                <span className="text-xs text-muted-foreground font-bold">CM</span>
+              </div>
+            </div>
+            <Slider
+              value={[height]}
+              onValueChange={(v) => setHeight(Math.round(v[0]))}
+              min={140} max={220} step={1}
+              className="py-2"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground/50 font-medium">
+              <span>140</span><span>180</span><span>220</span>
+            </div>
+          </motion.div>
+
+          {/* Age & Gender */}
+          <motion.div
+            className="grid grid-cols-2 gap-3"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            {/* Age */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-muted-foreground tracking-wider">EDAD</span>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => setAge(Math.max(16, age - 1))}
+                  className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center active:bg-secondary"
+                >
+                  <Minus className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
+                <motion.span
+                  key={age}
+                  className="text-xl font-black text-foreground w-10 text-center tabular-nums"
+                  initial={{ scale: 1.2, opacity: 0.7 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {age}
+                </motion.span>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => setAge(Math.min(80, age + 1))}
+                  className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center active:bg-secondary"
+                >
+                  <Plus className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-muted-foreground tracking-wider">GÉNERO</span>
+              <div className="flex gap-2">
+                {(["M", "F"] as Gender[]).map((g) => (
+                  <motion.button
+                    key={g}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setGender(g)}
+                    className={`flex-1 h-10 rounded-xl font-bold text-sm transition-all duration-200 ${
+                      gender === g
+                        ? "bg-primary text-primary-foreground glow-primary-sm"
+                        : "bg-card border border-border/50 text-muted-foreground"
+                    }`}
+                  >
+                    {g}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Activity Level */}
+          <motion.div
+            className="space-y-2.5"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <span className="text-xs font-bold text-muted-foreground tracking-wider">NIVEL DE ACTIVIDAD</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {activityLevels.map((level) => {
+                const isSelected = activityLevel === level.id;
+                const Icon = level.icon;
+                return (
+                  <motion.button
+                    key={level.id}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setActivityLevel(level.id)}
+                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl transition-all duration-200 ${
+                      isSelected
+                        ? "bg-primary/15 border border-primary/40"
+                        : "bg-card/50 border border-border/40"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-muted-foreground/60"}`} />
+                    <span className={`text-[8px] font-bold leading-tight ${isSelected ? "text-primary" : "text-muted-foreground/60"}`}>
+                      {level.label}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* BMR Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-card/80 border border-border/40 rounded-2xl p-4 relative overflow-hidden"
+          >
+            {/* Subtle shimmer */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/[0.03] to-transparent" />
+            
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-primary tracking-[0.15em]">TU METABOLISMO</span>
+                <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Flame className="w-3.5 h-3.5 text-primary" />
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div>
+                  <motion.div
+                    key={bmr}
+                    className="flex items-baseline gap-1"
+                    initial={{ scale: 1.05, opacity: 0.7 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <span className="text-3xl font-black text-foreground tabular-nums">{bmr.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground font-bold">KCAL/DÍA</span>
+                  </motion.div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="w-1 h-1 rounded-full bg-primary" />
+                      ))}
+                    </div>
+                    <span className="text-[9px] text-muted-foreground/60 ml-0.5">PRECISIÓN ALTA</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] text-muted-foreground/60">BMI</span>
+                  <motion.p
+                    key={bmi}
+                    className="text-lg font-black text-foreground tabular-nums"
+                    initial={{ scale: 1.1, opacity: 0.7 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    {bmi}
+                  </motion.p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Continue */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="pt-5"
         >
-          CONTINUAR
-        </Button>
-      </motion.div>
-    </div>
+          <Button
+            onClick={handleContinue}
+            className="w-full h-14 rounded-2xl bg-gradient-primary text-primary-foreground font-bold text-base relative overflow-hidden"
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              initial={{ x: "-100%" }}
+              animate={{ x: "200%" }}
+              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+            />
+            <span className="relative z-10 flex items-center gap-2">
+              CONTINUAR
+              <ArrowRight className="w-5 h-5" />
+            </span>
+          </Button>
+        </motion.div>
+      </div>
+    </OnboardingLayout>
   );
 };
 
