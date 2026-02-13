@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Quote } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 interface MotivationCardProps {
@@ -13,25 +13,31 @@ const MotivationCard = React.forwardRef<HTMLDivElement, MotivationCardProps>(
     return (
       <motion.div 
         ref={ref}
-        className="bg-gradient-to-br from-primary/15 via-primary/8 to-transparent border border-primary/25 rounded-2xl p-4 relative overflow-hidden"
+        className="relative rounded-2xl p-5 overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, hsl(18 100% 55% / 0.12), hsl(28 100% 52% / 0.06), transparent)',
+          border: '1px solid hsl(18 100% 55% / 0.15)',
+        }}
         variants={fadeUp}
       >
-        {/* Efecto de brillo sutil */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-3xl" />
+        {/* Ambient glow */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-primary/5 rounded-full blur-3xl" />
         
-        <div className="flex items-start gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-foreground font-medium text-sm leading-relaxed italic">
-              "{message}"
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-5 h-5 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-[8px] font-bold">CO</span>
-              </div>
-              <p className="text-primary text-xs font-semibold">{author}</p>
+        <div className="relative z-10">
+          <Quote className="w-6 h-6 text-primary/40 mb-2" />
+          
+          <p className="text-foreground font-medium text-[15px] leading-relaxed">
+            {message}
+          </p>
+          
+          <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-border/30">
+            <div className="w-7 h-7 rounded-full bg-gradient-primary flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground text-[8px] font-bold">CO</span>
+            </div>
+            <div>
+              <p className="text-foreground text-xs font-semibold">{author}</p>
+              <p className="text-muted-foreground text-[10px]">Mensaje del día</p>
             </div>
           </div>
         </div>

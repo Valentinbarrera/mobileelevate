@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Sparkles, Star } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 interface LevelProgressProps {
@@ -27,38 +27,52 @@ const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({
     4: "Avanzado",
     5: "Elite",
   };
+
+  const levelEmojis: Record<number, string> = {
+    1: "🌱", 2: "⚡", 3: "🔥", 4: "💎", 5: "👑",
+  };
   
   return (
     <motion.div 
       ref={ref}
-      className="bg-card border border-border rounded-2xl p-4 cursor-pointer"
+      className="bg-card border border-border rounded-2xl p-4 cursor-pointer overflow-hidden relative"
       variants={fadeUp}
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       whileTap={{ scale: 0.99 }}
       onClick={() => navigate("/achievements")}
     >
-      <div className="flex items-center gap-3">
+      {/* Subtle ambient glow */}
+      <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+      
+      <div className="flex items-center gap-3 relative z-10">
         {/* Badge de nivel */}
         <motion.div 
-          className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg glow-primary-sm relative"
+          className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg relative"
+          style={{ boxShadow: '0 4px 16px hsl(18 100% 55% / 0.25)' }}
           whileHover={{ scale: 1.05 }}
         >
-          <span className="text-primary-foreground font-black text-2xl">{level}</span>
-          <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-amber-400" />
+          <span className="text-2xl">{levelEmojis[level] || "🏆"}</span>
+          <motion.div
+            className="absolute -top-1 -right-1"
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+          </motion.div>
         </motion.div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-0.5">
-            <div>
+            <div className="flex items-center gap-2">
               <span className="text-foreground font-bold text-sm">Nivel {level}</span>
-              <span className="text-primary text-xs font-semibold ml-2">{levelNames[level] || "Atleta"}</span>
+              <span className="text-primary text-[11px] font-semibold px-2 py-0.5 bg-primary/10 rounded-full">{levelNames[level] || "Atleta"}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
           
           {/* Progress Bar */}
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex-1 h-2.5 bg-secondary rounded-full overflow-hidden">
               <motion.div 
                 className="h-full bg-gradient-primary rounded-full relative"
                 initial={{ width: 0 }}
@@ -72,15 +86,17 @@ const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({
                 />
               </motion.div>
             </div>
-            <span className="text-muted-foreground text-[10px] font-medium tabular-nums w-20 text-right">
+          </div>
+
+          {/* XP info */}
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[10px] text-muted-foreground">
+              <span className="text-primary font-semibold">{(targetXP - currentXP).toLocaleString()} XP</span> para nivel {level + 1}
+            </p>
+            <span className="text-muted-foreground text-[10px] font-medium tabular-nums">
               {currentXP.toLocaleString()} / {targetXP.toLocaleString()}
             </span>
           </div>
-
-          {/* XP to next level */}
-          <p className="text-[10px] text-muted-foreground mt-1">
-            {(targetXP - currentXP).toLocaleString()} XP para nivel {level + 1}
-          </p>
         </div>
       </div>
     </motion.div>
