@@ -35,7 +35,7 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-primary" />
-          <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Progreso Semanal</h3>
+          <h3 className="text-foreground font-bold text-xs tracking-wider uppercase">Progreso Semanal</h3>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-primary font-black text-sm tabular-nums">{completedDays}</span>

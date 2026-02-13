@@ -13,7 +13,7 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
 
   return (
     <motion.div 
-      className="flex items-center justify-between px-4 pt-4 pb-2"
+      className="flex items-center justify-between px-5 pt-5 pb-3"
       variants={fadeUp}
     >
       {/* Avatar + Streak pill */}

@@ -26,7 +26,7 @@ const NutritionSection = React.forwardRef<HTMLDivElement, NutritionSectionProps>
       >
         {/* Header con título y meta */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Nutrición</h3>
+          <h3 className="text-foreground font-bold text-xs tracking-wider uppercase">Nutrición</h3>
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground text-[10px] font-medium">{targetKcal.toLocaleString()} kcal</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />

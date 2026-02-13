@@ -22,9 +22,8 @@ const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
   return (
     <div ref={ref}>
       {/* Header de sección con CTA */}
-      <div className="flex items-center justify-between px-4 mb-3">
-
-        <h3 className="text-foreground font-bold text-xs tracking-wide uppercase">Programas Activos</h3>
+      <div className="flex items-center justify-between px-5 mb-4">
+        <h3 className="text-foreground font-bold text-xs tracking-wider uppercase">Programas Activos</h3>
         <motion.button 
           className="text-primary text-xs font-semibold flex items-center gap-0.5 hover:opacity-80 transition-opacity min-h-[44px] px-2"
           whileTap={{ scale: 0.95 }}
@@ -36,7 +35,7 @@ const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
       </div>
       
       {/* Scroll horizontal de programas */}
-      <div className="flex gap-3 px-4 overflow-x-auto scrollbar-hide pb-2">
+      <div className="flex gap-3 px-5 overflow-x-auto scrollbar-hide pb-2">
         {programs.map((program) => (
           <motion.button
             key={program.id}
