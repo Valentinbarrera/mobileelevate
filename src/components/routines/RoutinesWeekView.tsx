@@ -26,10 +26,10 @@ const RoutinesWeekView = ({ routines }: RoutinesWeekViewProps) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-4"
+      className="space-y-3"
     >
       {/* Week Calendar */}
-      <div className="bg-card/50 border border-border rounded-3xl mx-4 overflow-hidden">
+      <div className="bg-card/60 border border-border/50 rounded-2xl mx-4 overflow-hidden backdrop-blur-sm">
         <WeekDaySelector
           routines={routines}
           selectedDay={selectedDay}
