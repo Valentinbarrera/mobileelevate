@@ -20,7 +20,7 @@ const Greeting = ({
   todayStatus
 }: GreetingProps) => {
   return (
-    <motion.div className="pt-3 pb-1" variants={fadeUp}>
+    <motion.div className="pt-2 pb-2" variants={fadeUp}>
       <motion.p 
         className="text-muted-foreground text-xs font-medium uppercase tracking-widest mb-1"
         initial={{ opacity: 0, x: -10 }}
