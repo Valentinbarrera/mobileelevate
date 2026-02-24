@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Trophy } from "lucide-react";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import SetInputModalV2 from "./SetInputModalV2";
-import { useExerciseLastPerformance } from "@/hooks/useExerciseLastPerformance";
 import type { DifficultyLevel } from "@/types/database";
 
 interface CoachExercise {
@@ -67,8 +66,8 @@ const CoachExerciseCard = ({
   const [showSetInput, setShowSetInput] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
 
-  // Fetch last performance for this exercise
-  const { lastPerformance, personalRecord } = useExerciseLastPerformance(exercise.exerciseId);
+  const lastPerformance = null;
+  const personalRecord = null;
 
   const currentSetNumber = state.currentSet + 1;
   const isCompleted = state.completed;

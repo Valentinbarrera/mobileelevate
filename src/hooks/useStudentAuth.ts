@@ -1,13 +1,28 @@
 /**
- * Hook para manejar la autenticación con el proyecto Coach
- * Usa el mismo email/password que la app Coach
+ * Hook unificado de autenticación para alumnos
+ * Usa el Supabase de Elevate Web (gssgoeaupfssexhliazy)
+ * Autentica y fetchea perfil de tabla students
  */
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { coachSupabase } from "@/integrations/coach/client";
-import type { Student } from "@/integrations/coach/types";
+import { supabase } from "@/integrations/supabase/client";
 
-export function useCoachAuth() {
+export interface Student {
+  id: string;
+  user_id: string;
+  coach_id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  status: string;
+  goal: string | null;
+  level: string | null;
+  age: number | null;
+  created_at: string;
+}
+
+export function useStudentAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
@@ -15,13 +30,11 @@ export function useCoachAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = coachSupabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Fetch student profile when authenticated
+
         if (session?.user) {
           setTimeout(() => {
             fetchStudentProfile(session.user.id);
@@ -33,11 +46,10 @@ export function useCoachAuth() {
       }
     );
 
-    // THEN check for existing session
-    coachSupabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchStudentProfile(session.user.id);
       } else {
@@ -50,7 +62,7 @@ export function useCoachAuth() {
 
   const fetchStudentProfile = async (userId: string) => {
     try {
-      const { data, error: fetchError } = await coachSupabase
+      const { data, error: fetchError } = await supabase
         .from('students')
         .select('*')
         .eq('user_id', userId)
@@ -60,7 +72,7 @@ export function useCoachAuth() {
         console.error('Error fetching student profile:', fetchError);
         setError('No se pudo obtener el perfil del alumno');
       } else {
-        setStudent(data);
+        setStudent(data as Student | null);
       }
     } catch (err) {
       console.error('Error in fetchStudentProfile:', err);
@@ -73,8 +85,8 @@ export function useCoachAuth() {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
-    
-    const { data, error: signInError } = await coachSupabase.auth.signInWithPassword({
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -89,7 +101,7 @@ export function useCoachAuth() {
   };
 
   const signOut = async () => {
-    await coachSupabase.auth.signOut();
+    await supabase.auth.signOut();
     setStudent(null);
   };
 

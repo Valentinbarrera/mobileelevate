@@ -1,6 +1,5 @@
 /**
- * Tipos de la base de datos del proyecto Elevate Coach
- * Basado en el esquema proporcionado
+ * Tipos de las tablas de rutinas en Supabase (Elevate Web)
  */
 
 export interface Exercise {
@@ -61,44 +60,6 @@ export interface RoutineAssignment {
   routine?: Routine;
 }
 
-export interface Student {
-  id: string;
-  user_id: string;
-  coach_id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  avatar_url: string | null;
-  status: string;
-  created_at: string;
-}
-
-export interface CoachDatabase {
-  public: {
-    Tables: {
-      students: {
-        Row: Student;
-      };
-      routines: {
-        Row: Routine;
-      };
-      routine_days: {
-        Row: RoutineDay;
-      };
-      routine_exercises: {
-        Row: RoutineExercise;
-      };
-      exercises: {
-        Row: Exercise;
-      };
-      routine_assignments: {
-        Row: RoutineAssignment;
-      };
-    };
-  };
-}
-
-// Types for UI
 export interface AlumnoRoutineWithDetails extends RoutineAssignment {
   routine: Routine & {
     routine_days: (RoutineDay & {

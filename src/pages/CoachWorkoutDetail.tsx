@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Dumbbell } from "lucide-react";
-import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
 import RestTimer from "@/components/workout/RestTimer";
@@ -40,7 +40,7 @@ const CoachWorkoutDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { student, isAuthenticated } = useCoachAuthContext();
+  const { student, isAuthenticated } = useAuthContext();
   const { allDays, activeRoutine } = useCoachHomeData();
   
   // Get routine day from navigation state or find in allDays
@@ -120,7 +120,7 @@ const CoachWorkoutDetail = () => {
       toast.error("Debés iniciar sesión para entrenar", {
         action: {
           label: "Iniciar sesión",
-          onClick: () => navigate("/coach-login"),
+          onClick: () => navigate("/auth"),
         },
       });
       return;
@@ -316,11 +316,11 @@ const CoachWorkoutDetail = () => {
           }
         </p>
         <motion.button
-          onClick={() => navigate(isAuthenticated ? "/routines" : "/coach-login")}
+          onClick={() => navigate(isAuthenticated ? "/routines" : "/auth")}
           className="px-6 py-3 bg-gradient-primary rounded-xl text-primary-foreground font-semibold"
           whileTap={{ scale: 0.98 }}
         >
-          {isAuthenticated ? "Ver mis Rutinas" : "Iniciar Sesión Coach"}
+          {isAuthenticated ? "Ver mis Rutinas" : "Iniciar Sesión"}
         </motion.button>
         <button
           onClick={() => navigate("/")}

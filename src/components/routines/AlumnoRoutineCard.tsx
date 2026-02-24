@@ -5,7 +5,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, Clock, Dumbbell, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { AlumnoRoutineWithDetails } from "@/integrations/coach/types";
+import type { AlumnoRoutineWithDetails } from "@/types/coach";
 
 interface AlumnoRoutineCardProps {
   assignment: AlumnoRoutineWithDetails;

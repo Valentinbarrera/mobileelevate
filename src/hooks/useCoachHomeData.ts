@@ -3,9 +3,9 @@
  * Integra rutinas asignadas, día actual y estadísticas
  */
 import { useMemo } from "react";
-import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "./useAlumnoRoutines";
-import type { RoutineDay, RoutineExercise, Exercise, AlumnoRoutineWithDetails } from "@/integrations/coach/types";
+import type { RoutineDay, RoutineExercise, Exercise, AlumnoRoutineWithDetails } from "@/types/coach";
 
 export interface TodayRoutineDay {
   id: string;
@@ -89,7 +89,7 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
 }
 
 export function useCoachHomeData(): CoachHomeData {
-  const { student, isAuthenticated, loading: authLoading, error: authError } = useCoachAuthContext();
+  const { student, isAuthenticated, loading: authLoading, error: authError } = useAuthContext();
   
   const { 
     data: routines, 

@@ -3,8 +3,8 @@
  * Consulta el proyecto Coach y filtra por student_id y status = 'active'
  */
 import { useQuery } from "@tanstack/react-query";
-import { coachSupabase } from "@/integrations/coach/client";
-import type { AlumnoRoutineWithDetails, Routine, RoutineDay, RoutineExercise } from "@/integrations/coach/types";
+import { supabase } from "@/integrations/supabase/client";
+import type { AlumnoRoutineWithDetails, Routine, RoutineDay, RoutineExercise } from "@/types/coach";
 
 interface UseAlumnoRoutinesOptions {
   studentId: string | null;
@@ -20,7 +20,7 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
       }
 
       // Build the query
-      let query = coachSupabase
+      let query = supabase
         .from('routine_assignments')
         .select(`
           *,
@@ -80,7 +80,7 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
     queryFn: async () => {
       if (!routineId) return null;
 
-      const { data, error } = await coachSupabase
+      const { data, error } = await supabase
         .from('routines')
         .select(`
           *,

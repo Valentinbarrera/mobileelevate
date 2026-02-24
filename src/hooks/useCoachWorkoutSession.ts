@@ -1,13 +1,10 @@
 /**
  * Hook para manejar sesiones de entrenamiento con datos del Coach
- * Guarda workout_sessions y exercise_sets en la DB local (Lovable Cloud)
- * Las rutinas vienen del Coach, el tracking se guarda localmente
- * Incluye soporte offline-first con sincronización automática
+ * Guarda completed_sessions y completed_exercises en Supabase
  */
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
-import { useOfflineSync } from "./useOfflineSync";
+import { useAuthContext } from "@/contexts/AuthContext";
 import type { DifficultyLevel } from "@/types/database";
 import { toast } from "sonner";
 
@@ -32,7 +29,6 @@ interface CompletedSet {
   difficulty: DifficultyLevel;
   completedAt: Date;
   isPR?: boolean;
-  savedOffline?: boolean;
 }
 
 interface CoachWorkoutSession {
@@ -45,48 +41,26 @@ interface CoachWorkoutSession {
 }
 
 export function useCoachWorkoutSession(routineDayId: string, routineId: string) {
-  const { user } = useAuth();
+  const { student } = useAuthContext();
   const [session, setSession] = useState<CoachWorkoutSession | null>(null);
   const [loading, setLoading] = useState(false);
-  const { addPendingSet, isOnline } = useOfflineSync();
 
   // Start a new workout session
   const startSession = useCallback(async () => {
-    if (!user) {
+    if (!student) {
       toast.error("Debés iniciar sesión para entrenar");
       return null;
     }
 
     setLoading(true);
     try {
-      // Create a workout record if it doesn't exist (using routineDayId as workout_id)
-      // First, check if we have a workout mapping for this routine day
-      const { data: existingWorkout } = await supabase
-        .from("workouts")
-        .select("id")
-        .eq("id", routineDayId)
-        .maybeSingle();
-
-      let workoutId = routineDayId;
-
-      // If no workout exists, we'll use a default or create one
-      if (!existingWorkout) {
-        // Use the first available workout as fallback
-        const { data: defaultWorkout } = await supabase
-          .from("workouts")
-          .select("id")
-          .limit(1)
-          .single();
-        
-        workoutId = defaultWorkout?.id || "11111111-1111-1111-1111-111111111111";
-      }
-
       const { data, error } = await supabase
-        .from("workout_sessions")
+        .from("completed_sessions")
         .insert({
-          user_id: user.id,
-          workout_id: workoutId,
-          notes: `Coach routine: ${routineId}, Day: ${routineDayId}`,
+          student_id: student.id,
+          routine_day_id: routineDayId,
+          routine_id: routineId,
+          started_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -109,9 +83,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     } finally {
       setLoading(false);
     }
-  }, [user, routineDayId, routineId]);
+  }, [student, routineDayId, routineId]);
 
-  // Complete a set and save it (with offline fallback)
+  // Complete a set and save it
   const completeSet = useCallback(async (
     exercise: CoachExercise,
     setNumber: number,
@@ -119,79 +93,18 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     reps: number,
     difficulty: DifficultyLevel
   ): Promise<CompletedSet | null> => {
-    if (!session || !user) {
+    if (!session || !student) {
       console.error("No active session");
       return null;
     }
 
     try {
-      // First, we need to check if an exercise exists in our DB
-      // If not, create a temporary mapping (using the coach's exercise_id)
-      let exerciseId = exercise.exerciseId;
-      
-      // Check if exercise exists in local DB
-      const { data: existingExercise } = await supabase
-        .from("exercises")
-        .select("id")
-        .eq("id", exercise.exerciseId)
-        .maybeSingle();
-
-      if (!existingExercise) {
-        // Create exercise in local DB
-        const { data: newExercise, error: createError } = await supabase
-          .from("exercises")
-          .insert({
-            id: exercise.exerciseId,
-            name: exercise.name,
-            muscle_group: exercise.muscleGroup || "General",
-            video_url: exercise.videoUrl,
-            thumbnail: exercise.thumbnail,
-            description: exercise.notes,
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          // If insert fails (maybe ID conflict), try to find by name
-          const { data: byName } = await supabase
-            .from("exercises")
-            .select("id")
-            .eq("name", exercise.name)
-            .maybeSingle();
-          
-          exerciseId = byName?.id || exercise.exerciseId;
-        } else {
-          exerciseId = newExercise.id;
-        }
-      }
-
-      // Get or create workout_exercise mapping
-      let workoutExerciseId = exercise.id;
-      
-      const { data: existingWE } = await supabase
-        .from("workout_exercises")
-        .select("id")
-        .eq("id", exercise.id)
-        .maybeSingle();
-
-      if (!existingWE) {
-        // Use a default workout exercise or create one
-        const { data: defaultWE } = await supabase
-          .from("workout_exercises")
-          .select("id")
-          .limit(1)
-          .single();
-        
-        workoutExerciseId = defaultWE?.id || exercise.id;
-      }
-
-      // Try to save the exercise set to the server
       const { data, error } = await supabase
-        .from("exercise_sets")
+        .from("completed_exercises")
         .insert({
           session_id: session.id,
-          exercise_id: exerciseId,
-          workout_exercise_id: workoutExerciseId,
+          exercise_id: exercise.exerciseId,
+          routine_exercise_id: exercise.id,
           set_number: setNumber,
           weight,
           reps,
@@ -201,30 +114,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         .single();
 
       if (error) {
-        // If online save fails, store offline
-        console.warn("Server save failed, storing offline:", error);
-        
-        addPendingSet({
-          sessionId: session.id,
-          exerciseId,
-          workoutExerciseId,
-          setNumber,
-          weight,
-          reps,
-          difficulty,
-          createdAt: new Date().toISOString(),
-        });
-
-        toast.warning("Serie guardada localmente. Se sincronizará cuando haya conexión.");
-
-        return {
-          setNumber,
-          weight,
-          reps,
-          difficulty,
-          completedAt: new Date(),
-          savedOffline: true,
-        };
+        console.warn("Error saving set:", error);
+        toast.error("Error al guardar la serie");
+        return null;
       }
 
       const completedSet: CompletedSet = {
@@ -232,47 +124,16 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         weight,
         reps,
         difficulty,
-        completedAt: new Date(data.completed_at),
-        isPR: data.is_pr,
+        completedAt: new Date(data.created_at),
       };
-
-      if (data.is_pr) {
-        toast.success("🎉 ¡Nuevo récord personal!");
-      }
 
       return completedSet;
     } catch (error) {
       console.error("Error completing set:", error);
-      
-      // Fallback to offline storage on any error
-      if (!isOnline) {
-        addPendingSet({
-          sessionId: session.id,
-          exerciseId: exercise.exerciseId,
-          workoutExerciseId: exercise.id,
-          setNumber,
-          weight,
-          reps,
-          difficulty,
-          createdAt: new Date().toISOString(),
-        });
-
-        toast.warning("Sin conexión. Serie guardada localmente.");
-
-        return {
-          setNumber,
-          weight,
-          reps,
-          difficulty,
-          completedAt: new Date(),
-          savedOffline: true,
-        };
-      }
-
       toast.error("Error al guardar la serie");
       return null;
     }
-  }, [session, user, addPendingSet, isOnline]);
+  }, [session, student]);
 
   // Finish the workout session
   const finishSession = useCallback(async (
@@ -283,11 +144,11 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
     try {
       const { data, error } = await supabase
-        .from("workout_sessions")
+        .from("completed_sessions")
         .update({
           completed_at: new Date().toISOString(),
-          total_duration_seconds: totalDurationSeconds,
-          notes: notes || session.routineId,
+          duration_seconds: totalDurationSeconds,
+          notes: notes || null,
         })
         .eq("id", session.id)
         .select()
@@ -315,30 +176,27 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
 // Hook to get completed coach workouts for weekly progress
 export function useCoachWeeklyProgress() {
-  const { user } = useAuth();
+  const { student } = useAuthContext();
 
   const getWeeklyProgress = useCallback(async () => {
-    if (!user) return { completedDays: 0, totalDays: 5 };
+    if (!student) return { completedDays: 0, totalDays: 5 };
 
     try {
-      // Get start of current week (Monday)
       const now = new Date();
       const dayOfWeek = now.getDay();
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
       startOfWeek.setHours(0, 0, 0, 0);
 
-      // Get completed sessions this week
       const { data: sessions, error } = await supabase
-        .from("workout_sessions")
-        .select("id, completed_at, notes")
-        .eq("user_id", user.id)
+        .from("completed_sessions")
+        .select("id, completed_at")
+        .eq("student_id", student.id)
         .not("completed_at", "is", null)
         .gte("completed_at", startOfWeek.toISOString());
 
       if (error) throw error;
 
-      // Count unique days with completed workouts
       const completedDates = new Set(
         (sessions || []).map(s => {
           const date = new Date(s.completed_at!);
@@ -348,14 +206,14 @@ export function useCoachWeeklyProgress() {
 
       return {
         completedDays: completedDates.size,
-        totalDays: 5, // Default training days per week
+        totalDays: 5,
         sessions: sessions || [],
       };
     } catch (error) {
       console.error("Error fetching weekly progress:", error);
       return { completedDays: 0, totalDays: 5 };
     }
-  }, [user]);
+  }, [student]);
 
   return { getWeeklyProgress };
 }

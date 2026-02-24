@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import SummaryHeader from "@/components/summary/SummaryHeader";
@@ -6,7 +6,6 @@ import SummaryStats from "@/components/summary/SummaryStats";
 import SummaryAchievements from "@/components/summary/SummaryAchievements";
 import SummaryActions from "@/components/summary/SummaryActions";
 import SummaryMotivation from "@/components/summary/SummaryMotivation";
-import { useWorkoutProgress } from "@/hooks/useWorkoutProgress";
 import { toast } from "sonner";
 import Confetti from "@/components/summary/Confetti";
 
@@ -24,17 +23,12 @@ export interface WorkoutSummaryData {
 const WorkoutSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { updateProgress } = useWorkoutProgress();
-  
-  const [xpGained, setXpGained] = useState(0);
-  const [leveledUp, setLeveledUp] = useState<number | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [progressUpdated, setProgressUpdated] = useState(false);
-  
+  const [showConfetti] = useState(true);
+
   // Get data from navigation state or use defaults
   const summaryData: WorkoutSummaryData = location.state?.summaryData || {
-    workoutName: "Piernas y Glúteos",
-    duration: 2580, // 43 minutes
+    workoutName: "Entrenamiento",
+    duration: 2580,
     exercisesCompleted: 5,
     totalExercises: 5,
     setsCompleted: 18,
@@ -42,53 +36,10 @@ const WorkoutSummary = () => {
     caloriesBurned: 320,
   };
 
-  // Update progress when summary loads
-  useEffect(() => {
-    const updateUserProgress = async () => {
-      if (progressUpdated) return;
-      
-      const result = await updateProgress({
-        exercisesCompleted: summaryData.exercisesCompleted,
-        totalExercises: summaryData.totalExercises,
-        setsCompleted: summaryData.setsCompleted,
-        totalSets: summaryData.totalSets,
-        durationSeconds: summaryData.duration,
-        totalVolume: summaryData.totalVolume,
-      });
-
-      if (result.success) {
-        setXpGained(result.xpGained);
-        setProgressUpdated(true);
-        
-        if (result.leveledUp && result.newLevel) {
-          setLeveledUp(result.newLevel);
-          setShowConfetti(true);
-          toast.success(`🎉 ¡Subiste a nivel ${result.newLevel}!`, {
-            duration: 5000,
-          });
-        } else {
-          toast.success(`+${result.xpGained} XP ganados`, {
-            duration: 3000,
-          });
-        }
-
-        if (result.streakUpdated && result.newStreak && result.newStreak > 1) {
-          setTimeout(() => {
-            toast.success(`🔥 ¡Racha de ${result.newStreak} días!`, {
-              duration: 3000,
-            });
-          }, 1500);
-        }
-      }
-    };
-
-    updateUserProgress();
-  }, [summaryData, updateProgress, progressUpdated]);
-
   const handleShare = async () => {
     const shareData = {
       title: "¡Entrenamiento completado! 💪",
-      text: `Acabo de completar ${summaryData.workoutName} - ${Math.floor(summaryData.duration / 60)} minutos, ${summaryData.caloriesBurned} kcal quemadas! +${xpGained} XP`,
+      text: `Acabo de completar ${summaryData.workoutName} - ${Math.floor(summaryData.duration / 60)} minutos, ${summaryData.caloriesBurned} kcal quemadas!`,
       url: window.location.origin,
     };
 
@@ -99,19 +50,17 @@ const WorkoutSummary = () => {
         console.log("Error sharing:", err);
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareData.text);
       toast.success("Texto copiado al portapapeles");
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-background overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Confetti for level up */}
       {showConfetti && <Confetti />}
 
       {/* Background Effects */}
@@ -121,32 +70,10 @@ const WorkoutSummary = () => {
       </div>
 
       <div className="relative z-10">
-        {/* Header with Animation */}
         <SummaryHeader workoutName={summaryData.workoutName} />
 
-        {/* XP Gained Display */}
-        {xpGained > 0 && (
-          <motion.div 
-            className="mx-5 mb-4"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.5, type: "spring" }}
-          >
-            <div className="bg-gradient-to-r from-primary/20 to-amber-500/20 border border-primary/30 rounded-2xl p-4 flex items-center justify-center gap-3">
-              <span className="text-3xl">⭐</span>
-              <div className="text-center">
-                <p className="text-2xl font-black text-primary">+{xpGained} XP</p>
-                {leveledUp && (
-                  <p className="text-sm text-amber-500 font-semibold">¡Nivel {leveledUp} alcanzado!</p>
-                )}
-              </div>
-              <span className="text-3xl">⭐</span>
-            </div>
-          </motion.div>
-        )}
-
         {/* Stats Grid */}
-        <SummaryStats 
+        <SummaryStats
           duration={summaryData.duration}
           exercisesCompleted={summaryData.exercisesCompleted}
           setsCompleted={summaryData.setsCompleted}
@@ -154,7 +81,7 @@ const WorkoutSummary = () => {
         />
 
         {/* Achievements */}
-        <SummaryAchievements 
+        <SummaryAchievements
           isPersonalBest={summaryData.duration > 2400}
           completionRate={(summaryData.exercisesCompleted / summaryData.totalExercises) * 100}
         />
@@ -163,7 +90,7 @@ const WorkoutSummary = () => {
         <SummaryMotivation />
 
         {/* Action Buttons */}
-        <SummaryActions 
+        <SummaryActions
           onShare={handleShare}
           onGoHome={() => navigate("/")}
         />

@@ -1,0 +1,137 @@
+version: "6.0.0"
+project_name: "Elevate Mobile"
+project_level: 3
+current_sprint: 1
+sprint_plan_path: "docs/sprint-plan-elevate-mobile-2026-02-24.md"
+
+sprints:
+  - sprint_number: 1
+    name: "Clean Slate"
+    goal: "Eliminar dual Supabase, auth funcional, codebase limpio, build passing, dashboard"
+    capacity_points: 35
+    committed_points: 33
+    completed_points: 0
+    status: "in_progress"
+    stories:
+      - story_id: "STORY-001"
+        title: "Eliminar segundo Supabase project"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-002"
+        title: "Implementar auth de estudiante"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-003"
+        title: "Implementar recuperación de contraseña"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-004"
+        title: "Eliminar features standalone"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-005"
+        title: "Limpiar rutas y navegación"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-006"
+        title: "Verificar build limpio"
+        points: 2
+        status: "not_started"
+      - story_id: "STORY-007"
+        title: "Dashboard con datos reales"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-008"
+        title: "Componentes dashboard limpios"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-023"
+        title: "Env vars y deploy config"
+        points: 2
+        status: "not_started"
+
+  - sprint_number: 2
+    name: "Core Experience"
+    goal: "Rutinas visibles, workout execution completo, mensajería"
+    capacity_points: 35
+    committed_points: 35
+    completed_points: 0
+    status: "not_started"
+    stories:
+      - story_id: "STORY-009"
+        title: "Vista de rutina asignada"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-010"
+        title: "Detalle de rutina"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-011"
+        title: "Sesiones planificadas"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-012"
+        title: "Iniciar sesión de workout"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-013"
+        title: "Tracking de sets"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-014"
+        title: "Finalizar workout y resumen"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-015"
+        title: "Historial de sesiones"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-019"
+        title: "Vista de mensajes"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-020"
+        title: "Enviar mensajes"
+        points: 3
+        status: "not_started"
+
+  - sprint_number: 3
+    name: "Progress & Polish"
+    goal: "Progreso visual, perfil, PWA, pulido"
+    capacity_points: 35
+    committed_points: 14
+    completed_points: 0
+    status: "not_started"
+    stories:
+      - story_id: "STORY-016"
+        title: "Gráficos de peso y cintura"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-017"
+        title: "PRs y volumen"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-018"
+        title: "Mediciones corporales"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-021"
+        title: "Perfil del alumno"
+        points: 2
+        status: "not_started"
+      - story_id: "STORY-022"
+        title: "PWA config"
+        points: 3
+        status: "not_started"
+
+velocity:
+  sprint_1: null
+  sprint_2: null
+  sprint_3: null
+  rolling_average: null
+
+team:
+  executor: "Ralph (AI Loop)"
+  tool: "Claude Code"
+  sprint_length_weeks: 1
+  capacity_per_sprint: 35

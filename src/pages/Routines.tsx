@@ -7,7 +7,7 @@ import RoutinesTabs from "@/components/routines/RoutinesTabs";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import BottomNav from "@/components/home/BottomNav";
 import { staggerContainer, fadeUp } from "@/lib/animations";
-import { useCoachAuthContext } from "@/contexts/CoachAuthContext";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
 
 export type TabFilter = "today" | "week" | "completed";
@@ -15,7 +15,7 @@ export type TabFilter = "today" | "week" | "completed";
 const Routines = () => {
   const [activeTab, setActiveTab] = useState<TabFilter>("week");
   const [searchQuery, setSearchQuery] = useState("");
-  const { student, isAuthenticated } = useCoachAuthContext();
+  const { student, isAuthenticated } = useAuthContext();
 
   // Fetch routines from Coach database
   const { data: routines, isLoading, error } = useAlumnoRoutines({

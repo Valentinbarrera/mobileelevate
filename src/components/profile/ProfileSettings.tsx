@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { User, Bell, Link2, HeadphonesIcon, ChevronRight, LogOut, Shield } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 interface SettingItem {
@@ -20,12 +20,12 @@ const settingsItems: SettingItem[] = [
 ];
 
 const ProfileSettings = () => {
-  const { signOut } = useAuth();
+  const { signOut } = useAuthContext();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/welcome");
+    navigate("/auth");
   };
 
   return (
