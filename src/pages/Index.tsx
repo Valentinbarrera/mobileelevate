@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/home/Header";
@@ -10,6 +11,7 @@ import BottomNav from "@/components/home/BottomNav";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
+import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
@@ -21,6 +23,12 @@ const Index = () => {
     allDays,
     loading: coachLoading
   } = useCoachHomeData();
+  const { getWeeklyProgress } = useCoachWeeklyProgress();
+  const [completedDays, setCompletedDays] = useState(0);
+
+  useEffect(() => {
+    getWeeklyProgress().then(result => setCompletedDays(result.completedDays));
+  }, [getWeeklyProgress]);
 
   const userName = student?.full_name || "Atleta";
   const displayName = userName.split(' ')[0];
@@ -71,7 +79,7 @@ const Index = () => {
       <div className="px-5 mt-8 space-y-4">
         <motion.div variants={fadeUp}>
           <WeeklyProgress
-            completedDays={0}
+            completedDays={completedDays}
             totalDays={allDays.length || 5}
           />
         </motion.div>

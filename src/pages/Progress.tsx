@@ -11,7 +11,7 @@ import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const Progress = () => {
   const {
-    totalMinutesThisWeek,
+    sessionsThisWeek,
     currentStreak,
     activeDaysThisMonth,
     weeklyVolume,
@@ -68,8 +68,8 @@ const Progress = () => {
       <div className="px-5 pt-5 space-y-4">
         <motion.div variants={fadeUp}>
           <WeeklyActivity
-            totalMinutes={totalMinutesThisWeek ?? 0}
-            goalMet={(totalMinutesThisWeek ?? 0) >= 150}
+            sessionsThisWeek={sessionsThisWeek ?? 0}
+            goalMet={(sessionsThisWeek ?? 0) >= 3}
           />
         </motion.div>
 

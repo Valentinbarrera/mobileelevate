@@ -27,7 +27,7 @@ export default function Messages() {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_id.eq.${student.id},receiver_id.eq.${student.id}`)
+        .eq('student_id', student.id)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data || [];
@@ -40,8 +40,8 @@ export default function Messages() {
     mutationFn: async (content: string) => {
       if (!student?.id || !student?.coach_id) throw new Error('No student');
       const { error } = await supabase.from('messages').insert({
-        sender_id: student.id,
-        receiver_id: student.coach_id,
+        student_id: student.id,
+        coach_id: student.coach_id,
         content,
         sender: 'student',
       });

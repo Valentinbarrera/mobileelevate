@@ -1,7 +1,7 @@
 version: "6.0.0"
 project_name: "Elevate Mobile"
 project_level: 3
-current_sprint: 1
+current_sprint: 2
 sprint_plan_path: "docs/sprint-plan-elevate-mobile-2026-02-24.md"
 
 sprints:
@@ -10,90 +10,99 @@ sprints:
     goal: "Eliminar dual Supabase, auth funcional, codebase limpio, build passing, dashboard"
     capacity_points: 35
     committed_points: 33
-    completed_points: 0
-    status: "in_progress"
+    completed_points: 33
+    status: "completed"
     stories:
       - story_id: "STORY-001"
         title: "Eliminar segundo Supabase project"
         points: 5
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-002"
         title: "Implementar auth de estudiante"
         points: 5
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-003"
         title: "Implementar recuperación de contraseña"
         points: 3
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-004"
         title: "Eliminar features standalone"
         points: 5
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-005"
         title: "Limpiar rutas y navegación"
         points: 3
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-006"
         title: "Verificar build limpio"
         points: 2
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-007"
         title: "Dashboard con datos reales"
         points: 5
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-008"
         title: "Componentes dashboard limpios"
         points: 3
-        status: "not_started"
+        status: "completed"
       - story_id: "STORY-023"
         title: "Env vars y deploy config"
         points: 2
-        status: "not_started"
+        status: "completed"
 
   - sprint_number: 2
     name: "Core Experience"
-    goal: "Rutinas visibles, workout execution completo, mensajería"
+    goal: "Rutinas visibles, workout execution completo, mensajería, schema alineado"
     capacity_points: 35
     committed_points: 35
-    completed_points: 0
-    status: "not_started"
+    completed_points: 35
+    status: "completed"
     stories:
       - story_id: "STORY-009"
         title: "Vista de rutina asignada"
         points: 5
-        status: "not_started"
+        status: "completed"
+        notes: "Already working from Sprint 1 via useAlumnoRoutines + Routines page"
       - story_id: "STORY-010"
         title: "Detalle de rutina"
         points: 5
-        status: "not_started"
+        status: "completed"
+        notes: "RoutineDetail page created in Sprint 1"
       - story_id: "STORY-011"
         title: "Sesiones planificadas"
         points: 3
-        status: "not_started"
+        status: "completed"
+        notes: "useCoachWorkoutSession now creates planned_sessions before completed_sessions"
       - story_id: "STORY-012"
         title: "Iniciar sesión de workout"
         points: 5
-        status: "not_started"
+        status: "completed"
+        notes: "startSession creates planned_session + completed_session with correct schema"
       - story_id: "STORY-013"
         title: "Tracking de sets"
         points: 5
-        status: "not_started"
+        status: "completed"
+        notes: "completeSet saves to completed_exercises with series/tonnage/rir"
       - story_id: "STORY-014"
         title: "Finalizar workout y resumen"
         points: 3
-        status: "not_started"
+        status: "completed"
+        notes: "finishSession calculates total_tonnage, WorkoutSummary displays stats"
       - story_id: "STORY-015"
         title: "Historial de sesiones"
         points: 3
-        status: "not_started"
+        status: "completed"
+        notes: "useProgressData queries completed_sessions by date, shows history"
       - story_id: "STORY-019"
         title: "Vista de mensajes"
         points: 3
-        status: "not_started"
+        status: "completed"
+        notes: "Messages.tsx queries by student_id, displays with sender field"
       - story_id: "STORY-020"
         title: "Enviar mensajes"
         points: 3
-        status: "not_started"
+        status: "completed"
+        notes: "Insert uses student_id/coach_id/sender/content matching real schema"
 
   - sprint_number: 3
     name: "Progress & Polish"
@@ -125,10 +134,10 @@ sprints:
         status: "not_started"
 
 velocity:
-  sprint_1: null
-  sprint_2: null
+  sprint_1: 33
+  sprint_2: 35
   sprint_3: null
-  rolling_average: null
+  rolling_average: 34
 
 team:
   executor: "Ralph (AI Loop)"

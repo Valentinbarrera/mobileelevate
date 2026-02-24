@@ -1,11 +1,12 @@
 /**
  * Hook para manejar sesiones de entrenamiento con datos del Coach
  * Guarda completed_sessions y completed_exercises en Supabase
+ * Schema: completed_sessions tiene planned_session_id (required), date, student_id
+ *         completed_exercises tiene completed_session_id, routine_exercise_id, series, reps, weight
  */
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import type { DifficultyLevel } from "@/types/database";
 import { toast } from "sonner";
 
 interface CoachExercise {
@@ -26,18 +27,14 @@ interface CompletedSet {
   setNumber: number;
   weight: number;
   reps: number;
-  difficulty: DifficultyLevel;
   completedAt: Date;
-  isPR?: boolean;
 }
 
 interface CoachWorkoutSession {
   id: string;
+  plannedSessionId: string | null;
   routineDayId: string;
-  routineId: string;
-  startedAt: Date;
-  completedAt?: Date;
-  totalDurationSeconds?: number;
+  date: string;
 }
 
 export function useCoachWorkoutSession(routineDayId: string, routineId: string) {
@@ -45,7 +42,6 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   const [session, setSession] = useState<CoachWorkoutSession | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Start a new workout session
   const startSession = useCallback(async () => {
     if (!student) {
       toast.error("Debés iniciar sesión para entrenar");
@@ -54,13 +50,60 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
     setLoading(true);
     try {
+      const today = new Date().toISOString().split('T')[0];
+
+      // Try to find a planned_session for this routine_day and student
+      const { data: planned } = await supabase
+        .from("planned_sessions")
+        .select("id")
+        .eq("student_id", student.id)
+        .eq("routine_day_id", routineDayId)
+        .eq("date", today)
+        .maybeSingle();
+
+      let plannedSessionId = planned?.id || null;
+
+      // If no planned session exists, create one
+      if (!plannedSessionId) {
+        // Get the assignment_id for this routine
+        const { data: assignment } = await supabase
+          .from("routine_assignments")
+          .select("id")
+          .eq("student_id", student.id)
+          .eq("routine_id", routineId)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (assignment) {
+          const { data: newPlanned, error: planError } = await supabase
+            .from("planned_sessions")
+            .insert({
+              student_id: student.id,
+              routine_day_id: routineDayId,
+              assignment_id: assignment.id,
+              date: today,
+            })
+            .select()
+            .single();
+
+          if (!planError && newPlanned) {
+            plannedSessionId = newPlanned.id;
+          }
+        }
+      }
+
+      if (!plannedSessionId) {
+        console.error("Could not find or create planned session");
+        toast.error("Error al preparar la sesión");
+        return null;
+      }
+
       const { data, error } = await supabase
         .from("completed_sessions")
         .insert({
           student_id: student.id,
-          routine_day_id: routineDayId,
-          routine_id: routineId,
-          started_at: new Date().toISOString(),
+          planned_session_id: plannedSessionId,
+          date: today,
         })
         .select()
         .single();
@@ -69,9 +112,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
       const newSession: CoachWorkoutSession = {
         id: data.id,
+        plannedSessionId,
         routineDayId,
-        routineId,
-        startedAt: new Date(data.started_at),
+        date: today,
       };
 
       setSession(newSession);
@@ -85,13 +128,12 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     }
   }, [student, routineDayId, routineId]);
 
-  // Complete a set and save it
   const completeSet = useCallback(async (
     exercise: CoachExercise,
     setNumber: number,
     weight: number,
     reps: number,
-    difficulty: DifficultyLevel
+    _difficulty: string
   ): Promise<CompletedSet | null> => {
     if (!session || !student) {
       console.error("No active session");
@@ -99,16 +141,16 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     }
 
     try {
+      const tonnage = weight * reps;
       const { data, error } = await supabase
         .from("completed_exercises")
         .insert({
-          session_id: session.id,
-          exercise_id: exercise.exerciseId,
+          completed_session_id: session.id,
           routine_exercise_id: exercise.id,
-          set_number: setNumber,
-          weight,
+          series: setNumber,
           reps,
-          difficulty,
+          weight: weight || null,
+          tonnage: tonnage || null,
         })
         .select()
         .single();
@@ -119,15 +161,12 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         return null;
       }
 
-      const completedSet: CompletedSet = {
+      return {
         setNumber,
         weight,
         reps,
-        difficulty,
-        completedAt: new Date(data.created_at),
+        completedAt: new Date(),
       };
-
-      return completedSet;
     } catch (error) {
       console.error("Error completing set:", error);
       toast.error("Error al guardar la serie");
@@ -135,7 +174,6 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     }
   }, [session, student]);
 
-  // Finish the workout session
   const finishSession = useCallback(async (
     totalDurationSeconds: number,
     notes?: string
@@ -143,12 +181,21 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     if (!session) return null;
 
     try {
+      // Calculate total tonnage from completed exercises
+      const { data: exercises } = await supabase
+        .from("completed_exercises")
+        .select("tonnage")
+        .eq("completed_session_id", session.id);
+
+      const totalTonnage = (exercises || []).reduce(
+        (acc, e) => acc + (e.tonnage || 0), 0
+      );
+
       const { data, error } = await supabase
         .from("completed_sessions")
         .update({
-          completed_at: new Date().toISOString(),
-          duration_seconds: totalDurationSeconds,
           notes: notes || null,
+          total_tonnage: totalTonnage || null,
         })
         .eq("id", session.id)
         .select()
@@ -174,7 +221,6 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   };
 }
 
-// Hook to get completed coach workouts for weekly progress
 export function useCoachWeeklyProgress() {
   const { student } = useAuthContext();
 
@@ -186,22 +232,18 @@ export function useCoachWeeklyProgress() {
       const dayOfWeek = now.getDay();
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      startOfWeek.setHours(0, 0, 0, 0);
+      const startDate = startOfWeek.toISOString().split('T')[0];
 
       const { data: sessions, error } = await supabase
         .from("completed_sessions")
-        .select("id, completed_at")
+        .select("id, date")
         .eq("student_id", student.id)
-        .not("completed_at", "is", null)
-        .gte("completed_at", startOfWeek.toISOString());
+        .gte("date", startDate);
 
       if (error) throw error;
 
       const completedDates = new Set(
-        (sessions || []).map(s => {
-          const date = new Date(s.completed_at!);
-          return date.toDateString();
-        })
+        (sessions || []).map(s => s.date)
       );
 
       return {
