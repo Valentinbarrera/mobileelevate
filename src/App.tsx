@@ -21,6 +21,7 @@ const WorkoutSummary = React.lazy(() => import("./pages/WorkoutSummary"));
 const Progress = React.lazy(() => import("./pages/Progress"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const Messages = React.lazy(() => import("./pages/Messages"));
+const Measurements = React.lazy(() => import("./pages/Measurements"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><Lazy><Progress /></Lazy></ProtectedRoute>} />
+            <Route path="/measurements" element={<ProtectedRoute><Lazy><Measurements /></Lazy></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
 

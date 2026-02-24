@@ -1,15 +1,21 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Ruler } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/home/BottomNav";
 import WeeklyActivity from "@/components/progress/WeeklyActivity";
 import ActivityStreak from "@/components/progress/ActivityStreak";
 import VolumeProgressChart from "@/components/progress/VolumeProgressChart";
+import BodyMetricChart from "@/components/progress/BodyMetricChart";
+import PersonalRecords from "@/components/progress/PersonalRecords";
 import PageLoading from "@/components/ui/page-loading";
 import { useProgressData } from "@/hooks/useProgressData";
+import { useAnthropometryData } from "@/hooks/useAnthropometryData";
+import { usePRData } from "@/hooks/usePRData";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const Progress = () => {
+  const navigate = useNavigate();
   const {
     sessionsThisWeek,
     currentStreak,
@@ -17,11 +23,12 @@ const Progress = () => {
     weeklyVolume,
     loading,
   } = useProgressData();
+  const { weightHistory, waistHistory, loading: anthroLoading } = useAnthropometryData();
+  const { records, loading: prLoading } = usePRData();
 
   const currentMonth = new Date().toLocaleString('es-AR', { month: 'long' });
   const currentYear = new Date().getFullYear();
 
-  // Format weekly volume for chart
   const chartData = useMemo(() => {
     if (!weeklyVolume || weeklyVolume.length === 0) {
       return [
@@ -62,6 +69,13 @@ const Progress = () => {
             </div>
             <h1 className="text-xl font-bold text-foreground">Tu Progreso</h1>
           </div>
+          <button
+            onClick={() => navigate("/measurements")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-sm font-medium text-foreground"
+          >
+            <Ruler className="w-4 h-4" />
+            Mediciones
+          </button>
         </div>
       </motion.header>
 
@@ -84,6 +98,25 @@ const Progress = () => {
 
         <motion.div variants={fadeUp}>
           <VolumeProgressChart data={chartData} title="Entrenamientos Semanales" />
+        </motion.div>
+
+        {/* Weight chart - STORY-016 */}
+        {weightHistory.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <BodyMetricChart data={weightHistory} title="Peso" unit="kg" />
+          </motion.div>
+        )}
+
+        {/* Waist chart - STORY-016 */}
+        {waistHistory.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <BodyMetricChart data={waistHistory} title="Cintura" unit="cm" color="#f59e0b" />
+          </motion.div>
+        )}
+
+        {/* Personal Records - STORY-017 */}
+        <motion.div variants={fadeUp}>
+          <PersonalRecords records={records} />
         </motion.div>
       </div>
 

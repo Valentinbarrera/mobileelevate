@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Target, Dumbbell, Calendar, Mail } from "lucide-react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfileSettings from "@/components/profile/ProfileSettings";
@@ -9,7 +10,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { student, loading } = useAuthContext();
+  const { student } = useAuthContext();
 
   const userData = {
     name: student?.full_name || "Atleta",
@@ -18,8 +19,14 @@ const Profile = () => {
       ? `Alumno desde ${new Date(student.created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
       : "Bienvenido",
     avatar: student?.avatar_url || null,
-    isPro: true,
   };
+
+  const infoItems = [
+    { icon: Mail, label: "Email", value: student?.email },
+    { icon: Target, label: "Objetivo", value: student?.goal },
+    { icon: Dumbbell, label: "Nivel", value: student?.level },
+    { icon: Calendar, label: "Edad", value: student?.age ? `${student.age} años` : null },
+  ].filter(item => item.value);
 
   return (
     <motion.div
@@ -38,9 +45,25 @@ const Profile = () => {
           memberType={userData.memberType}
           memberSince={userData.memberSince}
           avatar={userData.avatar}
-          isPro={userData.isPro}
         />
       </motion.div>
+
+      {/* Student info cards */}
+      {infoItems.length > 0 && (
+        <motion.div variants={fadeUp} className="px-5 mb-6">
+          <div className="grid grid-cols-2 gap-3">
+            {infoItems.map(item => (
+              <div key={item.label} className="bg-card border border-border rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <item.icon className="w-4 h-4 text-primary" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                </div>
+                <p className="text-sm font-semibold text-foreground">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       <motion.div variants={fadeUp}>
         <ProfileSettings />
