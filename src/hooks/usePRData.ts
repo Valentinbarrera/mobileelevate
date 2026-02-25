@@ -1,6 +1,7 @@
 /**
  * Hook para calcular Personal Records del alumno
  * Calcula PRs desde completed_exercises (max weight per exercise)
+ * Schema: completed_exercises → routine_exercises (has name field directly)
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,30 +22,36 @@ export function usePRData() {
     queryFn: async () => {
       if (!student?.id) return [];
 
-      // Get all completed exercises with their session dates and exercise names
-      const { data, error } = await supabase
-        .from("completed_exercises")
-        .select(`
-          weight,
-          reps,
-          completed_sessions!inner(date, student_id),
-          routine_exercises!inner(exercises!inner(name))
-        `)
-        .eq("completed_sessions.student_id", student.id)
-        .not("weight", "is", null)
-        .gt("weight", 0)
-        .order("weight", { ascending: false });
+      // Two-step query to avoid RLS issues with nested joins
+      // Step 1: Get completed sessions for this student
+      const { data: sessions, error: sessError } = await supabase
+        .from("completed_sessions")
+        .select("id, date")
+        .eq("student_id", student.id);
 
-      if (error) {
-        console.error("Error fetching PRs:", error);
+      if (sessError || !sessions?.length) return [];
+
+      const sessionIds = sessions.map(s => s.id);
+      const sessionDateMap = new Map(sessions.map(s => [s.id, s.date]));
+
+      // Step 2: Get completed exercises with routine_exercise name
+      const { data: exercises, error: exError } = await supabase
+        .from("completed_exercises")
+        .select("weight, reps, completed_session_id, routine_exercises(name)")
+        .in("completed_session_id", sessionIds)
+        .not("weight", "is", null)
+        .gt("weight", 0);
+
+      if (exError) {
+        console.error("Error fetching PRs:", exError);
         return [];
       }
 
-      // Group by exercise name and find max weight
+      // Group by exercise name, find max weight
       const prMap = new Map<string, PersonalRecord>();
 
-      (data || []).forEach((entry: any) => {
-        const name = entry.routine_exercises?.exercises?.name;
+      (exercises || []).forEach((entry: any) => {
+        const name = entry.routine_exercises?.name;
         if (!name) return;
 
         const existing = prMap.get(name);
@@ -53,7 +60,7 @@ export function usePRData() {
             exerciseName: name,
             weight: entry.weight,
             reps: entry.reps,
-            date: entry.completed_sessions?.date || "",
+            date: sessionDateMap.get(entry.completed_session_id) || "",
           });
         }
       });

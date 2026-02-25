@@ -9,17 +9,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Student {
   id: string;
-  user_id: string;
   coach_id: string;
   full_name: string;
   email: string;
-  phone: string | null;
-  avatar_url: string | null;
   status: string;
   goal: string | null;
   level: string | null;
   age: number | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  injuries: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export function useStudentAuth() {
@@ -62,10 +63,18 @@ export function useStudentAuth() {
 
   const fetchStudentProfile = async (userId: string) => {
     try {
+      // Get user email from auth to match with students table
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const email = authUser?.email;
+      if (!email) {
+        setError('No se encontró el email del usuario');
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('students')
         .select('*')
-        .eq('user_id', userId)
+        .eq('email', email)
         .maybeSingle();
 
       if (fetchError) {

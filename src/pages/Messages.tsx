@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/home/BottomNav';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Loader2, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Send, Loader2, MessageCircle, ArrowLeft, Check, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -35,6 +35,34 @@ export default function Messages() {
     enabled: !!student?.id,
     refetchInterval: 10000,
   });
+
+  // Mark coach messages as seen when they appear
+  const markAsSeen = useCallback(async () => {
+    if (!student?.id || !messages?.length) return;
+
+    const unseenCoachMessages = messages.filter(
+      (msg: any) => msg.sender === 'coach' && !msg.seen_at
+    );
+
+    if (unseenCoachMessages.length === 0) return;
+
+    const ids = unseenCoachMessages.map((msg: any) => msg.id);
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('messages')
+      .update({ seen_at: now })
+      .in('id', ids);
+
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+    }
+  }, [student?.id, messages, queryClient]);
+
+  // Mark as seen when messages load or change
+  useEffect(() => {
+    markAsSeen();
+  }, [markAsSeen]);
 
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
@@ -67,9 +95,14 @@ export default function Messages() {
   const formatTime = (dateStr: string) => {
     const date = parseISO(dateStr);
     if (isToday(date)) return format(date, 'HH:mm');
-    if (isYesterday(date)) return 'Ayer';
-    return format(date, 'd MMM', { locale: es });
+    if (isYesterday(date)) return 'Ayer ' + format(date, 'HH:mm');
+    return format(date, 'd MMM HH:mm', { locale: es });
   };
+
+  // Count unseen coach messages for header badge
+  const unseenCount = (messages || []).filter(
+    (msg: any) => msg.sender === 'coach' && !msg.seen_at
+  ).length;
 
   return (
     <motion.div
@@ -85,6 +118,11 @@ export default function Messages() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold text-foreground">Mensajes</h1>
+          {unseenCount > 0 && (
+            <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {unseenCount}
+            </span>
+          )}
         </div>
       </div>
 
@@ -112,9 +150,19 @@ export default function Messages() {
                     : "bg-card text-foreground border border-border/50 rounded-bl-sm"
                 )}>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                  <p className={cn("text-xs mt-1", isStudent ? "text-white/70" : "text-muted-foreground")}>
-                    {formatTime(msg.created_at)}
-                  </p>
+                  <div className={cn("flex items-center gap-1 mt-1", isStudent ? "justify-end" : "")}>
+                    <p className={cn("text-xs", isStudent ? "text-white/70" : "text-muted-foreground")}>
+                      {formatTime(msg.created_at)}
+                    </p>
+                    {/* Read receipts for student's own messages */}
+                    {isStudent && (
+                      msg.seen_at ? (
+                        <CheckCheck className="w-3.5 h-3.5 text-white/70" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5 text-white/50" />
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             );

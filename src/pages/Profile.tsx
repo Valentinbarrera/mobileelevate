@@ -18,7 +18,7 @@ const Profile = () => {
     memberSince: student?.created_at
       ? `Alumno desde ${new Date(student.created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
       : "Bienvenido",
-    avatar: student?.avatar_url || null,
+    avatar: null,
   };
 
   const infoItems = [
