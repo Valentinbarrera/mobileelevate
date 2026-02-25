@@ -33,8 +33,37 @@ export default function Messages() {
       return data || [];
     },
     enabled: !!student?.id,
-    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
+
+  // Supabase Realtime: listen for new messages and updates (seen_at)
+  useEffect(() => {
+    if (!student?.id) return;
+
+    const channel = supabase
+      .channel(`messages:${student.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `student_id=eq.${student.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `student_id=eq.${student.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [student?.id, queryClient]);
 
   // Mark coach messages as seen when they appear
   const markAsSeen = useCallback(async () => {
