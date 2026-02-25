@@ -117,7 +117,7 @@ export function useCoachHomeData(): CoachHomeData {
     const days = routine.routine_days || [];
 
     // Transform all days
-    const allDays = days.map(day => transformRoutineDay(day as any));
+    const allDays = days.map(day => transformRoutineDay(day as RoutineDay & { routine_exercises: (RoutineExercise & { exercise: Exercise })[] }));
 
     // Determine current day based on day of week (1-7, Monday-Sunday)
     const today = new Date();

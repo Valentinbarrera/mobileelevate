@@ -135,7 +135,7 @@ export function useProgressData() {
       setWeeklyVolume(volumeData);
 
     } catch (error) {
-      console.error("Error fetching progress data:", error);
+      if (import.meta.env.DEV) console.error("Error fetching progress data:", error);
     } finally {
       setLoading(false);
     }

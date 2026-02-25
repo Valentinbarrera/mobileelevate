@@ -42,7 +42,7 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
   const TrendIcon = trend > 5 ? TrendingUp : trend < -5 ? TrendingDown : Minus;
   const trendColor = trend > 5 ? "text-emerald-500" : trend < -5 ? "text-red-500" : "text-muted-foreground";
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">

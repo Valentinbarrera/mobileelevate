@@ -34,8 +34,8 @@ const UpdatePassword = () => {
 
       toast.success("Contraseña actualizada correctamente");
       navigate("/");
-    } catch (error: any) {
-      toast.error(error.message || "Error al actualizar la contraseña");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Error al actualizar la contraseña");
     } finally {
       setLoading(false);
     }

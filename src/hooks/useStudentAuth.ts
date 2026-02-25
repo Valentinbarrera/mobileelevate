@@ -78,13 +78,13 @@ export function useStudentAuth() {
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Error fetching student profile:', fetchError);
+        if (import.meta.env.DEV) console.error('Error fetching student profile:', fetchError);
         setError('No se pudo obtener el perfil del alumno');
       } else {
         setStudent(data as Student | null);
       }
     } catch (err) {
-      console.error('Error in fetchStudentProfile:', err);
+      if (import.meta.env.DEV) console.error('Error in fetchStudentProfile:', err);
       setError('Error al conectar con el servidor');
     } finally {
       setLoading(false);

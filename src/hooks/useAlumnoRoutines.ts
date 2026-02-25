@@ -4,7 +4,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { AlumnoRoutineWithDetails, Routine, RoutineDay, RoutineExercise } from "@/types/coach";
+import type { AlumnoRoutineWithDetails, Routine, RoutineAssignment, RoutineDay, RoutineExercise } from "@/types/coach";
 
 interface UseAlumnoRoutinesOptions {
   studentId: string | null;
@@ -46,18 +46,18 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching alumno routines:', error);
+        if (import.meta.env.DEV) console.error('Error fetching alumno routines:', error);
         throw new Error(`Error al cargar rutinas: ${error.message}`);
       }
 
       // Sort routine_days by day_number and routine_exercises by order_index
-      const sortedData = (data || []).map((assignment: any) => ({
+      const sortedData = (data || []).map((assignment: RoutineAssignment & { routine: Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] } | null }) => ({
         ...assignment,
         routine: assignment.routine ? {
           ...assignment.routine,
           routine_days: (assignment.routine.routine_days || [])
             .sort((a: RoutineDay, b: RoutineDay) => (a.day_number || 0) - (b.day_number || 0))
-            .map((day: any) => ({
+            .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
               ...day,
               routine_exercises: (day.routine_exercises || [])
                 .sort((a: RoutineExercise, b: RoutineExercise) => (a.order_index || 0) - (b.order_index || 0))
@@ -96,23 +96,24 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
         .single();
 
       if (error) {
-        console.error('Error fetching routine detail:', error);
+        if (import.meta.env.DEV) console.error('Error fetching routine detail:', error);
         throw new Error(`Error al cargar rutina: ${error.message}`);
       }
 
       // Sort days and exercises
-      const result = data as any;
+      type RoutineWithDays = Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] };
+      const result = data as RoutineWithDays;
       if (result && result.routine_days) {
         result.routine_days = (result.routine_days || [])
           .sort((a: RoutineDay, b: RoutineDay) => (a.day_number || 0) - (b.day_number || 0))
-          .map((day: any) => ({
+          .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
             ...day,
             routine_exercises: (day.routine_exercises || [])
               .sort((a: RoutineExercise, b: RoutineExercise) => (a.order_index || 0) - (b.order_index || 0))
           }));
       }
 
-      return result as Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] };
+      return result;
     },
     enabled: !!routineId,
     staleTime: 1000 * 60 * 5,

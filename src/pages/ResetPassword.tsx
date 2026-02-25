@@ -27,8 +27,8 @@ const ResetPassword = () => {
 
       setSent(true);
       toast.success("Email enviado. Revisá tu bandeja de entrada.");
-    } catch (error: any) {
-      toast.error(error.message || "Error al enviar el email");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Error al enviar el email");
     } finally {
       setLoading(false);
     }

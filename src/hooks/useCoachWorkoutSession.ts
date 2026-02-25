@@ -93,7 +93,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       }
 
       if (!plannedSessionId) {
-        console.error("Could not find or create planned session");
+        if (import.meta.env.DEV) console.error("Could not find or create planned session");
         toast.error("Error al preparar la sesión");
         return null;
       }
@@ -120,7 +120,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       setSession(newSession);
       return newSession;
     } catch (error) {
-      console.error("Error starting session:", error);
+      if (import.meta.env.DEV) console.error("Error starting session:", error);
       toast.error("Error al iniciar la sesión");
       return null;
     } finally {
@@ -136,7 +136,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     _difficulty: string
   ): Promise<CompletedSet | null> => {
     if (!session || !student) {
-      console.error("No active session");
+      if (import.meta.env.DEV) console.error("No active session");
       return null;
     }
 
@@ -156,7 +156,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         .single();
 
       if (error) {
-        console.warn("Error saving set:", error);
+        if (import.meta.env.DEV) console.warn("Error saving set:", error);
         toast.error("Error al guardar la serie");
         return null;
       }
@@ -168,7 +168,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         completedAt: new Date(),
       };
     } catch (error) {
-      console.error("Error completing set:", error);
+      if (import.meta.env.DEV) console.error("Error completing set:", error);
       toast.error("Error al guardar la serie");
       return null;
     }
@@ -206,7 +206,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       toast.success("¡Entrenamiento completado!");
       return data;
     } catch (error) {
-      console.error("Error finishing session:", error);
+      if (import.meta.env.DEV) console.error("Error finishing session:", error);
       toast.error("Error al finalizar la sesión");
       return null;
     }
@@ -252,7 +252,7 @@ export function useCoachWeeklyProgress() {
         sessions: sessions || [],
       };
     } catch (error) {
-      console.error("Error fetching weekly progress:", error);
+      if (import.meta.env.DEV) console.error("Error fetching weekly progress:", error);
       return { completedDays: 0, totalDays: 5 };
     }
   }, [student]);

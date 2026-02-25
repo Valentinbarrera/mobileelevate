@@ -48,7 +48,7 @@ const RestTimer = ({
   const playSound = useCallback(() => {
     if (enableSound) {
       try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
@@ -62,7 +62,7 @@ const RestTimer = ({
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.3);
       } catch (e) {
-        console.log('Audio not available');
+        if (import.meta.env.DEV) console.log('Audio not available');
       }
     }
   }, [enableSound]);

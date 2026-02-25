@@ -44,13 +44,14 @@ const CoachWorkoutDetail = () => {
   const { allDays, activeRoutine } = useCoachHomeData();
   
   // Get routine day from navigation state or find in allDays
-  const routineDayId = (location.state as any)?.routineDayId || id;
-  
+  const navState = location.state as { routineDayId?: string; routineId?: string } | null;
+  const routineDayId = navState?.routineDayId || id;
+
   const routineDay = useMemo(() => {
     return allDays.find(d => d.id === routineDayId) || null;
   }, [allDays, routineDayId]);
 
-  const routineId = (location.state as any)?.routineId || activeRoutine?.id || "";
+  const routineId = navState?.routineId || activeRoutine?.id || "";
   
   // Session persistence hook
   const { 

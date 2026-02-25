@@ -47,7 +47,7 @@ const WorkoutSummary = () => {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.log("Error sharing:", err);
+        if (import.meta.env.DEV) console.log("Error sharing:", err);
       }
     } else {
       navigator.clipboard.writeText(shareData.text);

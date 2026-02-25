@@ -43,14 +43,14 @@ export function usePRData() {
         .gt("weight", 0);
 
       if (exError) {
-        console.error("Error fetching PRs:", exError);
+        if (import.meta.env.DEV) console.error("Error fetching PRs:", exError);
         return [];
       }
 
       // Group by exercise name, find max weight
       const prMap = new Map<string, PersonalRecord>();
 
-      (exercises || []).forEach((entry: any) => {
+      (exercises || []).forEach((entry: { weight: number; reps: number; completed_session_id: string; routine_exercises: { name: string } | null }) => {
         const name = entry.routine_exercises?.name;
         if (!name) return;
 

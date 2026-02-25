@@ -13,6 +13,17 @@ import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { staggerContainer, fadeUp } from '@/lib/animations';
 
+interface Message {
+  id: string;
+  student_id: string;
+  coach_id: string;
+  sender: 'student' | 'coach';
+  content: string;
+  created_at: string;
+  seen_at: string | null;
+  file_url: string | null;
+}
+
 export default function Messages() {
   const navigate = useNavigate();
   const { student } = useAuthContext();
@@ -70,12 +81,12 @@ export default function Messages() {
     if (!student?.id || !messages?.length) return;
 
     const unseenCoachMessages = messages.filter(
-      (msg: any) => msg.sender === 'coach' && !msg.seen_at
+      (msg: Message) => msg.sender === 'coach' && !msg.seen_at
     );
 
     if (unseenCoachMessages.length === 0) return;
 
-    const ids = unseenCoachMessages.map((msg: any) => msg.id);
+    const ids = unseenCoachMessages.map((msg: Message) => msg.id);
     const now = new Date().toISOString();
 
     const { error } = await supabase
@@ -130,7 +141,7 @@ export default function Messages() {
 
   // Count unseen coach messages for header badge
   const unseenCount = (messages || []).filter(
-    (msg: any) => msg.sender === 'coach' && !msg.seen_at
+    (msg: Message) => msg.sender === 'coach' && !msg.seen_at
   ).length;
 
   return (
@@ -168,7 +179,7 @@ export default function Messages() {
             <p className="text-sm text-muted-foreground">Inicia una conversación con tu coach</p>
           </div>
         ) : (
-          messages.map((msg: any) => {
+          messages.map((msg: Message) => {
             const isStudent = msg.sender === 'student';
             return (
               <div key={msg.id} className={cn("flex", isStudent ? "justify-end" : "justify-start")}>
