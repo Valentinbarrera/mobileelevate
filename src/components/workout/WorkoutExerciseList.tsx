@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import type { Exercise } from "@/pages/WorkoutDetail";
+import type { Exercise } from "@/types/workout";
 import ExerciseListItem from "./ExerciseListItem";
 import ExerciseCard from "./ExerciseCard";
 

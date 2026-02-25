@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "./useAlumnoRoutines";
-import type { RoutineDay, RoutineExercise, Exercise, AlumnoRoutineWithDetails } from "@/types/coach";
+import type { RoutineDay, RoutineExercise, Exercise } from "@/types/coach";
 
 export interface TodayRoutineDay {
   id: string;
@@ -89,7 +89,7 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
 }
 
 export function useCoachHomeData(): CoachHomeData {
-  const { student, isAuthenticated, loading: authLoading, error: authError } = useAuthContext();
+  const { student, isAuthenticated, loading: authLoading } = useAuthContext();
   
   const { 
     data: routines, 

@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import type { Achievement } from "@/pages/Achievements";
+import type { Achievement, AchievementStatus, AchievementRarity } from "@/types/achievement";
 import AchievementCard from "./AchievementCard";
 
 interface AchievementsListProps {
@@ -9,9 +8,9 @@ interface AchievementsListProps {
 const AchievementsList = ({ achievements }: AchievementsListProps) => {
   // Sort: unlocked first, then by rarity
   const sortedAchievements = [...achievements].sort((a, b) => {
-    const statusOrder = { unlocked: 0, claimed: 1, locked: 2 };
-    const rarityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
-    
+    const statusOrder: Record<AchievementStatus, number> = { unlocked: 0, claimed: 1, locked: 2 };
+    const rarityOrder: Record<AchievementRarity, number> = { legendary: 0, epic: 1, rare: 2, common: 3 };
+
     if (statusOrder[a.status] !== statusOrder[b.status]) {
       return statusOrder[a.status] - statusOrder[b.status];
     }

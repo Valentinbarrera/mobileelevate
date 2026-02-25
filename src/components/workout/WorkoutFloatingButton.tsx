@@ -14,7 +14,7 @@ const WorkoutFloatingButton = React.forwardRef<HTMLDivElement, WorkoutFloatingBu
   isCompleted,
   onStart,
   onFinish,
-}, ref) => {
+}, _ref) => {
   // Don't show when workout is in progress (not completed)
   if (workoutStarted && !isCompleted) return null;
 

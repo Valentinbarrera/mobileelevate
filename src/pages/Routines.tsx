@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import PageLoading from "@/components/ui/page-loading";
-import { Dumbbell, Loader2 } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import RoutinesHeader from "@/components/routines/RoutinesHeader";
 import RoutinesTabs from "@/components/routines/RoutinesTabs";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";

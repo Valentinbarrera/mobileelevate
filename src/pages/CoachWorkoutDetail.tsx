@@ -40,7 +40,7 @@ const CoachWorkoutDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { student, isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuthContext();
   const { allDays, activeRoutine } = useCoachHomeData();
   
   // Get routine day from navigation state or find in allDays

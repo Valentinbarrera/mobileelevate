@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
 import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
@@ -15,8 +14,7 @@ import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { student, isAuthenticated } = useAuthContext();
+  const { student } = useAuthContext();
   const {
     activeRoutine,
     todayRoutineDay,

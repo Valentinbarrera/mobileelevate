@@ -4,7 +4,6 @@
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -50,7 +49,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
   const TrendIcon = change > 1 ? TrendingUp : change < -1 ? TrendingDown : Minus;
   const trendColor = Math.abs(change) <= 1 ? "text-muted-foreground" : change > 0 ? "text-red-400" : "text-emerald-500";
 
-  const chartData = data.map((d, i) => ({
+  const chartData = data.map((d) => ({
     label: new Date(d.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" }),
     value: d.value,
   }));

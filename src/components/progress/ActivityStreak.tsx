@@ -9,10 +9,6 @@ interface ActivityStreakProps {
 }
 
 const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStreakProps) => {
-  // Generate calendar days (simplified - showing 2 weeks)
-  const calendarDays = Array.from({ length: 14 }, (_, i) => i + 1);
-  const today = 12; // Current day for demo
-
   return (
     <motion.div
       className="bg-card border border-border rounded-2xl p-4"

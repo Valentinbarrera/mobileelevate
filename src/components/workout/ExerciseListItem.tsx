@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GripVertical, Play, ChevronDown, MessageSquare } from "lucide-react";
-import type { Exercise } from "@/pages/WorkoutDetail";
+import { Play, ChevronDown, MessageSquare } from "lucide-react";
+import type { Exercise } from "@/types/workout";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 
 interface ExerciseListItemProps {

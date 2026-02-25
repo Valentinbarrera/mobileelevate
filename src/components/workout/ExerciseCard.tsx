@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, CheckCircle2, MessageSquare, Clock } from "lucide-react";
-import type { Exercise } from "@/pages/WorkoutDetail";
+import type { Exercise } from "@/types/workout";
 
 interface ExerciseCardProps {
   exercise: Exercise;

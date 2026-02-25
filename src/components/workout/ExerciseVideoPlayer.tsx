@@ -19,7 +19,7 @@ const ExerciseVideoPlayer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [progress, setProgress] = useState(0);
 

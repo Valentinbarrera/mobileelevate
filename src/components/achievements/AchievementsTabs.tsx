@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import type { AchievementCategory } from "@/pages/Achievements";
+import type { AchievementCategory } from "@/types/achievement";
 
 interface AchievementsTabsProps {
   activeCategory: AchievementCategory;

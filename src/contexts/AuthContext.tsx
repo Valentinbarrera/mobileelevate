@@ -3,7 +3,7 @@
  * Reemplaza CoachAuthContext - usa un solo Supabase project
  */
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { useStudentAuth, type Student } from '@/hooks/useStudentAuth';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 

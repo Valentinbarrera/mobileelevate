@@ -142,7 +142,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
     try {
       const tonnage = weight * reps;
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("completed_exercises")
         .insert({
           completed_session_id: session.id,
@@ -175,7 +175,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   }, [session, student]);
 
   const finishSession = useCallback(async (
-    totalDurationSeconds: number,
+    _totalDurationSeconds: number,
     notes?: string
   ) => {
     if (!session) return null;

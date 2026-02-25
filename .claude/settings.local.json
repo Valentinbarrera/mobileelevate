@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:skillsmp.com)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(npx tsc:*)",
+      "Bash(unset:*)",
+      "Bash(bash scripts/ralph/ralph.sh:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(npx vite:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(curl:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

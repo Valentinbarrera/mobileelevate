@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Sparkles, Star } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 interface LevelProgressProps {
@@ -11,11 +11,11 @@ interface LevelProgressProps {
   badge?: string;
 }
 
-const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({ 
-  level, 
-  currentXP, 
-  targetXP, 
-  badge 
+const LevelProgress = React.forwardRef<HTMLDivElement, LevelProgressProps>(({
+  level,
+  currentXP,
+  targetXP,
+  badge: _badge
 }, ref) => {
   const navigate = useNavigate();
   const progressPercent = (currentXP / targetXP) * 100;

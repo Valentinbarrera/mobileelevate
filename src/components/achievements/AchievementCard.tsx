@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Check, Sparkles } from "lucide-react";
-import type { Achievement } from "@/pages/Achievements";
+import type { Achievement, AchievementRarity } from "@/types/achievement";
 import AchievementCelebration from "./AchievementCelebration";
 
 interface AchievementCardProps {
@@ -10,7 +10,7 @@ interface AchievementCardProps {
   onClaim?: (achievement: Achievement) => void;
 }
 
-const rarityConfig = {
+const rarityConfig: Record<AchievementRarity, { border: string; bg: string; glow: string; label: string; labelColor: string }> = {
   common: {
     border: "border-zinc-500/30",
     bg: "bg-zinc-500/5",

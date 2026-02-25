@@ -8,7 +8,7 @@ interface ActiveProgramProps {
   progress: number;
 }
 
-const ActiveProgram = ({ name, subtitle, progress }: ActiveProgramProps) => {
+const ActiveProgram = ({ name, subtitle: _subtitle, progress }: ActiveProgramProps) => {
   return (
     <motion.div 
       className="px-4 mb-4"

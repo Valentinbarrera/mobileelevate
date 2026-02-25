@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pause, Play, Clock, X } from "lucide-react";
+import { Pause, Play, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 

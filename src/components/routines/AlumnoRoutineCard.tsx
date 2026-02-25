@@ -1,7 +1,8 @@
 /**
  * Componente de tarjeta de rutina asignada por el coach
  */
-import React from "react";
+
+
 import { motion } from "framer-motion";
 import { ChevronRight, Clock, Dumbbell, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";

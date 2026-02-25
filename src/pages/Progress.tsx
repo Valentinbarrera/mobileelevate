@@ -23,8 +23,8 @@ const Progress = () => {
     weeklyVolume,
     loading,
   } = useProgressData();
-  const { weightHistory, waistHistory, loading: anthroLoading } = useAnthropometryData();
-  const { records, loading: prLoading } = usePRData();
+  const { weightHistory, waistHistory } = useAnthropometryData();
+  const { records } = usePRData();
 
   const currentMonth = new Date().toLocaleString('es-AR', { month: 'long' });
   const currentYear = new Date().getFullYear();

@@ -51,7 +51,9 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
       }
 
       // Sort routine_days by day_number and routine_exercises by order_index
-      const sortedData = (data || []).map((assignment: RoutineAssignment & { routine: Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] } | null }) => ({
+      type RawAssignment = RoutineAssignment & { routine: (Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] }) | null };
+      const rawData = (data || []) as unknown as RawAssignment[];
+      const sortedData = rawData.map((assignment) => ({
         ...assignment,
         routine: assignment.routine ? {
           ...assignment.routine,
@@ -102,7 +104,7 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
 
       // Sort days and exercises
       type RoutineWithDays = Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] };
-      const result = data as RoutineWithDays;
+      const result = data as unknown as RoutineWithDays;
       if (result && result.routine_days) {
         result.routine_days = (result.routine_days || [])
           .sort((a: RoutineDay, b: RoutineDay) => (a.day_number || 0) - (b.day_number || 0))

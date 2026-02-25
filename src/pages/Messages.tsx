@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { staggerContainer, fadeUp } from '@/lib/animations';
+import { staggerContainer } from '@/lib/animations';
 
 interface Message {
   id: string;
@@ -41,7 +41,7 @@ export default function Messages() {
         .eq('student_id', student.id)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []) as Message[];
     },
     enabled: !!student?.id,
     refetchOnWindowFocus: true,

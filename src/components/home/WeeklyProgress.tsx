@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Check, Flame, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";

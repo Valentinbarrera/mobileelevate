@@ -1,7 +1,7 @@
 /**
  * Workout Card that displays the current day's routine from Coach
  */
-import { Play, Clock, Zap, Dumbbell, Calendar } from "lucide-react";
+import { Play, Clock, Zap, Dumbbell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { fadeUp } from "@/lib/animations";

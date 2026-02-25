@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,

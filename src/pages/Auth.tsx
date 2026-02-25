@@ -22,7 +22,7 @@ const Auth = () => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         navigate("/");
       }

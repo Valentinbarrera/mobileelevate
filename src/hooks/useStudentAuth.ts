@@ -32,7 +32,7 @@ export function useStudentAuth() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -61,7 +61,7 @@ export function useStudentAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchStudentProfile = async (userId: string) => {
+  const fetchStudentProfile = async (_userId: string) => {
     try {
       // Get user email from auth to match with students table
       const { data: { user: authUser } } = await supabase.auth.getUser();

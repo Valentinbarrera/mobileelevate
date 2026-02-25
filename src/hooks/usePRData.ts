@@ -50,9 +50,9 @@ export function usePRData() {
       // Group by exercise name, find max weight
       const prMap = new Map<string, PersonalRecord>();
 
-      (exercises || []).forEach((entry: { weight: number; reps: number; completed_session_id: string; routine_exercises: { name: string } | null }) => {
-        const name = entry.routine_exercises?.name;
-        if (!name) return;
+      (exercises || []).forEach((entry) => {
+        const name = (entry.routine_exercises as { name: string } | null)?.name;
+        if (!name || entry.weight == null) return;
 
         const existing = prMap.get(name);
         if (!existing || entry.weight > existing.weight) {
