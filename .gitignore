@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor native projects (generated, rebuild with `npx cap sync`)
+android/
+ios/
