@@ -30,14 +30,14 @@ const QuickActions = React.forwardRef<HTMLDivElement, object>((_, ref) => {
       route: "/progress" 
     },
     { 
-      icon: <ClipboardCheck className="w-5 h-5" />, 
-      label: "Check-in", 
-      sublabel: "Semanal", 
+      icon: <MessageCircle className="w-5 h-5" />, 
+      label: "Mensajes", 
+      sublabel: "Coach", 
       gradient: "from-purple-500/20 to-purple-600/5 text-purple-400 border-purple-500/20",
-      route: "/checkin" 
+      route: "/messages" 
     },
     { 
-      icon: <MessageCircle className="w-5 h-5" />, 
+      icon: <ClipboardCheck className="w-5 h-5" />, 
       label: "Perfil", 
       sublabel: "Ajustes", 
       gradient: "from-primary/20 to-primary/5 text-primary border-primary/20",

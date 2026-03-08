@@ -11,6 +11,7 @@ import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
+import { useProgressData } from "@/hooks/useProgressData";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
@@ -22,10 +23,14 @@ const Index = () => {
     loading: coachLoading
   } = useCoachHomeData();
   const { getWeeklyProgress } = useCoachWeeklyProgress();
-  const [completedDays, setCompletedDays] = useState(0);
+  const { currentStreak } = useProgressData();
+  const [completedDates, setCompletedDates] = useState<string[]>([]);
 
   useEffect(() => {
-    getWeeklyProgress().then(result => setCompletedDays(result.completedDays));
+    getWeeklyProgress().then(result => {
+      const dates = (result.sessions || []).map((s: { date: string }) => s.date);
+      setCompletedDates(dates);
+    });
   }, [getWeeklyProgress]);
 
   const userName = student?.full_name || "Atleta";
@@ -46,7 +51,7 @@ const Index = () => {
       initial="initial"
       animate="animate"
     >
-      <Header userName={displayName} streakDays={0} />
+      <Header userName={displayName} streakDays={currentStreak} />
 
       {/* === HERO ZONE === */}
       <div className="px-5 space-y-4 mt-2">
@@ -77,7 +82,7 @@ const Index = () => {
       <div className="px-5 mt-8 space-y-4">
         <motion.div variants={fadeUp}>
           <WeeklyProgress
-            completedDays={completedDays}
+            completedDates={completedDates}
             totalDays={allDays.length || 5}
           />
         </motion.div>

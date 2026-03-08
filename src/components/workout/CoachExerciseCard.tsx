@@ -3,12 +3,14 @@
  * Allows logging sets with weight, reps and difficulty
  * Uses enhanced modal with history, coach notes and offline support
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Trophy } from "lucide-react";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import SetInputModalV2 from "./SetInputModalV2";
 import type { DifficultyLevel } from "@/types/database";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface CoachExercise {
   id: string;
@@ -54,6 +56,11 @@ interface CoachExerciseCardProps {
   ) => Promise<boolean>;
 }
 
+interface PerformanceRecord {
+  weight: number;
+  reps: number;
+}
+
 const CoachExerciseCard = ({
   exercise,
   state,
@@ -62,12 +69,43 @@ const CoachExerciseCard = ({
   onSelect,
   onCompleteSet,
 }: CoachExerciseCardProps) => {
+  const { student } = useAuthContext();
   const [showVideo, setShowVideo] = useState(false);
   const [showSetInput, setShowSetInput] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
+  const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
+  const [personalRecord, setPersonalRecord] = useState<PerformanceRecord | null>(null);
 
-  const lastPerformance = null;
-  const personalRecord = null;
+  useEffect(() => {
+    if (!student || !exercise.id) return;
+
+    supabase
+      .from("completed_exercises")
+      .select("weight, reps, completed_sessions!inner(student_id, date)")
+      .eq("routine_exercise_id", exercise.id)
+      .eq("completed_sessions.student_id", student.id)
+      .limit(50)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+
+        const sorted = [...data].sort((a, b) => {
+          const dateA = (a.completed_sessions as { date: string } | null)?.date ?? '';
+          const dateB = (b.completed_sessions as { date: string } | null)?.date ?? '';
+          return dateB.localeCompare(dateA);
+        });
+
+        const last = sorted[0];
+        if (last.weight && last.reps) {
+          setLastPerformance({ weight: last.weight, reps: last.reps });
+        }
+
+        const pr = data.reduce((max, s) =>
+          (s.weight ?? 0) > (max.weight ?? 0) ? s : max, data[0]);
+        if (pr.weight && pr.reps) {
+          setPersonalRecord({ weight: pr.weight, reps: pr.reps });
+        }
+      });
+  }, [student, exercise.id]);
 
   const currentSetNumber = state.currentSet + 1;
   const isCompleted = state.completed;

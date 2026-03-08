@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
-import { Medal, Target, TrendingUp, Zap } from "lucide-react";
+import { Medal, Target, Zap } from "lucide-react";
 
 interface SummaryAchievementsProps {
   isPersonalBest: boolean;
   completionRate: number;
+  currentStreak?: number;
 }
 
-const SummaryAchievements = ({ isPersonalBest, completionRate }: SummaryAchievementsProps) => {
+const SummaryAchievements = ({ isPersonalBest, completionRate, currentStreak = 0 }: SummaryAchievementsProps) => {
   const achievements = [
     ...(completionRate === 100 ? [{
       icon: Target,
@@ -22,20 +23,13 @@ const SummaryAchievements = ({ isPersonalBest, completionRate }: SummaryAchievem
       color: "text-amber-500",
       bgColor: "bg-amber-500/10",
     }] : []),
-    {
+    ...(currentStreak >= 2 ? [{
       icon: Zap,
-      title: "En Racha",
-      description: "3 días seguidos entrenando",
+      title: `${currentStreak} días en racha`,
+      description: currentStreak >= 7 ? "¡Una semana seguida, increíble!" : "Seguís sumando, no pares",
       color: "text-primary",
       bgColor: "bg-primary/10",
-    },
-    {
-      icon: TrendingUp,
-      title: "+25 XP",
-      description: "Experiencia ganada",
-      color: "text-violet-500",
-      bgColor: "bg-violet-500/10",
-    },
+    }] : []),
   ];
 
   return (

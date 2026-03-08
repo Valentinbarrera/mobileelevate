@@ -6,6 +6,7 @@ import SummaryStats from "@/components/summary/SummaryStats";
 import SummaryAchievements from "@/components/summary/SummaryAchievements";
 import SummaryActions from "@/components/summary/SummaryActions";
 import SummaryMotivation from "@/components/summary/SummaryMotivation";
+import { useProgressData } from "@/hooks/useProgressData";
 import { toast } from "sonner";
 import Confetti from "@/components/summary/Confetti";
 
@@ -24,6 +25,7 @@ const WorkoutSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showConfetti] = useState(true);
+  const { currentStreak } = useProgressData();
 
   // Get data from navigation state or use defaults
   const summaryData: WorkoutSummaryData = location.state?.summaryData || {
@@ -84,6 +86,7 @@ const WorkoutSummary = () => {
         <SummaryAchievements
           isPersonalBest={summaryData.duration > 2400}
           completionRate={(summaryData.exercisesCompleted / summaryData.totalExercises) * 100}
+          currentStreak={currentStreak}
         />
 
         {/* Motivational Message */}

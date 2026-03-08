@@ -4,12 +4,25 @@ import { Check, Flame, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface WeeklyProgressProps {
-  completedDays: number;
+  completedDates: string[];
   totalDays: number;
 }
 
+const getWeekDates = (): string[] => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  monday.setHours(0, 0, 0, 0);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d.toISOString().split('T')[0];
+  });
+};
+
 const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
-  ({ completedDays, totalDays }, ref) => {
+  ({ completedDates, totalDays }, ref) => {
   const navigate = useNavigate();
   const days = [
     { short: 'L', full: 'LUN' },
@@ -20,8 +33,12 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
     { short: 'S', full: 'SAB' },
     { short: 'D', full: 'DOM' },
   ];
-  
-  const progressPercent = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
+
+  const weekDates = getWeekDates();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const completedSet = new Set(completedDates);
+  const completedCount = weekDates.filter(d => completedSet.has(d)).length;
+  const progressPercent = totalDays > 0 ? (completedCount / totalDays) * 100 : 0;
   
   return (
     <motion.div 
@@ -38,7 +55,7 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
           <h3 className="text-foreground font-bold text-xs tracking-wider uppercase">Progreso Semanal</h3>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-primary font-black text-sm tabular-nums">{completedDays}</span>
+          <span className="text-primary font-black text-sm tabular-nums">{completedCount}</span>
           <span className="text-muted-foreground text-xs">/ {totalDays}</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground ml-1" />
         </div>
@@ -65,27 +82,28 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
       {/* Días de la semana */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => {
-          const isCompleted = index < completedDays;
-          const isToday = index === completedDays;
-          
+          const dateStr = weekDates[index];
+          const isCompleted = completedSet.has(dateStr);
+          const isToday = dateStr === todayStr;
+
           return (
-            <motion.div 
-              key={index} 
+            <motion.div
+              key={index}
               className="flex flex-col items-center gap-1"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.04 }}
             >
-              <motion.div 
+              <motion.div
                 className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs transition-all
-                  ${isCompleted 
-                    ? 'bg-gradient-primary text-primary-foreground shadow-sm' 
-                    : isToday 
-                      ? 'border-2 border-primary text-primary bg-primary/10' 
+                  ${isCompleted
+                    ? 'bg-gradient-primary text-primary-foreground shadow-sm'
+                    : isToday
+                      ? 'border-2 border-primary text-primary bg-primary/10'
                       : 'bg-secondary/50 text-muted-foreground'
                   }`}
-                animate={isToday ? { borderColor: ["hsl(18 100% 55% / 1)", "hsl(18 100% 55% / 0.4)", "hsl(18 100% 55% / 1)"] } : {}}
-                transition={isToday ? { duration: 2, repeat: Infinity } : {}}
+                animate={isToday && !isCompleted ? { borderColor: ["hsl(18 100% 55% / 1)", "hsl(18 100% 55% / 0.4)", "hsl(18 100% 55% / 1)"] } : {}}
+                transition={isToday && !isCompleted ? { duration: 2, repeat: Infinity } : {}}
               >
                 {isCompleted ? (
                   <motion.div
