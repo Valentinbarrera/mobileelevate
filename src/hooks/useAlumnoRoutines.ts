@@ -36,7 +36,7 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
           )
         `)
         .eq('student_id', studentId)
-        .order('assigned_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       // Filter by status if not 'all'
       if (status !== 'all') {

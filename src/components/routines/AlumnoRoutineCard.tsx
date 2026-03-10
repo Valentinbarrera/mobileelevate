@@ -101,7 +101,7 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
         <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
-            {new Date(assignment.assigned_at).toLocaleDateString('es-AR', { 
+            {new Date(assignment.created_at).toLocaleDateString('es-AR', { 
               day: 'numeric', 
               month: 'short' 
             })}

@@ -53,7 +53,6 @@ export interface RoutineAssignment {
   routine_id: string;
   student_id: string;
   status: 'active' | 'completed' | 'paused';
-  assigned_at: string;
   start_date: string | null;
   end_date: string | null;
   created_at: string;
