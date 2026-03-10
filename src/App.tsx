@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 // Lazy load all pages
+const Welcome = React.lazy(() => import("./pages/Welcome"));
 const Index = React.lazy(() => import("./pages/Index"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
@@ -57,6 +58,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
+            <Route path="/welcome" element={<PublicRoute><Lazy><Welcome /></Lazy></PublicRoute>} />
             <Route path="/auth" element={<PublicRoute><Lazy><Auth /></Lazy></PublicRoute>} />
             <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
             <Route path="/update-password" element={<Lazy><UpdatePassword /></Lazy>} />
