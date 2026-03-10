@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Dumbbell, Apple, MessageCircle, User } from "lucide-react";
+import { Home, Dumbbell, Apple, TrendingUp, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -20,11 +20,11 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   const location = useLocation();
 
   const navItems: NavItem[] = [
-    { id: "home", path: "/", icon: Home, label: "Inicio" },
-    { id: "routines", path: "/routines", icon: Dumbbell, label: "Rutinas" },
-    { id: "nutrition", path: "/nutrition", icon: Apple, label: "Nutrición", isCenter: true },
-    { id: "messages", path: "/messages", icon: MessageCircle, label: "Mensajes" },
-    { id: "profile", path: "/profile", icon: User, label: "Perfil" },
+    { id: "home",      path: "/",          icon: Home,       label: "Inicio" },
+    { id: "nutrition", path: "/nutrition", icon: Apple,      label: "Nutrición" },
+    { id: "routines",  path: "/routines",  icon: Dumbbell,   label: "Entrenar", isCenter: true },
+    { id: "progress",  path: "/progress",  icon: TrendingUp, label: "Progreso" },
+    { id: "profile",   path: "/profile",   icon: User,       label: "Perfil" },
   ];
 
   const activeTab = navItems.find(item => item.path === location.pathname)?.id || "home";

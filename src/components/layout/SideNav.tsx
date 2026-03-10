@@ -8,11 +8,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
   { id: "home",      path: "/",           icon: Home,          label: "Inicio" },
-  { id: "routines",  path: "/routines",   icon: Dumbbell,      label: "Rutinas" },
+  { id: "routines",  path: "/routines",   icon: Dumbbell,      label: "Entrenar" },
   { id: "nutrition", path: "/nutrition",  icon: Apple,         label: "Nutrición" },
-  { id: "progress",  path: "/progress",  icon: TrendingUp,    label: "Progreso" },
-  { id: "messages",  path: "/messages",  icon: MessageCircle, label: "Mensajes" },
-  { id: "profile",   path: "/profile",   icon: User,          label: "Perfil" },
+  { id: "progress",  path: "/progress",   icon: TrendingUp,    label: "Progreso" },
+  { id: "messages",  path: "/messages",   icon: MessageCircle, label: "Mensajes" },
+  { id: "profile",   path: "/profile",    icon: User,          label: "Perfil" },
 ];
 
 const SideNav = () => {
