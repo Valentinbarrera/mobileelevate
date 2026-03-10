@@ -20,7 +20,7 @@ const Progress = () => {
     sessionsThisWeek,
     currentStreak,
     activeDaysThisMonth,
-    weeklyVolume,
+    weeklySessions,
     loading,
   } = useProgressData();
   const { weightHistory, waistHistory } = useAnthropometryData();
@@ -30,20 +30,13 @@ const Progress = () => {
   const currentYear = new Date().getFullYear();
 
   const chartData = useMemo(() => {
-    if (!weeklyVolume || weeklyVolume.length === 0) {
-      return [
-        { date: "2026-01-06", volume: 0, label: "Sem 1" },
-        { date: "2026-01-13", volume: 0, label: "Sem 2" },
-        { date: "2026-01-20", volume: 0, label: "Sem 3" },
-        { date: "2026-01-27", volume: 0, label: "Sem 4" },
-      ];
-    }
-    return weeklyVolume.map((wv, index) => ({
+    if (!weeklySessions || weeklySessions.length === 0) return [];
+    return weeklySessions.map((wv, index) => ({
       date: wv.week,
       volume: wv.volume,
       label: `Sem ${index + 1}`,
     }));
-  }, [weeklyVolume]);
+  }, [weeklySessions]);
 
   if (loading) {
     return <PageLoading message="Analizando tu progreso..." />;
@@ -96,9 +89,11 @@ const Progress = () => {
           />
         </motion.div>
 
-        <motion.div variants={fadeUp}>
-          <VolumeProgressChart data={chartData} title="Entrenamientos Semanales" />
-        </motion.div>
+        {chartData.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <VolumeProgressChart data={chartData} title="Entrenamientos Semanales" />
+          </motion.div>
+        )}
 
         {/* Weight chart - STORY-016 */}
         {weightHistory.length > 0 && (

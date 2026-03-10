@@ -104,56 +104,7 @@ const HomeSkeleton = () => {
         </motion.div>
       </div>
 
-      {/* Programs skeleton */}
-      <motion.div
-        className="mt-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className="flex items-center justify-between px-4 mb-3">
-          <Skeleton className="w-28 h-4 rounded" />
-          <Skeleton className="w-16 h-4 rounded" />
-        </div>
-        <div className="flex gap-3 px-4">
-          <Skeleton className="w-36 h-[150px] rounded-2xl flex-shrink-0" />
-          <Skeleton className="w-36 h-[150px] rounded-2xl flex-shrink-0" />
-        </div>
-      </motion.div>
 
-      {/* Nutrition skeleton */}
-      <div className="px-4 mt-6">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <ShimmerBlock className="p-4 h-[170px]">
-            <div className="flex items-center justify-between mb-4">
-              <Skeleton className="w-20 h-4 rounded" />
-              <Skeleton className="w-24 h-4 rounded" />
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="w-16 h-16 rounded-full" />
-              <div className="flex-1 space-y-3">
-                <Skeleton className="w-full h-2 rounded-full" />
-                <Skeleton className="w-full h-2 rounded-full" />
-                <Skeleton className="w-full h-2 rounded-full" />
-              </div>
-            </div>
-          </ShimmerBlock>
-        </motion.div>
-      </div>
-
-      {/* Quick actions skeleton */}
-      <div className="px-4 mt-6">
-        <Skeleton className="w-28 h-4 rounded mb-3" />
-        <div className="grid grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[88px] rounded-2xl" />
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

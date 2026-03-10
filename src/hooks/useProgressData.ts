@@ -22,11 +22,12 @@ interface WeeklyVolume {
 
 export function useProgressData() {
   const { student } = useAuthContext();
-  const [weeklyVolume, setWeeklyVolume] = useState<WeeklyVolume[]>([]);
+  const [weeklySessions, setWeeklySessions] = useState<WeeklyVolume[]>([]);
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryItem[]>([]);
   const [sessionsThisWeek, setSessionsThisWeek] = useState(0);
   const [activeDaysThisMonth, setActiveDaysThisMonth] = useState<number[]>([]);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [personalBestTonnage, setPersonalBestTonnage] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   const calculateStreak = (sessions: { date: string }[]): number => {
@@ -115,23 +116,29 @@ export function useProgressData() {
       const thisWeekSessions = (sessions || []).filter(s => s.date >= startDateStr);
       setSessionsThisWeek(thisWeekSessions.length);
 
-      // Weekly volume (sessions count per week)
-      const volumeByWeek: { [key: string]: number } = {};
+      // Weekly sessions count per week
+      const sessionsByWeek: { [key: string]: number } = {};
       (sessions || []).forEach(s => {
         const date = new Date(s.date + 'T00:00:00');
         const dow = date.getDay();
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - (dow === 0 ? 6 : dow - 1));
         const weekKey = weekStart.toISOString().split('T')[0];
-        volumeByWeek[weekKey] = (volumeByWeek[weekKey] || 0) + 1;
+        sessionsByWeek[weekKey] = (sessionsByWeek[weekKey] || 0) + 1;
       });
 
-      const volumeData = Object.entries(volumeByWeek)
+      const weeklySessionsData = Object.entries(sessionsByWeek)
         .sort(([a], [b]) => a.localeCompare(b))
         .slice(-8)
         .map(([week, volume]) => ({ week, volume }));
 
-      setWeeklyVolume(volumeData);
+      setWeeklySessions(weeklySessionsData);
+
+      // Personal best tonnage (max total_tonnage in a single session)
+      const maxTonnage = (sessions || []).reduce((max, s) =>
+        (s.total_tonnage || 0) > max ? (s.total_tonnage || 0) : max, 0
+      );
+      setPersonalBestTonnage(maxTonnage > 0 ? maxTonnage : null);
 
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error fetching progress data:", error);
@@ -145,11 +152,14 @@ export function useProgressData() {
   }, [fetchProgressData]);
 
   return {
-    weeklyVolume,
+    weeklySessions,
+    /** @deprecated use weeklySessions */
+    weeklyVolume: weeklySessions,
     workoutHistory,
     sessionsThisWeek,
     activeDaysThisMonth,
     currentStreak,
+    personalBestTonnage,
     loading,
     refetch: fetchProgressData,
   };

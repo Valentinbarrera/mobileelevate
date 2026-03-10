@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MessageCircle, ChevronRight, LogOut, Shield } from "lucide-react";
+import { MessageCircle, ChevronRight, LogOut } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -37,22 +37,6 @@ const ProfileSettings = () => {
           </div>
           <div className="flex-1">
             <p className="font-semibold text-foreground">Soporte con Coach</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </motion.button>
-
-        <motion.button
-          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:bg-card/80 transition-colors text-left"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.7 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-foreground">Privacidad y Seguridad</p>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </motion.button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,30 @@ const UpdatePassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // Only allow this page when arrived via a password recovery email link
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoverySession(true);
+      }
+      setChecking(false);
+    });
+    // If no PASSWORD_RECOVERY event fires within 1s, redirect away
+    const timer = setTimeout(() => {
+      setChecking(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!checking && !isRecoverySession) {
+      toast.error("Acceso inválido. Usá el link del email para cambiar tu contraseña.");
+      navigate("/reset-password", { replace: true });
+    }
+  }, [checking, isRecoverySession, navigate]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +64,8 @@ const UpdatePassword = () => {
       setLoading(false);
     }
   };
+
+  if (checking) return null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 pt-16">

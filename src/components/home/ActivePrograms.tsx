@@ -27,7 +27,7 @@ const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
         <motion.button 
           className="text-primary text-xs font-semibold flex items-center gap-0.5 hover:opacity-80 transition-opacity min-h-[44px] px-2"
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/programs")}
+          onClick={() => navigate("/routines")}
         >
           VER TODO
           <ChevronRight className="w-4 h-4" />
@@ -42,7 +42,7 @@ const ActivePrograms = forwardRef<HTMLDivElement, ActiveProgramsProps>(
             className="flex-shrink-0 w-36 rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all group"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/programs")}
+            onClick={() => navigate("/routines")}
           >
             <div 
               className="h-24 bg-cover bg-center relative"

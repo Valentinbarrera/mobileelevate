@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import SummaryHeader from "@/components/summary/SummaryHeader";
@@ -25,18 +25,18 @@ const WorkoutSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showConfetti] = useState(true);
-  const { currentStreak } = useProgressData();
+  const { currentStreak, personalBestTonnage } = useProgressData();
 
-  // Get data from navigation state or use defaults
-  const summaryData: WorkoutSummaryData = location.state?.summaryData || {
-    workoutName: "Entrenamiento",
-    duration: 2580,
-    exercisesCompleted: 5,
-    totalExercises: 5,
-    setsCompleted: 18,
-    totalSets: 18,
-    caloriesBurned: 320,
-  };
+  // Redirect to home if accessed directly without completing a workout
+  const summaryData: WorkoutSummaryData | null = location.state?.summaryData || null;
+
+  useEffect(() => {
+    if (!summaryData) {
+      navigate("/", { replace: true });
+    }
+  }, [summaryData, navigate]);
+
+  if (!summaryData) return null;
 
   const handleShare = async () => {
     const shareData = {
@@ -84,7 +84,11 @@ const WorkoutSummary = () => {
 
         {/* Achievements */}
         <SummaryAchievements
-          isPersonalBest={summaryData.duration > 2400}
+          isPersonalBest={
+            !!summaryData.totalVolume &&
+            !!personalBestTonnage &&
+            summaryData.totalVolume > personalBestTonnage
+          }
           completionRate={(summaryData.exercisesCompleted / summaryData.totalExercises) * 100}
           currentStreak={currentStreak}
         />
