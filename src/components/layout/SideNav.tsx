@@ -2,16 +2,17 @@
  * SideNav — Desktop/tablet lateral navigation (lg+)
  * Mirrors the same nav items as BottomNav
  */
-import { Home, Dumbbell, TrendingUp, MessageCircle, User } from "lucide-react";
+import { Home, Dumbbell, Apple, TrendingUp, MessageCircle, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
-  { id: "home",     path: "/",            icon: Home,          label: "Inicio" },
-  { id: "routines", path: "/routines",    icon: Dumbbell,      label: "Rutinas" },
-  { id: "progress", path: "/progress",   icon: TrendingUp,    label: "Progreso" },
-  { id: "messages", path: "/messages",   icon: MessageCircle, label: "Mensajes" },
-  { id: "profile",  path: "/profile",    icon: User,          label: "Perfil" },
+  { id: "home",      path: "/",           icon: Home,          label: "Inicio" },
+  { id: "routines",  path: "/routines",   icon: Dumbbell,      label: "Rutinas" },
+  { id: "nutrition", path: "/nutrition",  icon: Apple,         label: "Nutrición" },
+  { id: "progress",  path: "/progress",  icon: TrendingUp,    label: "Progreso" },
+  { id: "messages",  path: "/messages",  icon: MessageCircle, label: "Mensajes" },
+  { id: "profile",   path: "/profile",   icon: User,          label: "Perfil" },
 ];
 
 const SideNav = () => {
