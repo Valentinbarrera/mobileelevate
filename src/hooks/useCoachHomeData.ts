@@ -55,8 +55,8 @@ export interface CoachHomeData {
 // Estimate workout duration based on exercises
 function estimateDuration(exercises: RoutineExercise[]): number {
   return exercises.reduce((acc, ex) => {
-    const setsTime = ex.sets * 1.5; // ~1.5 min per set
-    const restTime = ((ex.rest_seconds || 60) * (ex.sets - 1)) / 60;
+    const setsTime = ex.series * 1.5; // ~1.5 min per set
+    const restTime = ((ex.rest || 60) * (ex.series - 1)) / 60;
     return acc + setsTime + restTime;
   }, 0);
 }
@@ -67,9 +67,9 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
     id: re.id,
     exerciseId: re.exercise_id,
     name: re.exercise?.name || "Ejercicio",
-    sets: re.sets,
+    sets: re.series,
     reps: re.reps,
-    restSeconds: re.rest_seconds,
+    restSeconds: re.rest,
     notes: re.notes,
     videoUrl: re.exercise?.video_url || null,
     thumbnail: re.exercise?.thumbnail || null,
@@ -123,14 +123,9 @@ export function useCoachHomeData(): CoachHomeData {
     const today = new Date();
     const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay(); // Convert Sunday from 0 to 7
     
-    // Find the day that matches today, or use first day as fallback
-    let currentDayIndex = days.findIndex(d => d.day_number === dayOfWeek);
-    if (currentDayIndex === -1) {
-      // If no exact match, find closest day or use day 1
-      currentDayIndex = 0;
-    }
-
-    const todayDay = allDays[currentDayIndex] || null;
+    // Find the day that matches today — null means rest day, never fall back to day 0
+    const currentDayIndex = days.findIndex(d => d.day_number === dayOfWeek);
+    const todayDay = currentDayIndex !== -1 ? allDays[currentDayIndex] : null;
 
     const activeRoutine: ActiveRoutineInfo = {
       id: routine.id,
@@ -149,7 +144,7 @@ export function useCoachHomeData(): CoachHomeData {
       activeRoutine,
       todayRoutineDay: todayDay,
       allDays,
-      currentDayIndex,
+      currentDayIndex: currentDayIndex !== -1 ? currentDayIndex : 0,
     };
   }, [routines]);
 

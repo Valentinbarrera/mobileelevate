@@ -17,9 +17,9 @@ export interface RoutineExercise {
   id: string;
   routine_day_id: string;
   exercise_id: string;
-  sets: number;
+  series: number;
   reps: string;
-  rest_seconds: number | null;
+  rest: number | null;
   notes: string | null;
   order_index: number;
   created_at: string;

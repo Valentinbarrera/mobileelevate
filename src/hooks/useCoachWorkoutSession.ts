@@ -175,7 +175,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   }, [session, student]);
 
   const finishSession = useCallback(async (
-    _totalDurationSeconds: number,
+    totalDurationSeconds: number,
     notes?: string
   ) => {
     if (!session) return null;
@@ -196,6 +196,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
         .update({
           notes: notes || null,
           total_tonnage: totalTonnage || null,
+          duration_seconds: totalDurationSeconds || null,
         })
         .eq("id", session.id)
         .select()

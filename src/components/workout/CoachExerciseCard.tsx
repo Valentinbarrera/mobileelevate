@@ -57,8 +57,8 @@ interface CoachExerciseCardProps {
 }
 
 interface PerformanceRecord {
-  weight: number;
-  reps: number;
+  maxWeight?: number;
+  maxReps?: number;
 }
 
 const CoachExerciseCard = ({
@@ -102,7 +102,7 @@ const CoachExerciseCard = ({
         const pr = data.reduce((max, s) =>
           (s.weight ?? 0) > (max.weight ?? 0) ? s : max, data[0]);
         if (pr.weight && pr.reps) {
-          setPersonalRecord({ weight: pr.weight, reps: pr.reps });
+          setPersonalRecord({ maxWeight: pr.weight, maxReps: pr.reps });
         }
       });
   }, [student, exercise.id]);

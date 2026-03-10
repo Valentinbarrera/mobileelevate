@@ -79,7 +79,7 @@ const CoachWorkoutDetail = () => {
   const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
   const [completedExerciseInfo, setCompletedExerciseInfo] = useState<{
     name: string;
-    nextExercise: { name: string; sets: number; reps: string } | null;
+    nextExercise: { id: string; name: string; sets: number; reps: string } | null;
     isLastExercise: boolean;
   } | null>(null);
 
@@ -209,6 +209,7 @@ const CoachWorkoutDetail = () => {
         setCompletedExerciseInfo({
           name: exercise.name,
           nextExercise: nextExercise ? {
+            id: nextExercise.id,
             name: nextExercise.name,
             sets: nextExercise.sets,
             reps: nextExercise.reps,
@@ -237,7 +238,8 @@ const CoachWorkoutDetail = () => {
   const handleGoToNextExercise = useCallback(() => {
     if (!routineDay || !completedExerciseInfo?.nextExercise) return;
     
-    const nextEx = routineDay.exercises.find(e => e.name === completedExerciseInfo.nextExercise?.name);
+    // Look up by ID to avoid duplicate-name bugs
+    const nextEx = routineDay.exercises.find(e => e.id === completedExerciseInfo.nextExercise?.id);
     if (nextEx) {
       setActiveExerciseId(nextEx.id);
     }

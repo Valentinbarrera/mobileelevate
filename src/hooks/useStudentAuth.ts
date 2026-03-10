@@ -23,6 +23,9 @@ export interface Student {
   updated_at: string;
 }
 
+// Error shown when user is authenticated but not in students table
+export const NOT_A_STUDENT_ERROR = 'Tu cuenta no está vinculada a ningún coach. Pedile a tu entrenador que te agregue como alumno.';
+
 export function useStudentAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -30,47 +33,8 @@ export function useStudentAuth() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          setTimeout(() => {
-            fetchStudentProfile(session.user.id);
-          }, 0);
-        } else {
-          setStudent(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        fetchStudentProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchStudentProfile = async (_userId: string) => {
+  const fetchStudentProfile = async (email: string) => {
     try {
-      // Get user email from auth to match with students table
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      const email = authUser?.email;
-      if (!email) {
-        setError('No se encontró el email del usuario');
-        return;
-      }
-
       const { data, error: fetchError } = await supabase
         .from('students')
         .select('*')
@@ -80,8 +44,12 @@ export function useStudentAuth() {
       if (fetchError) {
         if (import.meta.env.DEV) console.error('Error fetching student profile:', fetchError);
         setError('No se pudo obtener el perfil del alumno');
+      } else if (!data) {
+        setError(NOT_A_STUDENT_ERROR);
+        setStudent(null);
       } else {
-        setStudent(data as Student | null);
+        setStudent(data as Student);
+        setError(null);
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error in fetchStudentProfile:', err);
@@ -90,6 +58,36 @@ export function useStudentAuth() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        fetchStudentProfile(session.user.email);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for auth changes (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user?.email) {
+          fetchStudentProfile(session.user.email);
+        } else {
+          setStudent(null);
+          setError(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
