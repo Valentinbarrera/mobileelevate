@@ -73,8 +73,8 @@ const Auth = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] opacity-30" />
       
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-8">
-        <div className="w-full max-w-sm">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm lg:bg-card/60 lg:border lg:border-border/50 lg:rounded-3xl lg:p-8 lg:backdrop-blur-sm">
         {/* Logo */}
         <motion.div 
           className="text-center mb-12"
@@ -102,7 +102,6 @@ const Auth = () => {
 
         {/* Form */}
         <motion.div 
-          className="flex-1"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
