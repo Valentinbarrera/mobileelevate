@@ -27,3 +27,6 @@ dist-ssr
 android/
 ios/
 .vercel
+
+# npm cache (should never be committed)
+npm-cache/
