@@ -5,7 +5,7 @@ import { Dumbbell } from "lucide-react";
 import RoutinesHeader from "@/components/routines/RoutinesHeader";
 import RoutinesTabs from "@/components/routines/RoutinesTabs";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
-import BottomNav from "@/components/home/BottomNav";
+import AppShell from "@/components/layout/AppShell";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
@@ -41,93 +41,96 @@ const Routines = () => {
   // Show message if not authenticated with Coach
   if (!isAuthenticated) {
     return (
-      <motion.div
-        className="min-h-screen bg-background pb-28 flex flex-col items-center justify-center px-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-          <Dumbbell className="w-8 h-8 text-primary" />
-        </div>
-        <h2 className="text-lg font-bold text-foreground mb-2">
-          Conecta tu cuenta
-        </h2>
-        <p className="text-muted-foreground text-sm text-center mb-4">
-          Inicia sesión con tu cuenta de Elevate Coach para ver las rutinas
-          asignadas por tu entrenador.
-        </p>
-        <BottomNav />
-      </motion.div>
+      <AppShell>
+        <motion.div
+          className="min-h-screen bg-background pb-28 flex flex-col items-center justify-center px-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Dumbbell className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">
+            Conecta tu cuenta
+          </h2>
+          <p className="text-muted-foreground text-sm text-center mb-4">
+            Inicia sesión con tu cuenta de Elevate Coach para ver las rutinas
+            asignadas por tu entrenador.
+          </p>
+        </motion.div>
+      </AppShell>
     );
   }
 
   return (
-    <motion.div
-      className="min-h-screen bg-background pb-28"
-      variants={staggerContainer}
-      initial="initial"
-      animate="animate"
-    >
-      <RoutinesHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+    <AppShell>
+      <motion.div
+        className="min-h-screen bg-background pb-28 lg:pb-10"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <RoutinesHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-      <motion.div variants={fadeUp}>
-        <RoutinesTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          completedCount={completedCount}
-        />
-      </motion.div>
-
-      {/* Loading state */}
-      {isLoading && <PageLoading message="Cargando rutinas..." />}
-
-      {/* Error state */}
-      {error && (
-        <div className="px-5 py-16 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-            <Dumbbell className="w-8 h-8 text-destructive" />
-          </div>
-          <p className="text-destructive text-sm">Error al cargar rutinas</p>
-          <p className="text-muted-foreground text-xs mt-1">
-            {(error as Error).message}
-          </p>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && !error && filteredRoutines.length === 0 && (
-        <motion.div
-          className="px-5 py-16 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-            <Dumbbell className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-foreground font-semibold">No hay rutinas</p>
-          <p className="text-muted-foreground text-sm mt-1">
-            {activeTab === "completed"
-              ? "Aún no completaste ninguna rutina"
-              : "Tu coach no te ha asignado rutinas todavía"}
-          </p>
-        </motion.div>
-      )}
-
-      {/* Routine list */}
-      {!isLoading && !error && filteredRoutines.length > 0 && (
-        <div className="px-5 mt-4 space-y-3">
-          {filteredRoutines.map((assignment, index) => (
-            <AlumnoRoutineCard
-              key={assignment.id}
-              assignment={assignment}
-              index={index}
+        <div className="max-w-4xl mx-auto">
+          <motion.div variants={fadeUp}>
+            <RoutinesTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              completedCount={completedCount}
             />
-          ))}
-        </div>
-      )}
+          </motion.div>
 
-      <BottomNav />
-    </motion.div>
+          {/* Loading state */}
+          {isLoading && <PageLoading message="Cargando rutinas..." />}
+
+          {/* Error state */}
+          {error && (
+            <div className="px-5 py-16 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                <Dumbbell className="w-8 h-8 text-destructive" />
+              </div>
+              <p className="text-destructive text-sm">Error al cargar rutinas</p>
+              <p className="text-muted-foreground text-xs mt-1">
+                {(error as Error).message}
+              </p>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && !error && filteredRoutines.length === 0 && (
+            <motion.div
+              className="px-5 py-16 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
+                <Dumbbell className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-foreground font-semibold">No hay rutinas</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                {activeTab === "completed"
+                  ? "Aún no completaste ninguna rutina"
+                  : "Tu coach no te ha asignado rutinas todavía"}
+              </p>
+            </motion.div>
+          )}
+
+          {/* Routine list */}
+          {!isLoading && !error && filteredRoutines.length > 0 && (
+            <div className="px-5 mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredRoutines.map((assignment, index) => (
+                <AlumnoRoutineCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  index={index}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </AppShell>
   );
 };
 

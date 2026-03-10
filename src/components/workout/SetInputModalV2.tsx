@@ -163,7 +163,7 @@ const SetInputModalV2 = ({
           animate={{ opacity: isClosing ? 0 : 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center"
+          className="fixed inset-0 z-50 bg-black/80 flex items-end lg:items-center justify-center"
           onClick={onClose}
         >
           <motion.div
@@ -171,7 +171,7 @@ const SetInputModalV2 = ({
             animate={{ y: isClosing ? "100%" : 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="w-full max-w-md bg-card rounded-t-3xl border-t border-border p-6 pb-safe"
+            className="w-full max-w-md bg-card rounded-t-3xl lg:rounded-3xl border-t lg:border border-border p-6 pb-safe lg:pb-6 lg:max-h-[90vh] lg:overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

@@ -43,7 +43,7 @@ const SummaryAchievements = ({ isPersonalBest, completionRate, currentStreak = 0
           Logros desbloqueados
         </h3>
         
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {achievements.map((achievement, index) => (
             <motion.div
               key={achievement.title}

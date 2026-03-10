@@ -22,7 +22,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStre
       </div>
 
       {/* Calendar grid */}
-      <div className="mb-4">
+      <div className="mb-4 max-w-xs mx-auto">
         {/* Day labels */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map((day) => (

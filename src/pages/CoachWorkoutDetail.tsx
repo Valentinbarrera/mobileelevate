@@ -377,7 +377,7 @@ const CoachWorkoutDetail = () => {
       )}
 
       {/* Exercise List */}
-      <div className="px-5 pb-32">
+      <div className="max-w-5xl mx-auto px-5 pb-32">
         <motion.div 
           className="flex items-center justify-between mb-4"
           initial={{ opacity: 0, y: 10 }}
@@ -392,7 +392,7 @@ const CoachWorkoutDetail = () => {
           </span>
         </motion.div>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {exercises.map((exercise, index) => {
             const state = exerciseStates.get(exercise.id);
             
@@ -420,7 +420,7 @@ const CoachWorkoutDetail = () => {
       {/* Description Section */}
       {!workoutStarted && routineDay.description && (
         <motion.div 
-          className="px-5 pb-8"
+          className="max-w-5xl mx-auto px-5 pb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}

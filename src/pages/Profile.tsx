@@ -4,7 +4,7 @@ import { Target, Dumbbell, Calendar, Mail } from "lucide-react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfileSettings from "@/components/profile/ProfileSettings";
-import BottomNav from "@/components/home/BottomNav";
+import AppShell from "@/components/layout/AppShell";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 
@@ -29,48 +29,50 @@ const Profile = () => {
   ].filter(item => item.value);
 
   return (
-    <motion.div
-      className="min-h-screen bg-background pb-28"
-      variants={staggerContainer}
-      initial="initial"
-      animate="animate"
-    >
-      <motion.div variants={fadeUp}>
-        <ProfileHeader onBack={() => navigate(-1)} />
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
-        <ProfileAvatar
-          name={userData.name}
-          memberType={userData.memberType}
-          memberSince={userData.memberSince}
-          avatar={userData.avatar}
-        />
-      </motion.div>
-
-      {/* Student info cards */}
-      {infoItems.length > 0 && (
-        <motion.div variants={fadeUp} className="px-5 mb-6">
-          <div className="grid grid-cols-2 gap-3">
-            {infoItems.map(item => (
-              <div key={item.label} className="bg-card border border-border rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <item.icon className="w-4 h-4 text-primary" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
-                </div>
-                <p className="text-sm font-semibold text-foreground">{item.value}</p>
-              </div>
-            ))}
-          </div>
+    <AppShell>
+      <motion.div
+        className="min-h-screen bg-background pb-28 lg:pb-10"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div variants={fadeUp}>
+          <ProfileHeader onBack={() => navigate(-1)} />
         </motion.div>
-      )}
 
-      <motion.div variants={fadeUp}>
-        <ProfileSettings />
+        <div className="max-w-2xl mx-auto">
+          <motion.div variants={fadeUp}>
+            <ProfileAvatar
+              name={userData.name}
+              memberType={userData.memberType}
+              memberSince={userData.memberSince}
+              avatar={userData.avatar}
+            />
+          </motion.div>
+
+          {/* Student info cards */}
+          {infoItems.length > 0 && (
+            <motion.div variants={fadeUp} className="px-5 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {infoItems.map(item => (
+                  <div key={item.label} className="bg-card border border-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <item.icon className="w-4 h-4 text-primary" />
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          <motion.div variants={fadeUp}>
+            <ProfileSettings />
+          </motion.div>
+        </div>
       </motion.div>
-
-      <BottomNav />
-    </motion.div>
+    </AppShell>
   );
 };
 

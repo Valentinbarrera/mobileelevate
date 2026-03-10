@@ -89,9 +89,9 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
         <span className="text-sm text-muted-foreground">{unit}</span>
       </div>
 
-      <div className="h-40">
+      <div className="h-40 md:h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+          <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
             <defs>
               <linearGradient id={`gradient-${title}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.3} />

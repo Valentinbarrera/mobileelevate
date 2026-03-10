@@ -53,7 +53,7 @@ const ActiveWorkoutHeader = ({
         </div>
 
         <div className="px-5 py-3">
-          <div className="flex items-center justify-between">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
             {/* Exit Button + Timer */}
             <div className="flex items-center gap-3">
               <motion.button

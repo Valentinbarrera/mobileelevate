@@ -71,7 +71,7 @@ const WorkoutSummary = () => {
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 max-w-2xl mx-auto">
         <SummaryHeader workoutName={summaryData.workoutName} />
 
         {/* Stats Grid */}

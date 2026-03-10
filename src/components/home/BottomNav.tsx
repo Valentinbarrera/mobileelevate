@@ -35,11 +35,11 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   };
 
   return (
-    <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50" role="navigation" aria-label="Navegación principal">
+    <nav ref={ref} className="lg:hidden fixed bottom-0 left-0 right-0 z-50" role="navigation" aria-label="Navegación principal">
       {/* Fade transition to content */}
       <div className="absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-      <div className="px-5 pb-2">
+      <div className="px-5 pb-2 max-w-lg mx-auto">
         <div
           className="flex items-center rounded-2xl px-2 h-[68px]"
           style={{

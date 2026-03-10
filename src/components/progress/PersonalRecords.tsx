@@ -39,7 +39,7 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
         <h3 className="text-sm font-semibold text-foreground">Records Personales</h3>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
         {records.slice(0, 8).map((pr, index) => (
           <motion.div
             key={pr.exerciseName}

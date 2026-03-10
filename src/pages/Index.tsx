@@ -6,7 +6,7 @@ import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
 import RestDayCard from "@/components/home/RestDayCard";
 import WeeklyProgress from "@/components/home/WeeklyProgress";
 import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
-import BottomNav from "@/components/home/BottomNav";
+import AppShell from "@/components/layout/AppShell";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -45,51 +45,53 @@ const Index = () => {
   }
 
   return (
-    <motion.div
-      className="min-h-screen bg-background pb-32"
-      variants={staggerContainer}
-      initial="initial"
-      animate="animate"
-    >
-      <Header userName={displayName} streakDays={currentStreak} />
+    <AppShell>
+      <motion.div
+        className="min-h-screen bg-background pb-32 lg:pb-10"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <Header userName={displayName} streakDays={currentStreak} />
 
-      {/* === HERO ZONE === */}
-      <div className="px-5 space-y-4 mt-2">
-        <motion.div variants={fadeUp}>
-          <Greeting userName={displayName} todayStatus={todayStatus} />
-        </motion.div>
-      </div>
-
-      {/* === PRIMARY ACTION: Today's Workout === */}
-      <div className="px-5 mt-8">
-        {todayRoutineDay && activeRoutine ? (
-          <>
+        <div className="max-w-2xl mx-auto">
+          {/* === HERO ZONE === */}
+          <div className="px-5 space-y-4 mt-2">
             <motion.div variants={fadeUp}>
-              <CoachWorkoutCard routineDay={todayRoutineDay} routineInfo={activeRoutine} />
+              <Greeting userName={displayName} todayStatus={todayStatus} />
             </motion.div>
-            <motion.div variants={fadeUp} className="mt-3">
-              <ViewAllRoutinesLink />
+          </div>
+
+          {/* === PRIMARY ACTION: Today's Workout === */}
+          <div className="px-5 mt-8">
+            {todayRoutineDay && activeRoutine ? (
+              <>
+                <motion.div variants={fadeUp}>
+                  <CoachWorkoutCard routineDay={todayRoutineDay} routineInfo={activeRoutine} />
+                </motion.div>
+                <motion.div variants={fadeUp} className="mt-3">
+                  <ViewAllRoutinesLink />
+                </motion.div>
+              </>
+            ) : (
+              <motion.div variants={fadeUp}>
+                <RestDayCard />
+              </motion.div>
+            )}
+          </div>
+
+          {/* === STATS ZONE === */}
+          <div className="px-5 mt-8 space-y-4">
+            <motion.div variants={fadeUp}>
+              <WeeklyProgress
+                completedDates={completedDates}
+                totalDays={allDays.length || 5}
+              />
             </motion.div>
-          </>
-        ) : (
-          <motion.div variants={fadeUp}>
-            <RestDayCard />
-          </motion.div>
-        )}
-      </div>
-
-      {/* === STATS ZONE === */}
-      <div className="px-5 mt-8 space-y-4">
-        <motion.div variants={fadeUp}>
-          <WeeklyProgress
-            completedDates={completedDates}
-            totalDays={allDays.length || 5}
-          />
-        </motion.div>
-      </div>
-
-      <BottomNav />
-    </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </AppShell>
   );
 };
 
