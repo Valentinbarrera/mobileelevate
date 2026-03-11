@@ -104,6 +104,14 @@ export function useStudentAuth() {
       return { error: signInError };
     }
 
+    // Explicitly fetch student profile after successful login
+    // (onAuthStateChange may not fire if a session already existed in localStorage)
+    if (data.user?.email) {
+      setUser(data.user);
+      setSession(data.session);
+      await fetchStudentProfile(data.user.email);
+    }
+
     return { data };
   };
 

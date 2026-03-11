@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,16 +14,16 @@ const passwordSchema = z.string().min(6, "Mínimo 6 caracteres");
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { error: authError, isAuthenticated } = useAuthContext();
+  const { error: authError, isAuthenticated, signIn } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (covers the case where session was already active)
   useEffect(() => {
-    if (isAuthenticated) navigate("/");
+    if (isAuthenticated) navigate("/", { replace: true });
   }, [isAuthenticated, navigate]);
 
   const validateForm = (): boolean => {
@@ -49,12 +48,12 @@ const Auth = () => {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+      const result = await signIn(email, password);
+      if (result.error) {
+        if (result.error.message.includes("Invalid login credentials")) {
           toast.error("Email o contraseña incorrectos");
         } else {
-          toast.error(error.message);
+          toast.error(result.error.message);
         }
       }
       // Navigation handled by useEffect on isAuthenticated
