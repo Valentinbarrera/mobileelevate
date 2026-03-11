@@ -41,7 +41,11 @@ const Index = () => {
     : "¡Día de descanso activo!";
 
   if (coachLoading) {
-    return <HomeSkeleton />;
+    return (
+      <AppShell>
+        <HomeSkeleton />
+      </AppShell>
+    );
   }
 
   return (
