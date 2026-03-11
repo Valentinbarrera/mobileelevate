@@ -50,7 +50,7 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
         throw new Error(`Error al cargar rutinas: ${error.message}`);
       }
 
-      // Sort routine_days by day_number and routine_exercises by order_index
+      // Sort routine_days by order_index and routine_exercises by order_index
       type RawAssignment = RoutineAssignment & { routine: (Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] }) | null };
       const rawData = (data || []) as unknown as RawAssignment[];
       const sortedData = rawData.map((assignment) => ({
@@ -58,7 +58,7 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
         routine: assignment.routine ? {
           ...assignment.routine,
           routine_days: (assignment.routine.routine_days || [])
-            .sort((a: RoutineDay, b: RoutineDay) => (a.day_number || 0) - (b.day_number || 0))
+            .sort((a: RoutineDay, b: RoutineDay) => (a.order_index || 0) - (b.order_index || 0))
             .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
               ...day,
               routine_exercises: (day.routine_exercises || [])
@@ -107,7 +107,7 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
       const result = data as unknown as RoutineWithDays;
       if (result && result.routine_days) {
         result.routine_days = (result.routine_days || [])
-          .sort((a: RoutineDay, b: RoutineDay) => (a.day_number || 0) - (b.day_number || 0))
+          .sort((a: RoutineDay, b: RoutineDay) => (a.order_index || 0) - (b.order_index || 0))
           .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
             ...day,
             routine_exercises: (day.routine_exercises || [])
