@@ -4,7 +4,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { AlumnoRoutineWithDetails, Routine, RoutineAssignment, RoutineDay, RoutineExercise } from "@/types/coach";
+import type { AlumnoRoutineWithDetails, PlannedSession, Routine, RoutineAssignment, RoutineDay, RoutineExercise } from "@/types/coach";
 
 interface UseAlumnoRoutinesOptions {
   studentId: string | null;
@@ -24,6 +24,13 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
         .from('routine_assignments')
         .select(`
           *,
+          planned_sessions (
+            id,
+            date,
+            routine_day_id,
+            student_id,
+            assignment_id
+          ),
           routine:routines (
             *,
             routine_days (
@@ -51,10 +58,14 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
       }
 
       // Sort routine_days by order_index and routine_exercises by order_index
-      type RawAssignment = RoutineAssignment & { routine: (Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] }) | null };
+      type RawAssignment = RoutineAssignment & {
+        planned_sessions: PlannedSession[];
+        routine: (Routine & { routine_days: (RoutineDay & { routine_exercises: RoutineExercise[] })[] }) | null;
+      };
       const rawData = (data || []) as unknown as RawAssignment[];
       const sortedData = rawData.map((assignment) => ({
         ...assignment,
+        planned_sessions: assignment.planned_sessions || [],
         routine: assignment.routine ? {
           ...assignment.routine,
           routine_days: (assignment.routine.routine_days || [])

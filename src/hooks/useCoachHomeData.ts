@@ -119,12 +119,18 @@ export function useCoachHomeData(): CoachHomeData {
     // Transform all days
     const allDays = days.map(day => transformRoutineDay(day as RoutineDay & { routine_exercises: (RoutineExercise & { exercise: Exercise })[] }));
 
-    // Determine current day based on day of week (1-7, Monday-Sunday)
-    const today = new Date();
-    const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay(); // Convert Sunday from 0 to 7
-    
-    // Find the day that matches today — null means rest day, never fall back to day 0
-    const currentDayIndex = days.findIndex(d => d.day_number === dayOfWeek);
+    // Determine today's routine day using planned_sessions (source of truth)
+    // planned_sessions has exact date→routine_day_id mapping generated at assignment time
+    // Use local date (not UTC) — toISOString() shifts timezone, format manually
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const plannedSessions = activeAssignment.planned_sessions || [];
+    const todaySession = plannedSessions.find(s => s.date === todayStr);
+
+    const currentDayIndex = todaySession
+      ? days.findIndex(d => d.id === todaySession.routine_day_id)
+      : -1; // genuine rest day — no session planned for today
+
     const todayDay = currentDayIndex !== -1 ? allDays[currentDayIndex] : null;
 
     const activeRoutine: ActiveRoutineInfo = {

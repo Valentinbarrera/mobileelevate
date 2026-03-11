@@ -61,6 +61,14 @@ export interface Routine {
   routine_days?: RoutineDay[];
 }
 
+export interface PlannedSession {
+  id: string;
+  date: string;           // YYYY-MM-DD
+  routine_day_id: string;
+  student_id: string;
+  assignment_id: string;
+}
+
 export interface RoutineAssignment {
   id: string;
   routine_id: string;
@@ -70,6 +78,7 @@ export interface RoutineAssignment {
   end_date: string | null;
   created_at: string;
   routine?: Routine;
+  planned_sessions?: PlannedSession[];
 }
 
 export interface AlumnoRoutineWithDetails extends RoutineAssignment {
@@ -80,4 +89,5 @@ export interface AlumnoRoutineWithDetails extends RoutineAssignment {
       })[];
     })[];
   };
+  planned_sessions: PlannedSession[];
 }
