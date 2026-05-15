@@ -23,10 +23,29 @@ dist-ssr
 *.sln
 *.sw?
 
-# Capacitor native projects (generated, rebuild with `npx cap sync`)
-android/
-ios/
+# Capacitor: keep native projects versioned (manual Xcode/Android Studio config lives here)
+# Only ignore build artifacts inside them.
+ios/App/build/
+ios/App/DerivedData/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
+
 .vercel
+
+# App Store / signing secrets — never commit
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+AuthKey_*.p8
 
 # npm cache (should never be committed)
 npm-cache/
