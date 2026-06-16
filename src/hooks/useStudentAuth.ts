@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export interface Student {
   id: string;
@@ -60,16 +61,23 @@ export function useStudentAuth() {
   };
 
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user?.email) {
-        fetchStudentProfile(session.user.email);
-      } else {
+    const loadSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user?.email) {
+          await fetchStudentProfile(session.user.email);
+        } else {
+          setLoading(false);
+        }
+      } catch (err) {
+        setError(getUserErrorMessage(err, "No pudimos verificar tu sesión"));
         setLoading(false);
       }
-    });
+    };
+
+    void loadSession();
 
     // Listen for auth changes (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -99,7 +107,7 @@ export function useStudentAuth() {
     });
 
     if (signInError) {
-      setError(signInError.message);
+      setError(getUserErrorMessage(signInError, "No pudimos iniciar sesión"));
       setLoading(false);
       return { error: signInError };
     }

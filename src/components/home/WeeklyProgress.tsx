@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Check, Flame, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getLocalDateString, getStartOfWeekLocal } from "@/lib/date";
 
 interface WeeklyProgressProps {
   completedDates: string[];
@@ -9,15 +10,11 @@ interface WeeklyProgressProps {
 }
 
 const getWeekDates = (): string[] => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  monday.setHours(0, 0, 0, 0);
+  const monday = getStartOfWeekLocal();
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    return d.toISOString().split('T')[0];
+    return getLocalDateString(d);
   });
 };
 
@@ -35,7 +32,7 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
   ];
 
   const weekDates = getWeekDates();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const completedSet = new Set(completedDates);
   const completedCount = weekDates.filter(d => completedSet.has(d)).length;
   const progressPercent = totalDays > 0 ? (completedCount / totalDays) * 100 : 0;

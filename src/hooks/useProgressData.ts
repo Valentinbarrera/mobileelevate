@@ -7,6 +7,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { getLocalDateString, getStartOfWeekLocal, parseLocalDateString } from "@/lib/date";
+import { getUserErrorMessage } from "@/lib/errors";
 
 interface WorkoutHistoryItem {
   id: string;
@@ -42,7 +44,7 @@ export function useProgressData() {
     let checkDate = new Date(today);
 
     // Check from today backwards
-    while (sessionDates.has(checkDate.toISOString().split('T')[0])) {
+    while (sessionDates.has(getLocalDateString(checkDate))) {
       streak++;
       checkDate.setDate(checkDate.getDate() - 1);
     }
@@ -51,7 +53,7 @@ export function useProgressData() {
     if (streak === 0) {
       checkDate = new Date(today);
       checkDate.setDate(checkDate.getDate() - 1);
-      while (sessionDates.has(checkDate.toISOString().split('T')[0])) {
+      while (sessionDates.has(getLocalDateString(checkDate))) {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
       }
@@ -107,11 +109,7 @@ export function useProgressData() {
       setActiveDaysThisMonth(activeDays);
 
       // Sessions this week
-      const startOfWeek = new Date();
-      startOfWeek.setHours(0, 0, 0, 0);
-      const dayOfWeek = startOfWeek.getDay();
-      startOfWeek.setDate(startOfWeek.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      const startDateStr = startOfWeek.toISOString().split('T')[0];
+      const startDateStr = getLocalDateString(getStartOfWeekLocal());
 
       const thisWeekSessions = (sessions || []).filter(s => s.date >= startDateStr);
       setSessionsThisWeek(thisWeekSessions.length);
@@ -119,11 +117,11 @@ export function useProgressData() {
       // Weekly sessions count per week
       const sessionsByWeek: { [key: string]: number } = {};
       (sessions || []).forEach(s => {
-        const date = new Date(s.date + 'T00:00:00');
+        const date = parseLocalDateString(s.date);
         const dow = date.getDay();
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - (dow === 0 ? 6 : dow - 1));
-        const weekKey = weekStart.toISOString().split('T')[0];
+        const weekKey = getLocalDateString(weekStart);
         sessionsByWeek[weekKey] = (sessionsByWeek[weekKey] || 0) + 1;
       });
 
@@ -142,6 +140,9 @@ export function useProgressData() {
 
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error fetching progress data:", error);
+      // Keep UX-friendly error visibility for future UI states
+      const userMessage = getUserErrorMessage(error, "No pudimos cargar tu progreso");
+      if (import.meta.env.DEV) console.warn(userMessage);
     } finally {
       setLoading(false);
     }

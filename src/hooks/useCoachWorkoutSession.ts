@@ -8,6 +8,8 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getLocalDateString, getStartOfWeekLocal } from "@/lib/date";
+import { getUserErrorMessage } from "@/lib/errors";
 
 interface CoachExercise {
   id: string;
@@ -50,7 +52,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
 
     setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Try to find a planned_session for this routine_day and student
       const { data: planned } = await supabase
@@ -121,7 +123,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       return newSession;
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error starting session:", error);
-      toast.error("Error al iniciar la sesión");
+      toast.error(getUserErrorMessage(error, "Error al iniciar la sesión"));
       return null;
     } finally {
       setLoading(false);
@@ -169,7 +171,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       };
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error completing set:", error);
-      toast.error("Error al guardar la serie");
+      toast.error(getUserErrorMessage(error, "Error al guardar la serie"));
       return null;
     }
   }, [session, student]);
@@ -208,7 +210,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       return data;
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error finishing session:", error);
-      toast.error("Error al finalizar la sesión");
+      toast.error(getUserErrorMessage(error, "Error al finalizar la sesión"));
       return null;
     }
   }, [session]);
@@ -229,11 +231,7 @@ export function useCoachWeeklyProgress() {
     if (!student) return { completedDays: 0, totalDays: 5 };
 
     try {
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      const startDate = startOfWeek.toISOString().split('T')[0];
+      const startDate = getLocalDateString(getStartOfWeekLocal());
 
       const { data: sessions, error } = await supabase
         .from("completed_sessions")

@@ -253,6 +253,11 @@ const CoachWorkoutDetail = () => {
   }, []);
 
   const handleFinishWorkout = async () => {
+    if (!session) {
+      toast.error("No pudimos guardar tu sesión. Reiniciá el entrenamiento para persistirlo correctamente.");
+      return;
+    }
+
     const exercises = routineDay?.exercises || [];
     const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
     const completedSets = exercises.reduce((acc, e) => {
@@ -262,8 +267,10 @@ const CoachWorkoutDetail = () => {
     const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
 
     // Persist session completion
-    if (session) {
-      await finishSession(elapsedTime, `Routine day: ${routineDay?.name}`);
+    const finishedSession = await finishSession(elapsedTime, `Routine day: ${routineDay?.name}`);
+    if (!finishedSession) {
+      toast.error("No se pudo finalizar la sesión. Intentá nuevamente.");
+      return;
     }
     
     navigate("/workout-summary", {
