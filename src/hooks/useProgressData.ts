@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLocalDateString, getStartOfWeekLocal, parseLocalDateString } from "@/lib/date";
 import { getUserErrorMessage } from "@/lib/errors";
+import { MOCK_COMPLETED_SESSIONS } from "@/lib/mock-data";
 
 interface WorkoutHistoryItem {
   id: string;
@@ -62,8 +63,10 @@ export function useProgressData() {
     return streak;
   };
 
+  const { isAdminMode } = useAuthContext();
+
   const fetchProgressData = useCallback(async () => {
-    if (!student) {
+    if (!student && !isAdminMode) {
       setLoading(false);
       return;
     }
@@ -71,14 +74,26 @@ export function useProgressData() {
     setLoading(true);
 
     try {
-      const { data: sessions, error: sessionsError } = await supabase
-        .from("completed_sessions")
-        .select("id, date, total_tonnage, notes")
-        .eq("student_id", student.id)
-        .order("date", { ascending: false })
-        .limit(50);
+      let sessions: { id: string; date: string; total_tonnage: number | null; notes: string | null }[];
 
-      if (sessionsError) throw sessionsError;
+      if (isAdminMode) {
+        sessions = MOCK_COMPLETED_SESSIONS.map(s => ({
+          id: s.id,
+          date: s.date,
+          total_tonnage: s.total_tonnage,
+          notes: s.notes,
+        }));
+      } else {
+        const { data, error: sessionsError } = await supabase
+          .from("completed_sessions")
+          .select("id, date, total_tonnage, notes")
+          .eq("student_id", student!.id)
+          .order("date", { ascending: false })
+          .limit(50);
+
+        if (sessionsError) throw sessionsError;
+        sessions = data || [];
+      }
 
       // Workout history
       const history: WorkoutHistoryItem[] = (sessions || []).map(s => ({
@@ -146,7 +161,7 @@ export function useProgressData() {
     } finally {
       setLoading(false);
     }
-  }, [student]);
+  }, [student, isAdminMode]);
 
   useEffect(() => {
     fetchProgressData();

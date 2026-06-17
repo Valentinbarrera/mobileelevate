@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "./useAlumnoRoutines";
 import type { RoutineDay, RoutineExercise, Exercise } from "@/types/coach";
+import { MOCK_ROUTINE_ASSIGNMENTS } from "@/lib/mock-data";
 
 export interface TodayRoutineDay {
   id: string;
@@ -89,20 +90,23 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
 }
 
 export function useCoachHomeData(): CoachHomeData {
-  const { student, isAuthenticated, loading: authLoading } = useAuthContext();
-  
-  const { 
-    data: routines, 
-    isLoading: routinesLoading, 
-    error: routinesError 
-  } = useAlumnoRoutines({ 
-    studentId: student?.id || null, 
-    status: 'active' 
+  const { student, isAuthenticated, isAdminMode, loading: authLoading } = useAuthContext();
+
+  const {
+    data: routines,
+    isLoading: routinesLoading,
+    error: routinesError
+  } = useAlumnoRoutines({
+    studentId: isAdminMode ? null : (student?.id || null),
+    status: 'active'
   });
+
+  // In admin mode, use mock data
+  const effectiveRoutines = isAdminMode ? MOCK_ROUTINE_ASSIGNMENTS as unknown as typeof routines : routines;
 
   const result = useMemo(() => {
     // Get the first active routine (primary routine)
-    const activeAssignment = routines?.[0];
+    const activeAssignment = effectiveRoutines?.[0];
     
     if (!activeAssignment?.routine) {
       return {
@@ -152,11 +156,11 @@ export function useCoachHomeData(): CoachHomeData {
       allDays,
       currentDayIndex: currentDayIndex !== -1 ? currentDayIndex : 0,
     };
-  }, [routines]);
+  }, [effectiveRoutines]);
 
   return {
     ...result,
-    loading: authLoading || routinesLoading,
+    loading: isAdminMode ? false : (authLoading || routinesLoading),
     error: routinesError as Error | null,
     isAuthenticated,
   };
