@@ -14,7 +14,7 @@ const passwordSchema = z.string().min(6, "Mínimo 6 caracteres");
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { error: authError, isAuthenticated, signIn } = useAuthContext();
+  const { error: authError, isAuthenticated, signIn, signInAsAdmin } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -158,12 +158,28 @@ const Auth = () => {
           </form>
         </motion.div>
 
-        {/* Security Badge */}
+        {/* Admin access */}
         <motion.div
-          className="flex items-center justify-center gap-2 pt-6"
+          className="pt-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
+        >
+          <button
+            type="button"
+            onClick={() => signInAsAdmin()}
+            className="w-full h-12 rounded-2xl border border-border/50 bg-card/50 text-muted-foreground font-semibold text-sm hover:border-primary/50 hover:text-foreground transition-all"
+          >
+            Entrar sin cuenta (Admin)
+          </button>
+        </motion.div>
+
+        {/* Security Badge */}
+        <motion.div
+          className="flex items-center justify-center gap-2 pt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
         >
           <Shield className="w-4 h-4 text-primary" />
           <span className="text-xs text-muted-foreground tracking-wider">AES-256 ENCRYPTED</span>

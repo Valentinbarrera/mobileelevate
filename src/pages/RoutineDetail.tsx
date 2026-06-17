@@ -84,16 +84,16 @@ const RoutineDetail = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-bold text-foreground">{day.name}</p>
-                  {day.description && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{day.description}</p>
+                  <p className="font-bold text-foreground">{day.day_name || day.name}</p>
+                  {day.notes && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{day.notes}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
                     {exercises.length} ejercicios
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-bold text-primary">D{day.day_number}</span>
+                  <span className="text-sm font-bold text-primary">D{day.order_index ?? day.day_number}</span>
                 </div>
               </div>
             </motion.button>

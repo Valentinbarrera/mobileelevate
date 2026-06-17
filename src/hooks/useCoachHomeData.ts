@@ -66,22 +66,22 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
   const exercises = (day.routine_exercises || []).map(re => ({
     id: re.id,
     exerciseId: re.exercise_id,
-    name: re.exercise?.name || "Ejercicio",
+    name: re.exercise?.name || re.name || "Ejercicio",
     sets: re.series,
     reps: re.reps,
     restSeconds: re.rest,
     notes: re.notes,
     videoUrl: re.exercise?.video_url || null,
-    thumbnail: re.exercise?.thumbnail || null,
-    muscleGroup: re.exercise?.muscle_group || null,
+    thumbnail: re.exercise?.thumbnail || re.exercise?.thumbnail_url || null,
+    muscleGroup: re.exercise?.muscle_group || re.exercise?.muscle || null,
     equipment: re.exercise?.equipment || null,
   }));
 
   return {
     id: day.id,
-    name: day.name,
-    dayNumber: day.day_number,
-    description: day.description,
+    name: day.day_name || day.name || "Día de entrenamiento",
+    dayNumber: day.order_index ?? day.day_number ?? 1,
+    description: day.notes,
     exercises,
     totalExercises: exercises.length,
     estimatedDuration: Math.round(estimateDuration(day.routine_exercises || [])),

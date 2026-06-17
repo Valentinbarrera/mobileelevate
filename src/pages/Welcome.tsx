@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Star, Users, Utensils } from "lucide-react";
+import { ArrowRight, Star, Users, Utensils, Zap } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import heroImg from "@/assets/onboarding-hero.jpg";
 

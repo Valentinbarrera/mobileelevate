@@ -14,8 +14,11 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<{ data?: { user: User; session: Session }; error?: AuthError }>;
+  signInAsAdmin: () => void;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
+  isAdminMode: boolean;
+  hasCoach: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);

@@ -15,7 +15,7 @@ import { useProgressData } from "@/hooks/useProgressData";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
-  const { student } = useAuthContext();
+  const { student, user } = useAuthContext();
   const {
     activeRoutine,
     todayRoutineDay,
@@ -33,7 +33,7 @@ const Index = () => {
     });
   }, [getWeeklyProgress]);
 
-  const userName = student?.full_name || "Atleta";
+  const userName = student?.full_name || user?.email?.split('@')[0] || "Atleta";
   const displayName = userName.split(' ')[0];
 
   const todayStatus = todayRoutineDay

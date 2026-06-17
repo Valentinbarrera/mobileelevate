@@ -10,11 +10,11 @@ import { useAuthContext } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { student } = useAuthContext();
+  const { student, user } = useAuthContext();
 
   const userData = {
-    name: student?.full_name || "Atleta",
-    memberType: "ELEVATE ALUMNO",
+    name: student?.full_name || user?.email?.split('@')[0] || "Atleta",
+    memberType: student ? "ELEVATE ALUMNO" : "ELEVATE FREE",
     memberSince: student?.created_at
       ? `Alumno desde ${new Date(student.created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
       : "Bienvenido",
@@ -22,7 +22,7 @@ const Profile = () => {
   };
 
   const infoItems = [
-    { icon: Mail, label: "Email", value: student?.email },
+    { icon: Mail, label: "Email", value: student?.email || user?.email },
     { icon: Target, label: "Objetivo", value: student?.goal },
     { icon: Dumbbell, label: "Nivel", value: student?.level },
     { icon: Calendar, label: "Edad", value: student?.age ? `${student.age} años` : null },

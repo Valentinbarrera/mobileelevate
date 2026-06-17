@@ -38,8 +38,8 @@ const Routines = () => {
     (r) => r.status === "completed"
   ).length;
 
-  // Show message if not authenticated with Coach
-  if (!isAuthenticated) {
+  // Show message if no coach linked
+  if (!student) {
     return (
       <AppShell>
         <motion.div
@@ -51,11 +51,10 @@ const Routines = () => {
             <Dumbbell className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-lg font-bold text-foreground mb-2">
-            Conecta tu cuenta
+            Sin coach asignado
           </h2>
           <p className="text-muted-foreground text-sm text-center mb-4">
-            Inicia sesión con tu cuenta de Elevate Coach para ver las rutinas
-            asignadas por tu entrenador.
+            Pedile a tu entrenador que te agregue como alumno para ver tus rutinas personalizadas.
           </p>
         </motion.div>
       </AppShell>

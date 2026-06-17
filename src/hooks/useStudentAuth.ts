@@ -27,12 +27,15 @@ export interface Student {
 // Error shown when user is authenticated but not in students table
 export const NOT_A_STUDENT_ERROR = 'Tu cuenta no está vinculada a ningún coach. Pedile a tu entrenador que te agregue como alumno.';
 
+const ADMIN_MODE_KEY = 'elevate_admin_mode';
+
 export function useStudentAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem(ADMIN_MODE_KEY) === 'true');
 
   const fetchStudentProfile = async (email: string) => {
     try {
@@ -46,8 +49,9 @@ export function useStudentAuth() {
         if (import.meta.env.DEV) console.error('Error fetching student profile:', fetchError);
         setError('No se pudo obtener el perfil del alumno');
       } else if (!data) {
-        setError(NOT_A_STUDENT_ERROR);
+        // No student record — user can still access the app without a coach
         setStudent(null);
+        setError(null);
       } else {
         setStudent(data as Student);
         setError(null);
@@ -62,6 +66,12 @@ export function useStudentAuth() {
 
   useEffect(() => {
     const loadSession = async () => {
+      // Admin mode — skip Supabase auth entirely
+      if (isAdminMode) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
@@ -123,7 +133,15 @@ export function useStudentAuth() {
     return { data };
   };
 
+  const signInAsAdmin = () => {
+    localStorage.setItem(ADMIN_MODE_KEY, 'true');
+    setIsAdminMode(true);
+    setLoading(false);
+  };
+
   const signOut = async () => {
+    localStorage.removeItem(ADMIN_MODE_KEY);
+    setIsAdminMode(false);
     await supabase.auth.signOut();
     setStudent(null);
   };
@@ -135,7 +153,10 @@ export function useStudentAuth() {
     loading,
     error,
     signIn,
+    signInAsAdmin,
     signOut,
-    isAuthenticated: !!user && !!student,
+    isAuthenticated: !!user || isAdminMode,
+    isAdminMode,
+    hasCoach: !!student,
   };
 }
