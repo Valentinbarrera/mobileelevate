@@ -121,6 +121,19 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Respuesta táctil: sin delay de 300ms ni doble-tap-zoom en controles */
+  input, textarea, select, button {
+    touch-action: manipulation;
+  }
+
+  /* Evita el auto-zoom de iOS/Android al enfocar un input (se dispara con
+     font-size < 16px). Forzamos 16px en mobile sin tocar el diseño de desktop. */
+  @media (max-width: 640px) {
+    input, textarea, select {
+      font-size: 16px;
+    }
+  }
+
   /* Safe area para móviles con notch */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0.5rem);
