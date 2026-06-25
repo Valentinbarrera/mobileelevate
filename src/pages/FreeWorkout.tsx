@@ -95,8 +95,8 @@ const FreeExerciseCard = ({
               className="grid grid-cols-[1.75rem_1fr_1fr_1.75rem] gap-2 items-center rounded-lg bg-emerald-500/10 px-1 py-1.5"
             >
               <span className="text-center text-xs font-bold text-emerald-500">{s.setNumber}</span>
-              <span className="text-center text-sm font-bold text-foreground tabular-nums">{s.weight} kg</span>
-              <span className="text-center text-sm font-bold text-foreground tabular-nums">{s.reps} reps</span>
+              <span className="text-center text-base font-bold text-foreground tabular-nums">{s.weight} kg</span>
+              <span className="text-center text-base font-bold text-foreground tabular-nums">{s.reps} reps</span>
               <Check className="w-4 h-4 text-emerald-500 mx-auto" strokeWidth={3} />
             </div>
           ))}
@@ -112,7 +112,7 @@ const FreeExerciseCard = ({
           onChange={(e) => setWeight(e.target.value)}
           onFocus={(e) => e.target.select()}
           placeholder="kg"
-          className="h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+          className="h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
         />
         <input
           type="number"
@@ -122,19 +122,19 @@ const FreeExerciseCard = ({
           onFocus={(e) => e.target.select()}
           onKeyDown={(e) => e.key === "Enter" && add()}
           placeholder="reps"
-          className="h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+          className="h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
         />
         <button
           onClick={add}
           aria-label="Registrar serie"
-          className="h-10 rounded-lg bg-primary flex items-center justify-center active:scale-95 transition-transform"
+          className="h-11 rounded-lg bg-primary flex items-center justify-center active:scale-95 transition-transform"
         >
           <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
         </button>
       </div>
 
       {last && (
-        <p className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
+        <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
           Anterior: {last.weight}kg × {last.reps}
         </p>
       )}
@@ -256,10 +256,11 @@ const FreeWorkout = () => {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addExercise(newName)}
               placeholder="Ej: Press banca"
-              className="flex-1 h-11 rounded-xl bg-secondary border border-border px-3 text-sm font-medium text-foreground focus:border-primary focus:outline-none"
+              className="flex-1 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
             />
             <button
               onClick={() => addExercise(newName)}
+              aria-label="Agregar ejercicio"
               className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
             >
               <Plus className="w-4 h-4" />

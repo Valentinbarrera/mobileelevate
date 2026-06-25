@@ -304,7 +304,7 @@ const CoachExerciseCard = ({
                 {/* ─── Tabla de series inline ─── */}
                 <div className="space-y-1.5">
                   {/* Header de columnas */}
-                  <div className="grid grid-cols-[1.75rem_3.25rem_1fr_1fr_2.25rem] gap-2 px-1 items-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <div className="grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 px-1 items-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     <span className="text-center">Set</span>
                     <span className="text-center">Antes</span>
                     <span className="text-center">Kg</span>
@@ -315,7 +315,7 @@ const CoachExerciseCard = ({
                   {rows.map(({ setNum, logged, isCurrent }) => (
                     <div
                       key={setNum}
-                      className={`grid grid-cols-[1.75rem_3.25rem_1fr_1fr_2.25rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
+                      className={`grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
                         logged
                           ? "bg-emerald-500/10"
                           : isCurrent
@@ -325,7 +325,7 @@ const CoachExerciseCard = ({
                     >
                       {/* Set # */}
                       <span
-                        className={`text-center text-xs font-bold ${
+                        className={`text-center text-sm font-bold ${
                           logged ? "text-emerald-500" : "text-muted-foreground"
                         }`}
                       >
@@ -333,20 +333,20 @@ const CoachExerciseCard = ({
                       </span>
 
                       {/* Anterior */}
-                      <span className="text-center text-[11px] text-muted-foreground tabular-nums">
+                      <span className="text-center text-xs text-muted-foreground tabular-nums">
                         {previousHint}
                       </span>
 
                       {logged ? (
                         <>
-                          <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                          <span className="text-center text-base font-bold text-foreground tabular-nums">
                             {logged.weight}
                           </span>
-                          <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                          <span className="text-center text-base font-bold text-foreground tabular-nums">
                             {logged.reps}
                           </span>
                           <div className="flex justify-center">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
                               <Check className="w-4 h-4 text-white" strokeWidth={3} />
                             </div>
                           </div>
@@ -360,7 +360,7 @@ const CoachExerciseCard = ({
                             onChange={(e) => setEditWeight(e.target.value)}
                             onFocus={(e) => e.target.select()}
                             placeholder="0"
-                            className="w-full h-9 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+                            className="w-full h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
                           />
                           <input
                             type="number"
@@ -369,14 +369,14 @@ const CoachExerciseCard = ({
                             onChange={(e) => setEditReps(e.target.value)}
                             onFocus={(e) => e.target.select()}
                             placeholder="0"
-                            className="w-full h-9 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+                            className="w-full h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
                           />
                           <div className="flex justify-center">
                             <motion.button
                               onClick={handleLogCurrent}
                               disabled={logging}
                               whileTap={{ scale: 0.9 }}
-                              className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center disabled:opacity-50"
+                              className="w-full h-11 rounded-lg bg-primary flex items-center justify-center disabled:opacity-50"
                               aria-label={`Registrar serie ${setNum}`}
                             >
                               <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
