@@ -39,18 +39,19 @@ const SummaryAchievements = ({ isPersonalBest, completionRate, currentStreak = 0
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
       >
-        <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
-          Logros desbloqueados
-        </h3>
-        
+        <div className="flex items-center gap-2 mb-3">
+          <span className="accent-bar" />
+          <h3 className="text-sm font-black text-foreground tracking-tight">Logros desbloqueados</h3>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {achievements.map((achievement, index) => (
             <motion.div
               key={achievement.title}
-              className="flex items-center gap-4 p-3 rounded-xl bg-card border border-border"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1 + index * 0.1 }}
+              className="flex items-center gap-4 p-3 rounded-xl card-elevated"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1 + index * 0.12, type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className={`w-12 h-12 rounded-xl ${achievement.bgColor} flex items-center justify-center`}>
                 <achievement.icon className={`w-6 h-6 ${achievement.color}`} />

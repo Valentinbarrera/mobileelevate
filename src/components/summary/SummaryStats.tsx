@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Clock, Dumbbell, Repeat, Flame } from "lucide-react";
+import CountUp from "@/components/ui/count-up";
 
 interface SummaryStatsProps {
   duration: number;
@@ -14,25 +15,25 @@ const formatDuration = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const SummaryStats = ({ 
-  duration, 
-  exercisesCompleted, 
-  setsCompleted, 
-  caloriesBurned 
+const SummaryStats = ({
+  duration,
+  exercisesCompleted,
+  setsCompleted,
+  caloriesBurned
 }: SummaryStatsProps) => {
   const stats = [
     {
       icon: Clock,
       label: "Tiempo total",
-      value: formatDuration(duration),
-      color: "text-blue-500",
+      display: formatDuration(duration),
+      color: "text-blue-400",
       bgColor: "bg-blue-500/10",
       borderColor: "border-blue-500/30",
     },
     {
       icon: Flame,
       label: "Calorías",
-      value: `${caloriesBurned}`,
+      number: caloriesBurned,
       suffix: "kcal",
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -41,16 +42,16 @@ const SummaryStats = ({
     {
       icon: Dumbbell,
       label: "Ejercicios",
-      value: `${exercisesCompleted}`,
-      color: "text-emerald-500",
+      number: exercisesCompleted,
+      color: "text-emerald-400",
       bgColor: "bg-emerald-500/10",
       borderColor: "border-emerald-500/30",
     },
     {
       icon: Repeat,
       label: "Series",
-      value: `${setsCompleted}`,
-      color: "text-violet-500",
+      number: setsCompleted,
+      color: "text-violet-400",
       bgColor: "bg-violet-500/10",
       borderColor: "border-violet-500/30",
     },
@@ -79,14 +80,16 @@ const SummaryStats = ({
               </span>
             </div>
             <div className="flex items-baseline gap-1">
-              <motion.span 
-                className="text-3xl font-black text-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
-              >
-                {stat.value}
-              </motion.span>
+              {stat.number !== undefined ? (
+                <CountUp
+                  value={stat.number}
+                  className="text-3xl font-black text-foreground tabular-nums"
+                />
+              ) : (
+                <span className="text-3xl font-black text-foreground tabular-nums">
+                  {stat.display}
+                </span>
+              )}
               {stat.suffix && (
                 <span className="text-sm text-muted-foreground font-medium">
                   {stat.suffix}
