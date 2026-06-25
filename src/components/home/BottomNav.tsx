@@ -3,7 +3,7 @@ import { Home, Dumbbell, Apple, TrendingUp, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
-interface NavItem {
+interface NavItemData {
   id: string;
   path: string;
   icon: typeof Home;
@@ -11,133 +11,173 @@ interface NavItem {
   isCenter?: boolean;
 }
 
+const SPRING = { type: "spring" as const, stiffness: 380, damping: 30 };
+
 const triggerHaptic = () => {
   if (navigator.vibrate) navigator.vibrate(8);
 };
 
+/* ── Átomo: ítem regular (icono + label + indicador superior) ── */
+const NavItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: typeof Home;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <motion.button
+    onClick={onClick}
+    whileTap={{ scale: 0.9 }}
+    className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-full"
+    aria-label={label}
+    aria-current={active ? "page" : undefined}
+  >
+    {/* Indicador único: línea de acento arriba */}
+    {active && (
+      <motion.span
+        layoutId="navIndicator"
+        className="absolute top-0 h-[3px] w-6 rounded-full bg-gradient-primary"
+        style={{ boxShadow: "0 0 8px hsl(18 100% 55% / 0.5)" }}
+        transition={SPRING}
+      />
+    )}
+
+    <motion.div animate={{ scale: active ? 1.06 : 1, y: active ? -1 : 0 }} transition={SPRING}>
+      <Icon
+        className={`w-[22px] h-[22px] transition-colors duration-200 ${
+          active ? "text-primary" : "text-muted-foreground/55"
+        }`}
+        strokeWidth={active ? 2.3 : 1.8}
+      />
+    </motion.div>
+
+    <span
+      className={`text-[10px] leading-none tracking-tight transition-colors duration-200 ${
+        active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
+      }`}
+    >
+      {label}
+    </span>
+  </motion.button>
+);
+
+/* ── Átomo: botón central elevado (CTA "Entrenar") ──
+   El label usa la misma estructura que NavItem (placeholder del tamaño del
+   ícono) para alinearse con los demás; el círculo flota en absoluto. */
+const NavFab = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: typeof Home;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <motion.button
+    onClick={onClick}
+    whileTap={{ scale: 0.92 }}
+    className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-full"
+    aria-label={label}
+    aria-current={active ? "page" : undefined}
+  >
+    {/* Placeholder con la altura del ícono regular → alinea el label */}
+    <span className="block w-[22px] h-[22px]" aria-hidden />
+
+    <span
+      className={`text-[10px] leading-none tracking-tight transition-colors duration-200 ${
+        active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
+      }`}
+    >
+      {label}
+    </span>
+
+    {/* Círculo flotante (absoluto, centrado en la celda completa, elevado).
+        Centrado por CSS puro — sin animar transform para no pisar el translate. */}
+    <span
+      className="absolute left-1/2 -translate-x-1/2 -top-7 w-[52px] h-[52px] rounded-[18px] flex items-center justify-center ring-4 ring-background"
+      style={{
+        background: "linear-gradient(145deg, hsl(18 100% 61%), hsl(22 100% 46%))",
+        boxShadow:
+          "0 10px 24px hsl(18 100% 55% / 0.45), 0 1px 0 rgba(255,255,255,0.3) inset, 0 0 0 1px hsl(18 100% 50% / 0.5)",
+      }}
+    >
+      <Icon className="w-[26px] h-[26px] text-white" strokeWidth={2.4} />
+    </span>
+  </motion.button>
+);
+
+/* ── Molécula: la barra ── */
 const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems: NavItem[] = [
-    { id: "home",      path: "/",          icon: Home,       label: "Inicio" },
-    { id: "nutrition", path: "/nutrition", icon: Apple,      label: "Nutrición" },
-    { id: "routines",  path: "/routines",  icon: Dumbbell,   label: "Entrenar", isCenter: true },
-    { id: "progress",  path: "/progress",  icon: TrendingUp, label: "Progreso" },
-    { id: "profile",   path: "/profile",   icon: User,       label: "Perfil" },
+  const navItems: NavItemData[] = [
+    { id: "home", path: "/", icon: Home, label: "Inicio" },
+    { id: "nutrition", path: "/nutrition", icon: Apple, label: "Nutrición" },
+    { id: "routines", path: "/routines", icon: Dumbbell, label: "Entrenar", isCenter: true },
+    { id: "progress", path: "/progress", icon: TrendingUp, label: "Progreso" },
+    { id: "profile", path: "/profile", icon: User, label: "Perfil" },
   ];
 
-  const activeTab = navItems.find(item => item.path === location.pathname)?.id || "home";
+  const activeTab = navItems.find((item) => item.path === location.pathname)?.id || "home";
 
-  const handleNavClick = (item: NavItem) => {
+  const handleNavClick = (item: NavItemData) => {
     triggerHaptic();
     navigate(item.path);
   };
 
   return (
-    <nav ref={ref} className="lg:hidden fixed bottom-0 left-0 right-0 z-50" role="navigation" aria-label="Navegación principal">
-      {/* Fade transition to content */}
-      <div className="absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+    <nav
+      ref={ref}
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+      role="navigation"
+      aria-label="Navegación principal"
+    >
+      {/* Degradado de transición hacia el contenido */}
+      <div className="absolute -top-12 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
       <div className="px-4 pb-2 max-w-lg mx-auto">
         <div
-          className="flex items-center rounded-3xl px-1.5 h-[66px]"
+          className="flex items-stretch rounded-[26px] px-1.5 h-16"
           style={{
-            background: 'rgba(16, 16, 16, 0.92)',
-            backdropFilter: 'blur(28px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(28px) saturate(1.8)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
-            boxShadow: '0 -1px 0 rgba(255,255,255,0.04) inset, 0 8px 28px rgba(0, 0, 0, 0.45)',
+            background: "rgba(15, 15, 15, 0.9)",
+            backdropFilter: "blur(28px) saturate(1.8)",
+            WebkitBackdropFilter: "blur(28px) saturate(1.8)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 -1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0, 0, 0, 0.5)",
           }}
         >
           {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            const Icon = item.icon;
-
-            /* ── Center FAB ── */
-            if (item.isCenter) {
-              return (
-                <div key={item.id} className="flex-1 flex justify-center">
-                  <motion.button
-                    onClick={() => handleNavClick(item)}
-                    className="relative flex flex-col items-center justify-center min-h-[56px]"
-                    whileTap={{ scale: 0.9 }}
-                    aria-label={item.label}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    <motion.div
-                      className="-mt-9 mb-1 w-[54px] h-[54px] rounded-2xl flex items-center justify-center ring-[3px] ring-background"
-                      style={{
-                        background: 'linear-gradient(145deg, hsl(18 100% 60%), hsl(22 100% 47%))',
-                        boxShadow: '0 10px 26px hsl(18 100% 55% / 0.45), 0 1px 0 rgba(255,255,255,0.25) inset',
-                      }}
-                      animate={{ y: isActive ? -2 : 0 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                    >
-                      <Icon className="w-6 h-6 text-white" strokeWidth={2.4} />
-                    </motion.div>
-
-                    <span className={`text-[10px] leading-none ${
-                      isActive ? "text-primary font-bold" : "text-muted-foreground/70 font-semibold"
-                    }`}>
-                      {item.label}
-                    </span>
-                  </motion.button>
-                </div>
-              );
-            }
-
-            /* ── Regular item ── */
-            return (
-              <motion.button
+            const active = activeTab === item.id;
+            return item.isCenter ? (
+              <NavFab
                 key={item.id}
+                icon={item.icon}
+                label={item.label}
+                active={active}
                 onClick={() => handleNavClick(item)}
-                className="relative flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px]"
-                whileTap={{ scale: 0.92 }}
-                aria-label={item.label}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {/* Active background */}
-                {isActive && (
-                  <motion.div
-                    layoutId="navPill"
-                    className="absolute inset-x-2 inset-y-1.5 rounded-xl bg-white/[0.06]"
-                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                  />
-                )}
-
-                <Icon
-                  className={`relative z-10 w-[22px] h-[22px] transition-colors duration-150 ${
-                    isActive ? "text-primary" : "text-muted-foreground/70"
-                  }`}
-                  strokeWidth={isActive ? 2.4 : 1.8}
-                />
-
-                <span className={`relative z-10 text-[10px] leading-none transition-colors duration-150 ${
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-muted-foreground/70 font-semibold"
-                }`}>
-                  {item.label}
-                </span>
-
-                {/* Active indicator */}
-                {isActive && (
-                  <motion.div
-                    layoutId="navDot"
-                    className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"
-                    style={{ boxShadow: '0 0 6px hsl(18 100% 55% / 0.6)' }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.button>
+              />
+            ) : (
+              <NavItem
+                key={item.id}
+                icon={item.icon}
+                label={item.label}
+                active={active}
+                onClick={() => handleNavClick(item)}
+              />
             );
           })}
         </div>
       </div>
 
-      {/* Safe area spacer for devices with home indicator */}
-      <div className="bg-background h-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} />
+      {/* Safe area para dispositivos con home indicator */}
+      <div className="bg-background h-safe" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
     </nav>
   );
 });
