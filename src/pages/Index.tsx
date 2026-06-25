@@ -117,7 +117,15 @@ const Index = () => {
           {/* 1. Saludo contextual + motivador */}
           <Greeting userName={displayName} contextLine={contextLine} />
 
-          {/* 2. ENTRENO DE HOY — el HÉROE / acción principal de la pantalla */}
+          {/* 2. Objetivo semanal — glance arriba */}
+          <WeeklyGoalCard
+            completedDates={completedDates}
+            goal={weeklyGoal}
+            streak={currentStreak}
+            bestTonnage={personalBestTonnage}
+          />
+
+          {/* 3. ENTRENO DE HOY — el HÉROE / acción principal de la pantalla */}
           {todayRoutineDay && activeRoutine ? (
             <>
               <motion.div variants={fadeUp}>
@@ -152,14 +160,6 @@ const Index = () => {
               Reprogramar el día de hoy
             </motion.button>
           )}
-
-          {/* 3. Progreso semanal — glance compacto (debajo del héroe) */}
-          <WeeklyGoalCard
-            completedDates={completedDates}
-            goal={weeklyGoal}
-            streak={currentStreak}
-            bestTonnage={personalBestTonnage}
-          />
 
           {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
           <QuickActions />
