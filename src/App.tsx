@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
@@ -48,6 +49,50 @@ function Lazy({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Transición entre pantallas. Solo opacidad (no transform), porque un transform
+ * en el ancestro rompería el position:fixed del bottom nav. mode="wait" hace que
+ * la saliente termine antes de entrar la nueva; initial={false} evita fundir el
+ * primer render al abrir la app.
+ */
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <Routes location={location}>
+          {/* Public routes */}
+          <Route path="/welcome" element={<PublicRoute><Lazy><Welcome /></Lazy></PublicRoute>} />
+          <Route path="/auth" element={<PublicRoute><Lazy><Auth /></Lazy></PublicRoute>} />
+          <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
+          <Route path="/update-password" element={<Lazy><UpdatePassword /></Lazy>} />
+
+          {/* Protected routes */}
+          <Route path="/" element={<ProtectedRoute><Lazy><Index /></Lazy></ProtectedRoute>} />
+          <Route path="/routines" element={<ProtectedRoute><Lazy><Routines /></Lazy></ProtectedRoute>} />
+          <Route path="/routine/:id" element={<ProtectedRoute><Lazy><RoutineDetail /></Lazy></ProtectedRoute>} />
+          <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
+          <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
+          <Route path="/progress" element={<ProtectedRoute><Lazy><Progress /></Lazy></ProtectedRoute>} />
+          <Route path="/measurements" element={<ProtectedRoute><Lazy><Measurements /></Lazy></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
+          <Route path="/nutrition" element={<ProtectedRoute><Lazy><Nutrition /></Lazy></ProtectedRoute>} />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Lazy><NotFound /></Lazy>} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 const App = () => (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
@@ -56,28 +101,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/welcome" element={<PublicRoute><Lazy><Welcome /></Lazy></PublicRoute>} />
-            <Route path="/auth" element={<PublicRoute><Lazy><Auth /></Lazy></PublicRoute>} />
-            <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
-            <Route path="/update-password" element={<Lazy><UpdatePassword /></Lazy>} />
-
-            {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><Lazy><Index /></Lazy></ProtectedRoute>} />
-            <Route path="/routines" element={<ProtectedRoute><Lazy><Routines /></Lazy></ProtectedRoute>} />
-            <Route path="/routine/:id" element={<ProtectedRoute><Lazy><RoutineDetail /></Lazy></ProtectedRoute>} />
-            <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
-            <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
-            <Route path="/progress" element={<ProtectedRoute><Lazy><Progress /></Lazy></ProtectedRoute>} />
-            <Route path="/measurements" element={<ProtectedRoute><Lazy><Measurements /></Lazy></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
-            <Route path="/nutrition" element={<ProtectedRoute><Lazy><Nutrition /></Lazy></ProtectedRoute>} />
-
-            {/* Catch-all */}
-            <Route path="*" element={<Lazy><NotFound /></Lazy>} />
-          </Routes>
+          <AnimatedRoutes />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

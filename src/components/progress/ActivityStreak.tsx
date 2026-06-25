@@ -10,6 +10,18 @@ interface ActivityStreakProps {
 }
 
 const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStreakProps) => {
+  // Calendario real del mes actual (no hardcodeado)
+  const now = new Date();
+  const monthIndex = now.getMonth();
+  const yearNum = now.getFullYear();
+  const todayDate = now.getDate();
+  const daysInMonth = new Date(yearNum, monthIndex + 1, 0).getDate();
+  const leadingBlanks = (new Date(yearNum, monthIndex, 1).getDay() + 6) % 7; // Lunes = 0
+  const cells: (number | null)[] = [
+    ...Array.from({ length: leadingBlanks }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+
   return (
     <motion.div
       className="card-elevated rounded-2xl p-4 h-full"
@@ -25,85 +37,39 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStre
         <span className="text-primary text-sm font-semibold">{month} {year}</span>
       </div>
 
-      {/* Calendar grid */}
+      {/* Calendar grid — mes actual real */}
       <div className="mb-4 max-w-xs mx-auto">
         {/* Day labels */}
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map((day) => (
-            <span key={day} className="text-[10px] text-muted-foreground text-center font-medium">
+          {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map((day, i) => (
+            <span key={i} className="text-[10px] text-muted-foreground text-center font-medium">
               {day}
             </span>
           ))}
         </div>
 
-        {/* Week 1 */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {[27, 28, 29, 30, 1, 2, 3].map((day, i) => {
-            const isCurrentMonth = day <= 3;
-            const isActive = isCurrentMonth && activeDays.includes(day);
-            return (
-              <motion.div
-                key={i}
-                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-xs font-semibold ${
-                  !isCurrentMonth 
-                    ? 'text-muted-foreground/30' 
-                    : isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-muted-foreground'
-                }`}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.02 }}
-              >
-                {day}
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Week 2 */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {[4, 5, 6, 7, 8, 9, 10].map((day, i) => {
-            const isActive = activeDays.includes(day);
-            return (
-              <motion.div
-                key={i}
-                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-xs font-semibold ${
-                  isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted-foreground'
-                }`}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.4 + i * 0.02 }}
-              >
-                {day}
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Week 3 */}
+        {/* Días del mes */}
         <div className="grid grid-cols-7 gap-1">
-          {[11, 12, 13, 14, 15, 16, 17].map((day, i) => {
+          {cells.map((day, i) => {
+            if (day === null) return <div key={i} className="w-8 h-8" />;
             const isActive = activeDays.includes(day);
-            const isToday = day === 12;
-            const isFuture = day > 12;
+            const isToday = day === todayDate;
+            const isFuture = day > todayDate;
             return (
               <motion.div
                 key={i}
                 className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-xs font-semibold ${
-                  isFuture
-                    ? 'text-muted-foreground/50'
-                    : isToday 
-                      ? 'bg-primary text-primary-foreground ring-2 ring-primary/50 ring-offset-1 ring-offset-card'
-                      : isActive 
-                        ? 'bg-primary text-primary-foreground' 
+                  isToday
+                    ? 'bg-primary text-primary-foreground ring-2 ring-primary/50 ring-offset-1 ring-offset-card'
+                    : isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : isFuture
+                        ? 'text-muted-foreground/40'
                         : 'text-muted-foreground'
                 }`}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.02 }}
+                transition={{ delay: 0.25 + i * 0.01 }}
               >
                 {day}
               </motion.div>
