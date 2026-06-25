@@ -17,24 +17,16 @@ const getTimeGreeting = () => {
 const Greeting = ({ userName, contextLine }: GreetingProps) => {
   return (
     <motion.div className="pt-1" variants={fadeUp}>
-      <motion.p
-        className="text-muted-foreground text-sm font-medium"
-        initial={{ opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.05 }}
-      >
-        {getTimeGreeting()}, {userName}
-      </motion.p>
+      <p className="text-sm text-muted-foreground font-medium">{getTimeGreeting()},</p>
+      <h1 className="text-2xl font-black tracking-tight leading-none mt-0.5 text-foreground">
+        {userName}
+      </h1>
 
       {contextLine && (
-        <motion.h1
-          className="text-[1.7rem] font-black tracking-tight leading-[1.1] mt-1 text-foreground"
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-        >
+        <p className="text-[13px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block shrink-0" />
           {contextLine}
-        </motion.h1>
+        </p>
       )}
     </motion.div>
   );

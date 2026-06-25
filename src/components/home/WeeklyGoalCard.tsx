@@ -1,9 +1,9 @@
 /**
- * Objetivo semanal — versión compacta y densa (poca altura, sin perder lo
- * motivacional): anillo de %, completados/meta, racha y tira fina de 7 días.
+ * Objetivo semanal: anillo de %, completados/meta y racha (fila compacta),
+ * con la tira de 7 días mostrando el número de cada día (✓ si entrenó).
  */
 import { motion } from "framer-motion";
-import { Flame, ChevronRight } from "lucide-react";
+import { Flame, Check, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
@@ -16,6 +16,8 @@ interface WeeklyGoalCardProps {
   streak: number;
   bestTonnage: number | null;
 }
+
+const DAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
 
 const getWeekDates = (): string[] => {
   const monday = getStartOfWeekLocal();
@@ -41,8 +43,9 @@ const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) =
       whileTap={{ scale: 0.99 }}
       className="rounded-3xl card-elevated p-4 cursor-pointer"
     >
+      {/* Fila compacta: anillo + completados + racha */}
       <div className="flex items-center gap-4">
-        <ProgressRing progress={pct} size={62} stroke={7} gradientId="weekRing">
+        <ProgressRing progress={pct} size={60} stroke={7} gradientId="weekRing">
           <span className="text-base font-black text-foreground tabular-nums leading-none">
             <CountUp value={pct} />%
           </span>
@@ -61,29 +64,44 @@ const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) =
               <span className="text-[10px] text-muted-foreground uppercase font-semibold">racha</span>
             </div>
           </div>
-
           <p className="text-xl font-black text-foreground tracking-tight leading-none mt-1">
             <CountUp value={completed} />
             <span className="text-sm font-bold text-muted-foreground"> / {goal} entrenos</span>
           </p>
-
-          {/* Tira fina de la semana */}
-          <div className="flex items-center gap-1 mt-2.5">
-            {weekDates.map((d, i) => {
-              const done = completedSet.has(d);
-              const isToday = d === todayStr;
-              return (
-                <div
-                  key={i}
-                  className={`flex-1 h-1.5 rounded-full ${
-                    done ? "bg-gradient-primary" : isToday ? "bg-primary/40" : "bg-secondary"
-                  }`}
-                />
-              );
-            })}
-            <ChevronRight className="w-4 h-4 text-muted-foreground ml-1 shrink-0" />
-          </div>
         </div>
+
+        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 self-start" />
+      </div>
+
+      {/* Tira de 7 días con el número de cada día */}
+      <div className="grid grid-cols-7 gap-1.5 mt-3.5">
+        {weekDates.map((d, i) => {
+          const done = completedSet.has(d);
+          const isToday = d === todayStr;
+          const dayNum = parseInt(d.split("-")[2], 10);
+          return (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <span
+                className={`text-[9px] font-bold uppercase ${
+                  isToday ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {DAY_LABELS[i]}
+              </span>
+              <div
+                className={`w-full aspect-square max-w-[2.25rem] rounded-xl flex items-center justify-center text-xs font-bold tabular-nums ${
+                  done
+                    ? "bg-gradient-primary text-primary-foreground"
+                    : isToday
+                      ? "border-2 border-primary text-primary bg-primary/10"
+                      : "bg-secondary/50 text-muted-foreground"
+                }`}
+              >
+                {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : dayNum}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );
