@@ -4,6 +4,7 @@
  */
 import { useMemo } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useSessionOverrides } from "./useSessionOverrides";
 import { useAlumnoRoutines } from "./useAlumnoRoutines";
 import type { RoutineDay, RoutineExercise, Exercise } from "@/types/coach";
 import { MOCK_ROUTINE_ASSIGNMENTS } from "@/lib/mock-data";
@@ -95,6 +96,8 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
 
 export function useCoachHomeData(): CoachHomeData {
   const { student, isAuthenticated, isAdminMode, loading: authLoading } = useAuthContext();
+  const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
+  const { overrides } = useSessionOverrides(overrideSid);
 
   const {
     data: routines,
@@ -137,9 +140,18 @@ export function useCoachHomeData(): CoachHomeData {
     const plannedSessions = activeAssignment.planned_sessions || [];
     const todaySession = plannedSessions.find(s => s.date === todayStr);
 
-    const currentDayIndex = todaySession
+    let currentDayIndex = todaySession
       ? days.findIndex(d => d.id === todaySession.routine_day_id)
       : -1; // genuine rest day — no session planned for today
+
+    // Override local del alumno (reprogramar / swap / descanso) — pisa el plan
+    const todayOverride = overrides[todayStr];
+    if (todayOverride === "rest") {
+      currentDayIndex = -1;
+    } else if (todayOverride) {
+      const oi = days.findIndex(d => d.id === todayOverride);
+      if (oi !== -1) currentDayIndex = oi;
+    }
 
     const todayDay = currentDayIndex !== -1 ? allDays[currentDayIndex] : null;
 
@@ -173,7 +185,7 @@ export function useCoachHomeData(): CoachHomeData {
       allDays,
       currentDayIndex: currentDayIndex !== -1 ? currentDayIndex : 0,
     };
-  }, [effectiveRoutines]);
+  }, [effectiveRoutines, overrides]);
 
   return {
     ...result,

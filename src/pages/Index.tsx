@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
 import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
@@ -7,6 +9,7 @@ import RestDayCard from "@/components/home/RestDayCard";
 import WeeklyGoalCard from "@/components/home/WeeklyGoalCard";
 import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
 import CoachCard from "@/components/home/CoachCard";
+import RescheduleSheet from "@/components/home/RescheduleSheet";
 import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
 import AppShell from "@/components/layout/AppShell";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
@@ -14,10 +17,12 @@ import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
 import { useProgressData } from "@/hooks/useProgressData";
+import { useSessionOverrides } from "@/hooks/useSessionOverrides";
+import { localISODate } from "@/lib/routineSession";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
-  const { student, user } = useAuthContext();
+  const { student, user, isAdminMode } = useAuthContext();
   const {
     activeRoutine,
     todayRoutineDay,
@@ -29,6 +34,41 @@ const Index = () => {
   const { getWeeklyProgress } = useCoachWeeklyProgress();
   const { currentStreak, sessionsThisWeek, personalBestTonnage } = useProgressData();
   const [completedDates, setCompletedDates] = useState<string[]>([]);
+
+  const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
+  const { setForDate } = useSessionOverrides(overrideSid);
+  const [showReschedule, setShowReschedule] = useState(false);
+
+  const today = localISODate();
+  const tomorrow = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return localISODate(d);
+  })();
+
+  const applySwap = (dayId: string) => {
+    setForDate(today, dayId);
+    setShowReschedule(false);
+    toast.success("Listo, cambiamos tu día de hoy");
+  };
+  const applyRest = () => {
+    setForDate(today, "rest");
+    setShowReschedule(false);
+    toast.success("Hoy queda como descanso");
+  };
+  const applyReset = () => {
+    setForDate(today, null);
+    setShowReschedule(false);
+    toast.success("Volviste al plan del coach");
+  };
+  const moveTomorrow = () => {
+    if (todayRoutineDay) {
+      setForDate(today, "rest");
+      setForDate(tomorrow, todayRoutineDay.id);
+      toast.success("Tu entreno pasó a mañana");
+    }
+    setShowReschedule(false);
+  };
 
   useEffect(() => {
     getWeeklyProgress().then(result => {
@@ -97,6 +137,18 @@ const Index = () => {
             </motion.div>
           )}
 
+          {/* Reprogramar / cambiar el día de hoy */}
+          {activeRoutine && allDays.length > 0 && (
+            <motion.button
+              variants={fadeUp}
+              onClick={() => setShowReschedule(true)}
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground active:text-foreground py-1"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Reprogramar el día de hoy
+            </motion.button>
+          )}
+
           {/* 4. Carrusel del plan — surfacea la rutina + variedad visual */}
           {activeRoutine && allDays.length > 0 && (
             <PlanDaysCarousel
@@ -109,6 +161,18 @@ const Index = () => {
           {/* 5. Card del coach — el diferenciador coach→alumno */}
           <CoachCard />
         </div>
+
+        <RescheduleSheet
+          open={showReschedule}
+          onClose={() => setShowReschedule(false)}
+          days={allDays}
+          todayId={todayRoutineDay?.id ?? null}
+          hasToday={!!todayRoutineDay}
+          onSwap={applySwap}
+          onRest={applyRest}
+          onReset={applyReset}
+          onMoveTomorrow={moveTomorrow}
+        />
         </motion.div>
       </div>
     </AppShell>
