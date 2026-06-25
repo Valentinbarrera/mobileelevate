@@ -41,7 +41,7 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
       transition={{ delay: index * 0.08, type: "spring", stiffness: 300, damping: 25 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => navigate(`/routine/${routine.id}`)}
-      className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all group"
+      className="card-elevated rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all group"
     >
       {/* Accent top bar */}
       <div className={`h-0.5 w-full ${
@@ -98,7 +98,7 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
         </div>
 
         {/* Footer */}
-        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
+        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
             {new Date(assignment.created_at).toLocaleDateString('es-AR', { 

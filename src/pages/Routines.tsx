@@ -160,7 +160,7 @@ const Routines = () => {
                   onView={viewRoutine}
                 />
               ) : (
-                <div className="rounded-3xl border border-border bg-card p-8 text-center">
+                <div className="rounded-3xl card-elevated p-8 text-center">
                   <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
                   <p className="font-semibold text-foreground">Sin rutinas todavía</p>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -172,7 +172,10 @@ const Routines = () => {
               {/* Semana */}
               {hero?.session && (
                 <motion.div variants={fadeUp} className="space-y-2.5">
-                  <h3 className="text-sm font-bold text-foreground px-1">Tu semana</h3>
+                  <div className="flex items-center gap-2 px-0.5">
+                    <span className="accent-bar" />
+                    <h3 className="text-sm font-black text-foreground tracking-tight">Tu semana</h3>
+                  </div>
                   <WeekStrip days={weekDays} />
                 </motion.div>
               )}
@@ -180,13 +183,16 @@ const Routines = () => {
               {/* Próximas sesiones */}
               {upcoming.length > 0 && (
                 <motion.div variants={fadeUp} className="space-y-2.5">
-                  <h3 className="text-sm font-bold text-foreground px-1">Esta semana</h3>
+                  <div className="flex items-center gap-2 px-0.5">
+                    <span className="accent-bar" />
+                    <h3 className="text-sm font-black text-foreground tracking-tight">Esta semana</h3>
+                  </div>
                   <div className="space-y-2">
                     {upcoming.map((s) => (
                       <button
                         key={`${s.assignment.id}-${s.date}`}
                         onClick={() => viewRoutine(s.assignment.routine.id)}
-                        className="w-full flex items-center gap-3 rounded-2xl bg-card border border-border px-4 py-3 active:scale-[0.99] transition-transform"
+                        className="w-full flex items-center gap-3 rounded-2xl card-elevated px-4 py-3 active:scale-[0.99] transition-transform"
                       >
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <CalendarDays className="w-5 h-5 text-primary" />
@@ -209,7 +215,10 @@ const Routines = () => {
               {/* Mis programas (secundario) */}
               {assignments.length > 0 && (
                 <motion.div variants={fadeUp} className="space-y-2.5">
-                  <h3 className="text-sm font-bold text-foreground px-1">Mis programas</h3>
+                  <div className="flex items-center gap-2 px-0.5">
+                    <span className="accent-bar" />
+                    <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {assignments.map((assignment, index) => (
                       <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
@@ -224,7 +233,7 @@ const Routines = () => {
           {!isLoading && !error && view === "completed" && (
             <>
               {assignments.length === 0 ? (
-                <div className="rounded-3xl border border-border bg-card p-8 text-center">
+                <div className="rounded-3xl card-elevated p-8 text-center">
                   <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
                   <p className="font-semibold text-foreground">Sin rutinas completadas</p>
                   <p className="text-sm text-muted-foreground mt-1">

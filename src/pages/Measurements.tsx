@@ -18,7 +18,7 @@ interface MeasurementCardProps {
 }
 
 const MeasurementCard = ({ label, value, unit }: MeasurementCardProps) => (
-  <div className="bg-card border border-border rounded-2xl p-4 text-center">
+  <div className="card-elevated rounded-2xl p-4 text-center">
     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
     {value != null ? (
       <div className="flex items-baseline justify-center gap-1">
@@ -84,7 +84,7 @@ export default function Measurements() {
               </div>
             </motion.div>
           ) : (
-            <motion.div variants={fadeUp} className="bg-card border border-border rounded-2xl p-6 text-center">
+            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-6 text-center">
               <Scale className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="font-semibold text-foreground mb-1">Sin mediciones</p>
               <p className="text-sm text-muted-foreground">Tu coach registrará tus mediciones corporales</p>
@@ -115,11 +115,14 @@ export default function Measurements() {
 
           {/* History */}
           {entries.length > 0 && (
-            <motion.div variants={fadeUp} className="bg-card border border-border rounded-2xl p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Historial</h3>
+            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black tracking-tight text-foreground">Historial</h3>
+              </div>
               <div className="space-y-3">
                 {[...entries].reverse().map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                  <div key={entry.id} className="flex items-center justify-between py-2 border-b border-white/[0.06] last:border-0">
                     <p className="text-sm text-foreground">
                       {new Date(entry.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}
                     </p>

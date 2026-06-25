@@ -12,7 +12,7 @@ interface WeekStripProps {
 
 const WeekStrip = ({ days }: WeekStripProps) => {
   return (
-    <div className="bg-card border border-border rounded-2xl px-2 py-3">
+    <div className="card-elevated rounded-2xl px-2 py-3">
       <div className="grid grid-cols-7">
         {days.map((d, i) => {
           const isToday = d.status === "today";
