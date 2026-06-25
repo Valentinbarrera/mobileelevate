@@ -20,6 +20,7 @@ const UpdatePassword = React.lazy(() => import("./pages/UpdatePassword"));
 const Routines = React.lazy(() => import("./pages/Routines"));
 const RoutineDetail = React.lazy(() => import("./pages/RoutineDetail"));
 const CoachWorkoutDetail = React.lazy(() => import("./pages/CoachWorkoutDetail"));
+const FreeWorkout = React.lazy(() => import("./pages/FreeWorkout"));
 const WorkoutSummary = React.lazy(() => import("./pages/WorkoutSummary"));
 const Progress = React.lazy(() => import("./pages/Progress"));
 const Profile = React.lazy(() => import("./pages/Profile"));
@@ -67,6 +68,7 @@ const App = () => (
             {/* Protected full-screen (sin nav) */}
             <Route path="/routine/:id" element={<ProtectedRoute><Lazy><RoutineDetail /></Lazy></ProtectedRoute>} />
             <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
+            <Route path="/free-workout" element={<ProtectedRoute><Lazy><FreeWorkout /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
 
             {/* Pantallas con nav persistente + transición de contenido */}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, Ruler } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +7,12 @@ import WeeklyActivity from "@/components/progress/WeeklyActivity";
 import ActivityStreak from "@/components/progress/ActivityStreak";
 import VolumeProgressChart from "@/components/progress/VolumeProgressChart";
 import BodyMetricChart from "@/components/progress/BodyMetricChart";
+import WeightLogCard from "@/components/progress/WeightLogCard";
 import PersonalRecords from "@/components/progress/PersonalRecords";
 import PageLoading from "@/components/ui/page-loading";
 import { useProgressData } from "@/hooks/useProgressData";
 import { useAnthropometryData } from "@/hooks/useAnthropometryData";
+import { useLocalBodyLog } from "@/hooks/useLocalBodyLog";
 import { usePRData } from "@/hooks/usePRData";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
@@ -25,6 +27,31 @@ const Progress = () => {
   } = useProgressData();
   const { weightHistory, waistHistory } = useAnthropometryData();
   const { records } = usePRData();
+  const { entries: localWeights, logWeight } = useLocalBodyLog();
+  const [range, setRange] = useState(0); // 0 = todo · 30 = 1M · 90 = 3M
+
+  // Peso = datos del coach + los que carga el alumno (local pisa por fecha)
+  const mergedWeight = useMemo(() => {
+    const map = new Map<string, number>();
+    weightHistory.forEach((d) => map.set(d.date, d.value));
+    localWeights.forEach((d) => map.set(d.date, d.value));
+    return [...map.entries()]
+      .map(([date, value]) => ({ date, value }))
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+  }, [weightHistory, localWeights]);
+
+  const cutoff = useMemo(() => {
+    if (!range) return null;
+    const d = new Date();
+    d.setDate(d.getDate() - range);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, [range]);
+
+  const inRange = (arr: { date: string; value: number }[]) =>
+    cutoff ? arr.filter((d) => d.date >= cutoff) : arr;
+
+  const currentWeight = mergedWeight.length ? mergedWeight[mergedWeight.length - 1].value : null;
+  const prevWeight = mergedWeight.length > 1 ? mergedWeight[mergedWeight.length - 2].value : null;
 
   const currentMonth = new Date().toLocaleString('es-AR', { month: 'long' });
   const currentYear = new Date().getFullYear();
@@ -98,21 +125,48 @@ const Progress = () => {
             </motion.div>
           )}
 
-          <div className="md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
-            {/* Weight chart */}
-            {weightHistory.length > 0 && (
-              <motion.div variants={fadeUp}>
-                <BodyMetricChart data={weightHistory} title="Peso" unit="kg" />
-              </motion.div>
-            )}
+          {/* Registro de peso propio */}
+          <motion.div variants={fadeUp}>
+            <WeightLogCard current={currentWeight} previous={prevWeight} onLog={logWeight} />
+          </motion.div>
 
-            {/* Waist chart */}
-            {waistHistory.length > 0 && (
-              <motion.div variants={fadeUp}>
-                <BodyMetricChart data={waistHistory} title="Cintura" unit="cm" color="#f59e0b" />
-              </motion.div>
-            )}
-          </div>
+          {/* Cuerpo: gráficos con filtro de tiempo */}
+          {(mergedWeight.length > 0 || waistHistory.length > 0) && (
+            <motion.div variants={fadeUp} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 px-0.5">
+                  <span className="accent-bar" />
+                  <h3 className="text-sm font-black text-foreground tracking-tight">Cuerpo</h3>
+                </div>
+                <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-white/[0.06]">
+                  {[
+                    { l: "1M", v: 30 },
+                    { l: "3M", v: 90 },
+                    { l: "Todo", v: 0 },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => setRange(o.v)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                        range === o.v ? "bg-gradient-primary text-primary-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
+                {mergedWeight.length > 0 && (
+                  <BodyMetricChart data={inRange(mergedWeight)} title="Peso" unit="kg" />
+                )}
+                {waistHistory.length > 0 && (
+                  <BodyMetricChart data={inRange(waistHistory)} title="Cintura" unit="cm" color="#f59e0b" />
+                )}
+              </div>
+            </motion.div>
+          )}
 
           {/* Personal Records */}
           <motion.div variants={fadeUp}>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, ChevronRight, CalendarDays } from "lucide-react";
+import { Dumbbell, ChevronRight, CalendarDays, Plus } from "lucide-react";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import RoutinesHeaderSlim from "@/components/routines/RoutinesHeaderSlim";
@@ -135,6 +135,17 @@ const Routines = () => {
               );
             })}
           </div>
+
+          {/* Entreno libre — armar tu propio entrenamiento fuera del plan */}
+          <motion.button
+            variants={fadeUp}
+            onClick={() => navigate("/free-workout")}
+            whileTap={{ scale: 0.99 }}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3 text-primary font-bold text-sm active:scale-[0.99] transition-transform"
+          >
+            <Plus className="w-4 h-4" />
+            Entreno libre
+          </motion.button>
 
           {isLoading && <PageLoading message="Cargando rutinas..." />}
 

@@ -10,6 +10,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { getLocalDateString, getStartOfWeekLocal } from "@/lib/date";
 import { getUserErrorMessage } from "@/lib/errors";
+import { logSet } from "@/lib/workoutLog";
 
 interface CoachExercise {
   id: string;
@@ -158,7 +159,18 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       return null;
     }
 
-    // Demo/admin session: keep everything in local state, skip persistence
+    // Guardado LOCAL siempre: alimenta "la vez pasada", PRs e historial,
+    // persista o no en la base.
+    const localStudentId = student?.id || (isAdminMode ? "admin" : "anon");
+    logSet(localStudentId, {
+      exerciseId: exercise.id,
+      date: session.date,
+      setNumber,
+      weight,
+      reps,
+    });
+
+    // Demo/admin session: ya quedó guardado local, no tocamos la base
     if (session.id === LOCAL_SESSION_ID) {
       return { setNumber, weight, reps, completedAt: new Date() };
     }
@@ -195,7 +207,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       toast.error(getUserErrorMessage(error, "Error al guardar la serie"));
       return null;
     }
-  }, [session, student]);
+  }, [session, student, isAdminMode]);
 
   const finishSession = useCallback(async (
     totalDurationSeconds: number,

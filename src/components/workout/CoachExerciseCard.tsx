@@ -10,6 +10,8 @@ import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator } from "lucid
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import { calcPlates } from "@/lib/plates";
+import { getLastPerformance, getPR } from "@/lib/workoutLog";
+import { getLocalDateString } from "@/lib/date";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 
@@ -77,7 +79,7 @@ const CoachExerciseCard = ({
   onSelect,
   onCompleteSet,
 }: CoachExerciseCardProps) => {
-  const { student } = useAuthContext();
+  const { student, isAdminMode } = useAuthContext();
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
@@ -90,7 +92,18 @@ const CoachExerciseCard = ({
   const [showPlates, setShowPlates] = useState(false);
 
   useEffect(() => {
-    if (!student || !exercise.id) return;
+    const sid = student?.id || (isAdminMode ? "admin" : null);
+    if (!sid || !exercise.id) return;
+
+    // 1) Registro LOCAL primero (fuente práctica en modo sin permisos)
+    const today = getLocalDateString();
+    const localLast = getLastPerformance(sid, exercise.id, today);
+    const localPr = getPR(sid, exercise.id, today);
+    if (localLast) setLastPerformance({ weight: localLast.weight, reps: localLast.reps });
+    if (localPr) setPersonalRecord({ maxWeight: localPr.maxWeight, maxReps: localPr.maxReps });
+
+    // 2) Base de datos como complemento (solo alumno real con permisos)
+    if (!student) return;
 
     supabase
       .from("completed_exercises")
@@ -117,7 +130,7 @@ const CoachExerciseCard = ({
           setPersonalRecord({ maxWeight: pr.weight, maxReps: pr.reps });
         }
       });
-  }, [student, exercise.id]);
+  }, [student, isAdminMode, exercise.id]);
 
   const isCompleted = state.completed;
   const doneCount = state.completedSets.length;
