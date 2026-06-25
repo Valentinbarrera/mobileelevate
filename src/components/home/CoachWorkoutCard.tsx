@@ -11,9 +11,10 @@ import type { TodayRoutineDay, ActiveRoutineInfo } from "@/hooks/useCoachHomeDat
 interface CoachWorkoutCardProps {
   routineDay: TodayRoutineDay;
   routineInfo: ActiveRoutineInfo;
+  inProgress?: boolean;
 }
 
-const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) => {
+const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: CoachWorkoutCardProps) => {
   const navigate = useNavigate();
 
   const handleStart = () => {
@@ -47,15 +48,15 @@ const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) =>
       <div className="relative p-5">
         {/* Badges superiores */}
         <div className="flex items-center gap-2 mb-5">
-          <span className="bg-gradient-primary text-primary-foreground text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg">
+          <span className="bg-gradient-primary text-primary-foreground text-[11px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg">
             Día {routineDay.dayNumber}
           </span>
-          <span className="bg-white/5 backdrop-blur-sm text-foreground text-[10px] font-medium px-2 py-1 rounded-lg border border-white/10">
+          <span className="bg-white/5 backdrop-blur-sm text-foreground text-[11px] font-medium px-2 py-1 rounded-lg border border-white/10 truncate max-w-[40%]">
             {routineInfo.name}
           </span>
-          <span className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest">
+          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-black text-primary uppercase tracking-widest">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Hoy
+            {inProgress ? "En curso" : "Hoy"}
           </span>
         </div>
 
@@ -79,16 +80,16 @@ const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) =>
         </div>
 
         {/* Título */}
-        <h2 className="text-[1.75rem] font-black text-foreground tracking-tight text-display leading-[1.05] mb-1.5">
+        <h2 className="text-[2rem] font-black text-foreground tracking-tight text-display leading-[1.02] mb-1.5">
           {routineDay.name}
         </h2>
 
-        <div className="flex items-center gap-1.5 mb-5 text-muted-foreground text-xs">
-          <Dumbbell className="w-3.5 h-3.5" />
-          <span>{routineDay.totalExercises} ejercicios</span>
+        <div className="flex items-center gap-1.5 mb-5 text-muted-foreground text-sm">
+          <Dumbbell className="w-4 h-4" />
+          <span>{routineDay.totalExercises} ejercicios · ~{routineDay.estimatedDuration} min</span>
         </div>
 
-        {/* CTA */}
+        {/* CTA — la acción principal de la pantalla */}
         <motion.button
           onClick={handleStart}
           className="w-full flex items-center justify-center gap-2.5 bg-gradient-primary rounded-2xl py-4 touch-target-lg shadow-lg glow-primary"
@@ -99,8 +100,8 @@ const CoachWorkoutCard = ({ routineDay, routineInfo }: CoachWorkoutCardProps) =>
           <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
             <Play className="w-4 h-4 text-primary-foreground fill-current ml-0.5" />
           </div>
-          <span className="text-primary-foreground font-black text-sm tracking-wide uppercase">
-            Empezar Entrenamiento
+          <span className="text-primary-foreground font-black text-[15px] tracking-wide uppercase">
+            {inProgress ? "Continuar entrenamiento" : "Comenzar entrenamiento"}
           </span>
         </motion.button>
       </div>

@@ -44,6 +44,13 @@ export function getExerciseSets(studentId: string, exerciseId: string): LoggedSe
   return read(studentId).filter((s) => s.exerciseId === exerciseId);
 }
 
+/** ¿Ya hay series cargadas HOY para alguno de estos ejercicios? (entreno en curso) */
+export function hasLoggedToday(studentId: string, exerciseIds: string[], date: string): boolean {
+  if (!exerciseIds.length) return false;
+  const ids = new Set(exerciseIds);
+  return read(studentId).some((s) => s.date === date && ids.has(s.exerciseId));
+}
+
 /** Último registro del ejercicio (excluyendo opcionalmente la fecha actual). */
 export function getLastPerformance(
   studentId: string,

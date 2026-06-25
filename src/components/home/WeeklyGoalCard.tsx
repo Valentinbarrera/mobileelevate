@@ -1,10 +1,9 @@
 /**
- * Card de objetivo semanal — el "glance" de progreso del Home.
- * Anillo (completadas / asignadas), racha, récord y tira de 7 días.
- * Research: rings para metas, números redondos, glanceable, sin ser el héroe.
+ * Objetivo semanal — versión compacta y densa (poca altura, sin perder lo
+ * motivacional): anillo de %, completados/meta, racha y tira fina de 7 días.
  */
 import { motion } from "framer-motion";
-import { Flame, Trophy, Check, ChevronRight } from "lucide-react";
+import { Flame, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
@@ -18,16 +17,6 @@ interface WeeklyGoalCardProps {
   bestTonnage: number | null;
 }
 
-const DAYS = [
-  { short: "L", full: "LUN" },
-  { short: "M", full: "MAR" },
-  { short: "X", full: "MIE" },
-  { short: "J", full: "JUE" },
-  { short: "V", full: "VIE" },
-  { short: "S", full: "SAB" },
-  { short: "D", full: "DOM" },
-];
-
 const getWeekDates = (): string[] => {
   const monday = getStartOfWeekLocal();
   return Array.from({ length: 7 }, (_, i) => {
@@ -37,7 +26,7 @@ const getWeekDates = (): string[] => {
   });
 };
 
-const WeeklyGoalCard = ({ completedDates, goal, streak, bestTonnage }: WeeklyGoalCardProps) => {
+const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) => {
   const navigate = useNavigate();
   const weekDates = getWeekDates();
   const todayStr = getLocalDateString();
@@ -50,79 +39,51 @@ const WeeklyGoalCard = ({ completedDates, goal, streak, bestTonnage }: WeeklyGoa
       variants={fadeUp}
       onClick={() => navigate("/progress")}
       whileTap={{ scale: 0.99 }}
-      className="rounded-3xl card-elevated p-5 cursor-pointer"
+      className="rounded-3xl card-elevated p-4 cursor-pointer"
     >
-      <div className="flex items-center gap-5">
-        <ProgressRing progress={pct} size={92} stroke={9}>
-          <span className="text-xl font-black text-foreground tabular-nums leading-none">
+      <div className="flex items-center gap-4">
+        <ProgressRing progress={pct} size={62} stroke={7} gradientId="weekRing">
+          <span className="text-base font-black text-foreground tabular-nums leading-none">
             <CountUp value={pct} />%
           </span>
         </ProgressRing>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               Objetivo semanal
             </p>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </div>
-
-          <p className="text-2xl font-black text-foreground tracking-tight mt-0.5 leading-none">
-            <CountUp value={completed} />
-            <span className="text-muted-foreground font-bold text-lg"> / {goal}</span>
-            <span className="text-sm font-semibold text-muted-foreground"> entrenos</span>
-          </p>
-
-          <div className="flex items-center gap-2 mt-3">
-            <div className="flex items-center gap-1.5 rounded-lg bg-secondary/60 px-2.5 py-1.5">
+            <div className="flex items-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-1 shrink-0">
               <Flame className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-black text-foreground tabular-nums">
                 <CountUp value={streak} />
               </span>
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase">racha</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold">racha</span>
             </div>
-            {bestTonnage != null && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-secondary/60 px-2.5 py-1.5">
-                <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-xs font-black text-foreground tabular-nums">
-                  <CountUp value={bestTonnage} />
-                </span>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase">kg récord</span>
-              </div>
-            )}
+          </div>
+
+          <p className="text-xl font-black text-foreground tracking-tight leading-none mt-1">
+            <CountUp value={completed} />
+            <span className="text-sm font-bold text-muted-foreground"> / {goal} entrenos</span>
+          </p>
+
+          {/* Tira fina de la semana */}
+          <div className="flex items-center gap-1 mt-2.5">
+            {weekDates.map((d, i) => {
+              const done = completedSet.has(d);
+              const isToday = d === todayStr;
+              return (
+                <div
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-full ${
+                    done ? "bg-gradient-primary" : isToday ? "bg-primary/40" : "bg-secondary"
+                  }`}
+                />
+              );
+            })}
+            <ChevronRight className="w-4 h-4 text-muted-foreground ml-1 shrink-0" />
           </div>
         </div>
-      </div>
-
-      {/* Tira de 7 días */}
-      <div className="grid grid-cols-7 gap-1.5 mt-4">
-        {DAYS.map((day, i) => {
-          const dateStr = weekDates[i];
-          const isCompleted = completedSet.has(dateStr);
-          const isToday = dateStr === todayStr;
-          return (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div
-                className={`w-full aspect-square max-w-[2.25rem] rounded-xl flex items-center justify-center font-bold text-xs ${
-                  isCompleted
-                    ? "bg-gradient-primary text-primary-foreground"
-                    : isToday
-                      ? "border-2 border-primary text-primary bg-primary/10"
-                      : "bg-secondary/50 text-muted-foreground"
-                }`}
-              >
-                {isCompleted ? <Check className="w-4 h-4" strokeWidth={3} /> : day.short}
-              </div>
-              <span
-                className={`text-[8px] font-medium uppercase tracking-wide ${
-                  isToday ? "text-primary font-bold" : "text-muted-foreground"
-                }`}
-              >
-                {isToday ? "HOY" : day.full}
-              </span>
-            </div>
-          );
-        })}
       </div>
     </motion.div>
   );

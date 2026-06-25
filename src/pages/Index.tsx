@@ -9,6 +9,7 @@ import RestDayCard from "@/components/home/RestDayCard";
 import WeeklyGoalCard from "@/components/home/WeeklyGoalCard";
 import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
 import CoachCard from "@/components/home/CoachCard";
+import QuickActions from "@/components/home/QuickActions";
 import RescheduleSheet from "@/components/home/RescheduleSheet";
 import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
 import AppShell from "@/components/layout/AppShell";
@@ -19,6 +20,7 @@ import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
 import { useProgressData } from "@/hooks/useProgressData";
 import { useSessionOverrides } from "@/hooks/useSessionOverrides";
 import { localISODate } from "@/lib/routineSession";
+import { hasLoggedToday } from "@/lib/workoutLog";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const Index = () => {
@@ -80,9 +82,17 @@ const Index = () => {
   const userName = student?.full_name || user?.email?.split('@')[0] || "Atleta";
   const displayName = userName.split(' ')[0];
 
-  const todayStatus = todayRoutineDay
-    ? `Hoy: ${todayRoutineDay.name}`
-    : "¡Día de descanso activo!";
+  // Línea contextual y motivadora (complementa al héroe del entreno de hoy)
+  const weeklyGoal = allDays.length || 5;
+  const remaining = Math.max(0, weeklyGoal - (sessionsThisWeek || 0));
+  const contextLine =
+    remaining > 0
+      ? `Te faltan ${remaining} ${remaining === 1 ? "entreno" : "entrenos"} para tu meta`
+      : "¡Meta semanal cumplida! 🔥";
+
+  // ¿Entreno de hoy ya empezado? → CTA "Continuar"
+  const todayExerciseIds = todayRoutineDay?.exercises.map((e) => e.id) ?? [];
+  const inProgress = hasLoggedToday(overrideSid, todayExerciseIds, today);
 
   if (coachLoading) {
     return (
@@ -104,24 +114,18 @@ const Index = () => {
           <Header userName={displayName} streakDays={currentStreak} />
 
         <div className="max-w-2xl mx-auto px-5 mt-3 space-y-5">
-          {/* 1. Saludo personalizado (hora del día + nombre) */}
-          <motion.div variants={fadeUp}>
-            <Greeting userName={displayName} todayStatus={todayStatus} />
-          </motion.div>
+          {/* 1. Saludo contextual + motivador */}
+          <Greeting userName={displayName} contextLine={contextLine} />
 
-          {/* 2. Progreso semanal — glance con anillo (no es el héroe) */}
-          <WeeklyGoalCard
-            completedDates={completedDates}
-            goal={allDays.length || 5}
-            streak={currentStreak}
-            bestTonnage={personalBestTonnage}
-          />
-
-          {/* 3. ENTRENO DE HOY — el héroe / acción principal */}
+          {/* 2. ENTRENO DE HOY — el HÉROE / acción principal de la pantalla */}
           {todayRoutineDay && activeRoutine ? (
             <>
               <motion.div variants={fadeUp}>
-                <CoachWorkoutCard routineDay={todayRoutineDay} routineInfo={activeRoutine} />
+                <CoachWorkoutCard
+                  routineDay={todayRoutineDay}
+                  routineInfo={activeRoutine}
+                  inProgress={inProgress}
+                />
               </motion.div>
               <motion.div variants={fadeUp}>
                 <ViewAllRoutinesLink />
@@ -149,7 +153,18 @@ const Index = () => {
             </motion.button>
           )}
 
-          {/* 4. Carrusel del plan — surfacea la rutina + variedad visual */}
+          {/* 3. Progreso semanal — glance compacto (debajo del héroe) */}
+          <WeeklyGoalCard
+            completedDates={completedDates}
+            goal={weeklyGoal}
+            streak={currentStreak}
+            bestTonnage={personalBestTonnage}
+          />
+
+          {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
+          <QuickActions />
+
+          {/* 5. Carrusel del plan */}
           {activeRoutine && allDays.length > 0 && (
             <PlanDaysCarousel
               days={allDays}
@@ -158,7 +173,7 @@ const Index = () => {
             />
           )}
 
-          {/* 5. Card del coach — el diferenciador coach→alumno */}
+          {/* 6. Card del coach — el diferenciador coach→alumno */}
           <CoachCard />
         </div>
 

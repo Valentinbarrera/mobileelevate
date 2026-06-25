@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 
 interface GreetingProps {
   userName: string;
-  subtitle?: string;
-  todayStatus?: string;
+  /** Línea contextual y motivadora (ej: "Te faltan 3 para tu meta") */
+  contextLine?: string;
 }
 
 const getTimeGreeting = () => {
@@ -14,11 +14,7 @@ const getTimeGreeting = () => {
   return "Buenas noches";
 };
 
-const Greeting = ({
-  userName,
-  subtitle = "Tu entrenador online todo en uno",
-  todayStatus,
-}: GreetingProps) => {
+const Greeting = ({ userName, contextLine }: GreetingProps) => {
   return (
     <motion.div className="pt-1" variants={fadeUp}>
       <motion.p
@@ -27,25 +23,18 @@ const Greeting = ({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.05 }}
       >
-        {getTimeGreeting()},
+        {getTimeGreeting()}, {userName}
       </motion.p>
 
-      <h1 className="text-[2rem] font-black tracking-tight leading-none mt-1 text-gradient-primary">
-        {userName}
-      </h1>
-
-      {todayStatus ? (
-        <motion.div
-          className="flex items-center gap-2 mt-2.5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.18 }}
+      {contextLine && (
+        <motion.h1
+          className="text-[1.7rem] font-black tracking-tight leading-[1.1] mt-1 text-foreground"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-          <p className="text-muted-foreground text-[13px] font-medium">{todayStatus}</p>
-        </motion.div>
-      ) : (
-        <p className="text-muted-foreground text-[13px] mt-2">{subtitle}</p>
+          {contextLine}
+        </motion.h1>
       )}
     </motion.div>
   );
