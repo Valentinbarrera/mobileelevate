@@ -14,6 +14,8 @@ import { useProgressData } from "@/hooks/useProgressData";
 import { useAnthropometryData } from "@/hooks/useAnthropometryData";
 import { useLocalBodyLog } from "@/hooks/useLocalBodyLog";
 import { usePRData } from "@/hooks/usePRData";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { getLatestCheckIn } from "@/lib/checkins";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const Progress = () => {
@@ -28,6 +30,8 @@ const Progress = () => {
   const { weightHistory, waistHistory } = useAnthropometryData();
   const { records } = usePRData();
   const { entries: localWeights, logWeight } = useLocalBodyLog();
+  const { student, isAdminMode } = useAuthContext();
+  const latestCheckIn = getLatestCheckIn(student?.id || (isAdminMode ? "admin" : "anon"));
   const [range, setRange] = useState(0); // 0 = todo · 30 = 1M · 90 = 3M
 
   // Peso = datos del coach + los que carga el alumno (local pisa por fecha)
@@ -165,6 +169,40 @@ const Progress = () => {
                   <BodyMetricChart data={inRange(waistHistory)} title="Cintura" unit="cm" color="#f59e0b" />
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {/* Bienestar — último check-in post-entreno */}
+          {latestCheckIn && (
+            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Bienestar</h3>
+                <span className="ml-auto text-xs text-muted-foreground">último check-in</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <p className="text-2xl font-black text-foreground tabular-nums leading-none">
+                    {latestCheckIn.rpe || "—"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">RPE</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl leading-none">
+                    {["—", "😫", "😕", "😐", "🙂", "🔥"][latestCheckIn.energy] || "—"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">Energía</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl leading-none">
+                    {["—", "😵", "😞", "😐", "😌", "😴"][latestCheckIn.sleep] || "—"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">Sueño</p>
+                </div>
+              </div>
+              {latestCheckIn.note && (
+                <p className="text-xs text-muted-foreground mt-3 italic">"{latestCheckIn.note}"</p>
+              )}
             </motion.div>
           )}
 

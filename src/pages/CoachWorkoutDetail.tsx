@@ -17,6 +17,8 @@ import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
+import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
+import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import type { DifficultyLevel } from "@/types/database";
@@ -40,7 +42,7 @@ const CoachWorkoutDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, student, isAdminMode } = useAuthContext();
   const { allDays, activeRoutine } = useCoachHomeData();
   
   // Get routine day from navigation state or find in allDays
@@ -74,6 +76,7 @@ const CoachWorkoutDetail = () => {
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [showCheckIn, setShowCheckIn] = useState(false);
   
   // Exercise completed modal state
   const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
@@ -252,10 +255,25 @@ const CoachWorkoutDetail = () => {
     setCompletedExerciseInfo(null);
   }, []);
 
-  const handleFinishWorkout = async () => {
+  const handleFinishWorkout = () => {
     if (!session) {
       toast.error("No pudimos guardar tu sesión. Reiniciá el entrenamiento para persistirlo correctamente.");
       return;
+    }
+    setShowCheckIn(true);
+  };
+
+  const completeWorkout = async (checkIn: CheckInData | null) => {
+    setShowCheckIn(false);
+    if (!session) return;
+
+    if (checkIn) {
+      const sid = student?.id || (isAdminMode ? "admin" : "anon");
+      saveCheckIn(sid, {
+        date: session.date,
+        workoutName: routineDay?.name || "Entrenamiento",
+        ...checkIn,
+      });
     }
 
     const exercises = routineDay?.exercises || [];
@@ -471,6 +489,13 @@ const CoachWorkoutDetail = () => {
         isLastExercise={completedExerciseInfo?.isLastExercise}
         totalCompleted={completedExercises}
         totalExercises={exercises.length}
+      />
+
+      {/* Check-in post-entreno */}
+      <WorkoutCheckIn
+        open={showCheckIn}
+        onComplete={completeWorkout}
+        onSkip={() => completeWorkout(null)}
       />
     </motion.div>
   );

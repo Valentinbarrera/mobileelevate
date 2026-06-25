@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { logSet, getLastPerformance } from "@/lib/workoutLog";
 import { getRecentFreeExercises, recordFreeExercise } from "@/lib/freeExercises";
+import { saveCheckIn, type CheckInData } from "@/lib/checkins";
+import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import { getLocalDateString } from "@/lib/date";
 
 interface SetEntry {
@@ -148,6 +150,7 @@ const FreeWorkout = () => {
   const [exercises, setExercises] = useState<FreeExercise[]>([]);
   const [newName, setNewName] = useState("");
   const [elapsed, setElapsed] = useState(0);
+  const [showCheckIn, setShowCheckIn] = useState(false);
   const [recent] = useState<string[]>(() => getRecentFreeExercises(studentId));
 
   // Cronómetro
@@ -190,6 +193,14 @@ const FreeWorkout = () => {
     if (totalSets === 0) {
       toast.error("Cargá al menos una serie para terminar");
       return;
+    }
+    setShowCheckIn(true);
+  };
+
+  const completeWorkout = (checkIn: CheckInData | null) => {
+    setShowCheckIn(false);
+    if (checkIn) {
+      saveCheckIn(studentId, { date: getLocalDateString(), workoutName: "Entreno libre", ...checkIn });
     }
     const volume = exercises.reduce(
       (a, e) => a + e.sets.reduce((s, x) => s + x.weight * x.reps, 0),
@@ -306,6 +317,13 @@ const FreeWorkout = () => {
           </motion.button>
         </div>
       </div>
+
+      {/* Check-in post-entreno */}
+      <WorkoutCheckIn
+        open={showCheckIn}
+        onComplete={completeWorkout}
+        onSkip={() => completeWorkout(null)}
+      />
     </motion.div>
   );
 };
