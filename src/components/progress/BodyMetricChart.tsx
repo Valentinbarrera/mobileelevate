@@ -32,9 +32,12 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-2xl p-4"
+        className="card-elevated rounded-2xl p-4"
       >
-        <h3 className="text-sm font-semibold text-foreground mb-2">{title}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="accent-bar" />
+          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+        </div>
         <p className="text-sm text-muted-foreground text-center py-8">
           Sin datos registrados aún
         </p>
@@ -72,10 +75,13 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-2xl p-4"
+      className="card-elevated rounded-2xl p-4"
     >
       <div className="flex items-center justify-between mb-1">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <div className="flex items-center gap-2">
+          <span className="accent-bar" />
+          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+        </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />
           <span className="text-xs font-semibold">

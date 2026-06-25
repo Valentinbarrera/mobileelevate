@@ -46,6 +46,10 @@ export interface ActiveRoutineInfo {
 export interface CoachHomeData {
   activeRoutine: ActiveRoutineInfo | null;
   todayRoutineDay: TodayRoutineDay | null;
+  /** Próximo día con sesión planificada (para el estado de descanso) */
+  nextRoutineDay: TodayRoutineDay | null;
+  /** Fecha (YYYY-MM-DD) de la próxima sesión planificada, o null */
+  nextSessionDate: string | null;
   allDays: TodayRoutineDay[];
   currentDayIndex: number;
   loading: boolean;
@@ -112,6 +116,8 @@ export function useCoachHomeData(): CoachHomeData {
       return {
         activeRoutine: null,
         todayRoutineDay: null,
+        nextRoutineDay: null,
+        nextSessionDate: null,
         allDays: [],
         currentDayIndex: 0,
       };
@@ -137,6 +143,15 @@ export function useCoachHomeData(): CoachHomeData {
 
     const todayDay = currentDayIndex !== -1 ? allDays[currentDayIndex] : null;
 
+    // Próxima sesión planificada a futuro (la más cercana). Fallback: 1er día del plan.
+    const futurePlanned = plannedSessions
+      .filter(s => s.date > todayStr)
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+    const nextPlanned = futurePlanned[0];
+    const nextDayIndex = nextPlanned ? days.findIndex(d => d.id === nextPlanned.routine_day_id) : -1;
+    const nextRoutineDay = nextDayIndex !== -1 ? allDays[nextDayIndex] : (allDays[0] ?? null);
+    const nextSessionDate = nextPlanned?.date ?? null;
+
     const activeRoutine: ActiveRoutineInfo = {
       id: routine.id,
       assignmentId: activeAssignment.id,
@@ -153,6 +168,8 @@ export function useCoachHomeData(): CoachHomeData {
     return {
       activeRoutine,
       todayRoutineDay: todayDay,
+      nextRoutineDay,
+      nextSessionDate,
       allDays,
       currentDayIndex: currentDayIndex !== -1 ? currentDayIndex : 0,
     };

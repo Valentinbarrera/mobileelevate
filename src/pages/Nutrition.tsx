@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 import { Apple, ChevronLeft, ChevronRight, Droplets } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageLoading from "@/components/ui/page-loading";
+import ProgressRing from "@/components/ui/progress-ring";
+import CountUp from "@/components/ui/count-up";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
   useStudentNutrition,
@@ -53,7 +55,7 @@ const MealCard = ({ meal }: { meal: NutritionMeal }) => {
   return (
     <motion.div
       variants={fadeUp}
-      className="bg-card border border-border rounded-2xl overflow-hidden"
+      className="card-elevated rounded-2xl overflow-hidden"
     >
       {/* Meal header */}
       <button
@@ -92,7 +94,7 @@ const MealCard = ({ meal }: { meal: NutritionMeal }) => {
 
       {/* Food list */}
       {expanded && meal.foods.length > 0 && (
-        <div className="border-t border-border/50 divide-y divide-border/30">
+        <div className="border-t border-white/[0.06] divide-y divide-white/[0.04]">
           {meal.foods.map((food) => (
             <div
               key={food.id}
@@ -126,7 +128,7 @@ const MealCard = ({ meal }: { meal: NutritionMeal }) => {
       )}
 
       {meal.notes && (
-        <div className="px-4 pb-3 pt-1 border-t border-border/30">
+        <div className="px-4 pb-3 pt-1 border-t border-white/[0.04]">
           <p className="text-xs text-primary/80 italic">📝 {meal.notes}</p>
         </div>
       )}
@@ -148,7 +150,7 @@ const DaySelector = ({
   if (days.length <= 1) return null;
   const day = days[currentIndex];
   return (
-    <div className="flex items-center justify-between bg-card border border-border rounded-2xl px-4 py-3">
+    <div className="flex items-center justify-between card-elevated rounded-2xl px-4 py-3">
       <button
         onClick={() => onChange(Math.max(0, currentIndex - 1))}
         disabled={currentIndex === 0}
@@ -261,44 +263,20 @@ export default function Nutrition() {
           {plan.calories_target && (
             <motion.div
               variants={fadeUp}
-              className="bg-card border border-border rounded-2xl p-4"
+              className="card-elevated rounded-2xl p-4"
             >
               {/* Calorie ring */}
               <div className="flex items-center gap-4 mb-4">
-                <div className="relative w-16 h-16 flex-shrink-0">
-                  <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90">
-                    <circle
-                      cx="32"
-                      cy="32"
-                      r="26"
-                      fill="none"
-                      stroke="hsl(var(--border))"
-                      strokeWidth="6"
-                    />
-                    <circle
-                      cx="32"
-                      cy="32"
-                      r="26"
-                      fill="none"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 26}`}
-                      strokeDashoffset={`${2 * Math.PI * 26 * (1 - caloriesPct / 100)}`}
-                      className="transition-all duration-700"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xs font-black text-foreground leading-none">
-                      {Math.round(caloriesPct)}%
-                    </span>
-                  </div>
-                </div>
+                <ProgressRing progress={caloriesPct} size={64} stroke={6} gradientId="kcalRing">
+                  <span className="text-xs font-black text-foreground leading-none tabular-nums">
+                    <CountUp value={Math.round(caloriesPct)} />%
+                  </span>
+                </ProgressRing>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-foreground">
                     Objetivo diario
                   </p>
-                  <p className="text-2xl font-black text-primary">
+                  <p className="text-2xl font-black text-primary tabular-nums">
                     {plan.calories_target}{" "}
                     <span className="text-sm font-normal text-muted-foreground">
                       kcal
@@ -308,7 +286,7 @@ export default function Nutrition() {
               </div>
 
               {/* Macros row */}
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/[0.06]">
                 <MacroPill
                   label="Proteína"
                   value={dayTotals.protein}
@@ -344,7 +322,7 @@ export default function Nutrition() {
           {plan.days.length === 0 && (
             <motion.div
               variants={fadeUp}
-              className="bg-card border border-border rounded-2xl p-6 text-center"
+              className="card-elevated rounded-2xl p-6 text-center"
             >
               <Apple className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="font-semibold text-foreground mb-1">
@@ -370,6 +348,12 @@ export default function Nutrition() {
           )}
 
           {/* Meals */}
+          {currentDay && currentDay.meals.length > 0 && (
+            <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5 pt-1">
+              <span className="accent-bar" />
+              <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+            </motion.div>
+          )}
           {currentDay?.meals.map((meal) => (
             <MealCard key={meal.id} meal={meal} />
           ))}

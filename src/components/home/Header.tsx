@@ -18,7 +18,7 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
     >
       {/* Avatar + Streak pill */}
       <motion.button
-        className="flex items-center gap-2.5 bg-card/80 backdrop-blur-sm border border-border/50 rounded-full pl-1.5 pr-4 py-1.5"
+        className="flex items-center gap-2.5 card-elevated rounded-full pl-1.5 pr-4 py-1.5"
         whileTap={{ scale: 0.97 }}
         onClick={() => navigate("/profile")}
       >
@@ -48,10 +48,9 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
       </motion.button>
       
       {/* Notification */}
-      <motion.button 
-        className="w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 flex items-center justify-center relative"
+      <motion.button
+        className="w-10 h-10 rounded-full card-elevated flex items-center justify-center relative"
         whileTap={{ scale: 0.93 }}
-        whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       >
         <Bell className="w-[18px] h-[18px] text-muted-foreground" />
         <motion.span 

@@ -38,7 +38,7 @@ const WeeklyProgress = forwardRef<HTMLDivElement, WeeklyProgressProps>(
   const progressPercent = totalDays > 0 ? (completedCount / totalDays) * 100 : 0;
   
   return (
-    <motion.div 
+    <motion.div
       ref={ref}
       className="bg-card border border-border rounded-2xl p-4 cursor-pointer"
       whileHover={{ borderColor: "hsl(var(--primary) / 0.3)" }}

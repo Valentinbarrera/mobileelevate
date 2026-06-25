@@ -1,73 +1,106 @@
 /**
- * Card shown when there's no workout scheduled for today
+ * Estado de DÍA DE DESCANSO en el Home — branded (naranja sobre negro).
+ * Deja claro que hoy toca recuperar y destaca el PRÓXIMO entrenamiento
+ * con un CTA naranja, igual de enfático que el héroe de entrenamiento.
  */
-import { Coffee, Sparkles, Calendar } from "lucide-react";
+import { Moon, Play, Droplets, Sparkles, ChevronRight, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { parseISO, isTomorrow, isToday, format } from "date-fns";
+import { es } from "date-fns/locale";
 import { fadeUp } from "@/lib/animations";
+import type { TodayRoutineDay } from "@/hooks/useCoachHomeData";
 
 interface RestDayCardProps {
-  nextWorkoutDay?: string;
+  nextDay?: TodayRoutineDay | null;
+  nextDate?: string | null;
+  routineId?: string;
 }
 
-const RestDayCard = ({ nextWorkoutDay }: RestDayCardProps) => {
+const friendlyWhen = (iso?: string | null): string | null => {
+  if (!iso) return null;
+  const d = parseISO(iso);
+  if (isToday(d)) return "Hoy";
+  if (isTomorrow(d)) return "Mañana";
+  return format(d, "EEE d", { locale: es });
+};
+
+const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
   const navigate = useNavigate();
+  const when = friendlyWhen(nextDate);
+
+  const startNext = () => {
+    if (!nextDay) return;
+    navigate(`/workout/${nextDay.id}`, {
+      state: { routineDayId: nextDay.id, routineId },
+    });
+  };
 
   return (
-    <motion.div 
-      className="relative rounded-2xl overflow-hidden shadow-lg bg-card border border-border"
-      variants={fadeUp}
-    >
-      <div className="p-6">
-        {/* Icon and title */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-            <Coffee className="w-7 h-7 text-emerald-500" />
+    <motion.div className="relative card-hero rounded-3xl overflow-hidden" variants={fadeUp}>
+      {/* Glow de marca */}
+      <div className="pointer-events-none absolute -top-16 -right-12 w-52 h-52 rounded-full bg-primary/15 blur-3xl" />
+
+      <div className="relative p-5">
+        {/* Encabezado: hoy = descanso */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+            <Moon className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Día de Descanso</h2>
-            <p className="text-sm text-muted-foreground">Tu cuerpo también necesita recuperarse</p>
+            <p className="text-[11px] font-black text-primary uppercase tracking-widest">Hoy · Descanso</p>
+            <h2 className="text-xl font-black text-foreground leading-tight">Día de recuperación</h2>
           </div>
         </div>
 
-        {/* Tips */}
-        <div className="space-y-3 mb-5">
-          <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl">
-            <Sparkles className="w-5 h-5 text-primary mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Hidratación</p>
-              <p className="text-xs text-muted-foreground">Tomá al menos 2L de agua hoy</p>
+        {/* Próximo entreno (destacado, naranja) */}
+        {nextDay && (
+          <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-transparent border border-primary/25 p-4 mb-4">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                Próximo entreno{when ? ` · ${when}` : ""}
+              </p>
+              <CalendarDays className="w-4 h-4 text-primary" />
             </div>
-          </div>
-          <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl">
-            <Sparkles className="w-5 h-5 text-primary mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Movilidad</p>
-              <p className="text-xs text-muted-foreground">Hacé 10 min de estiramientos suaves</p>
-            </div>
-          </div>
-        </div>
+            <h3 className="text-lg font-black text-foreground leading-tight">{nextDay.name}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+              {nextDay.totalExercises} ejercicios · ~{nextDay.estimatedDuration} min
+            </p>
 
-        {/* Next workout info */}
-        {nextWorkoutDay && (
-          <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-xl">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground">Próximo entrenamiento</span>
-            </div>
-            <span className="text-sm font-semibold text-primary">{nextWorkoutDay}</span>
+            <motion.button
+              onClick={startNext}
+              className="w-full mt-3 flex items-center justify-center gap-2 bg-gradient-primary rounded-xl py-3 glow-primary"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Play className="w-4 h-4 text-primary-foreground fill-current" />
+              <span className="text-primary-foreground font-bold text-sm uppercase tracking-wide">
+                Empezar igual
+              </span>
+            </motion.button>
           </div>
         )}
 
-        {/* Optional action */}
-        <motion.button 
+        {/* Tips de recuperación (compactos, secundarios) */}
+        <div className="flex gap-2 mb-3">
+          <div className="flex-1 flex items-center gap-2 p-2.5 rounded-xl bg-secondary/40 border border-white/[0.04]">
+            <Droplets className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">2L de agua</span>
+          </div>
+          <div className="flex-1 flex items-center gap-2 p-2.5 rounded-xl bg-secondary/40 border border-white/[0.04]">
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">10 min movilidad</span>
+          </div>
+        </div>
+
+        {/* Link secundario (ya no es un botón gris feo) */}
+        <button
           onClick={() => navigate("/routines")}
-          className="w-full mt-4 flex items-center justify-center gap-2 bg-secondary rounded-xl py-3 text-foreground"
-          whileTap={{ scale: 0.98 }}
+          className="w-full flex items-center justify-center gap-1 py-2 text-sm font-bold text-primary active:opacity-70 transition-opacity"
         >
-          <Calendar className="w-4 h-4" />
-          <span className="text-sm font-medium">Ver mi Rutina Completa</span>
-        </motion.button>
+          Ver mi rutina completa
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </motion.div>
   );

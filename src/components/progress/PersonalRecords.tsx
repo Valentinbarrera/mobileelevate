@@ -15,11 +15,12 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-2xl p-4"
+        className="card-elevated rounded-2xl p-4"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Trophy className="w-4 h-4 text-amber-500" />
-          <h3 className="text-sm font-semibold text-foreground">Records Personales</h3>
+          <span className="accent-bar" />
+          <Trophy className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-black tracking-tight text-foreground">Records Personales</h3>
         </div>
         <p className="text-sm text-muted-foreground text-center py-6">
           Completá entrenamientos para ver tus PRs
@@ -32,11 +33,12 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-2xl p-4"
+      className="card-elevated rounded-2xl p-4"
     >
       <div className="flex items-center gap-2 mb-4">
-        <Trophy className="w-4 h-4 text-amber-500" />
-        <h3 className="text-sm font-semibold text-foreground">Records Personales</h3>
+        <span className="accent-bar" />
+        <Trophy className="w-4 h-4 text-amber-400" />
+        <h3 className="text-sm font-black tracking-tight text-foreground">Records Personales</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">

@@ -212,6 +212,62 @@
     border: 1px solid hsl(0 0% 18%);
   }
 
+  /* Vidrio esmerilado premium: translúcido + blur + borde de luz + highlight superior.
+     Necesita glows ambientales detrás para que el efecto se luzca. */
+  .glass-panel {
+    background: hsl(0 0% 100% / 0.045);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid hsl(0 0% 100% / 0.10);
+    box-shadow:
+      0 10px 36px hsl(0 0% 0% / 0.40),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+  }
+
+  .glass-panel-hover {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .glass-panel-hover:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    box-shadow:
+      0 10px 40px hsl(0 0% 0% / 0.45),
+      inset 0 1px 0 hsl(0 0% 100% / 0.10),
+      0 0 0 1px hsl(var(--primary) / 0.10);
+  }
+
+  /* ================================
+     SISTEMA DE DISEÑO — SUPERFICIES (naranja/degradados sobre negro)
+     ================================ */
+
+  /* Superficie base de toda card secundaria: negro con degradado sutil,
+     borde de luz fino y highlight superior. Profundidad sin glass. */
+  .card-elevated {
+    background: linear-gradient(180deg, hsl(0 0% 9%) 0%, hsl(0 0% 6.5%) 100%);
+    border: 1px solid hsl(0 0% 100% / 0.07);
+    box-shadow:
+      0 6px 22px hsl(0 0% 0% / 0.35),
+      inset 0 1px 0 hsl(0 0% 100% / 0.05);
+  }
+
+  /* Superficie del HÉROE: misma familia pero con acento de marca (borde
+     naranja tenue + sombra más profunda) para que lidere la jerarquía. */
+  .card-hero {
+    background: linear-gradient(180deg, hsl(0 0% 9.5%) 0%, hsl(0 0% 6%) 100%);
+    border: 1px solid hsl(var(--primary) / 0.18);
+    box-shadow:
+      0 14px 38px hsl(0 0% 0% / 0.45),
+      0 0 0 1px hsl(var(--primary) / 0.04),
+      inset 0 1px 0 hsl(0 0% 100% / 0.06);
+  }
+
+  /* Barra de acento de marca para títulos de sección */
+  .accent-bar {
+    width: 3px;
+    height: 0.9rem;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, hsl(18 100% 58%), hsl(28 100% 50%));
+  }
+
   .card-interactive {
     @apply bg-card border border-border rounded-2xl transition-all duration-200;
   }

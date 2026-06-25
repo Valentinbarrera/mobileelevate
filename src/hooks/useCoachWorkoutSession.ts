@@ -39,15 +39,31 @@ interface CoachWorkoutSession {
   date: string;
 }
 
+// Sentinel id for ephemeral (admin/demo) sessions that are never persisted
+const LOCAL_SESSION_ID = "local-demo";
+
 export function useCoachWorkoutSession(routineDayId: string, routineId: string) {
-  const { student } = useAuthContext();
+  const { student, isAdminMode } = useAuthContext();
   const [session, setSession] = useState<CoachWorkoutSession | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Ephemeral session: lets the user go through the full workout UI
+  // (exercises, sets, rest timer) without persisting anything to the DB.
+  const startLocalSession = useCallback(() => {
+    const localSession: CoachWorkoutSession = {
+      id: LOCAL_SESSION_ID,
+      plannedSessionId: null,
+      routineDayId,
+      date: getLocalDateString(),
+    };
+    setSession(localSession);
+    return localSession;
+  }, [routineDayId]);
+
   const startSession = useCallback(async () => {
-    if (!student) {
-      toast.error("Debés iniciar sesión para entrenar");
-      return null;
+    // Admin/demo mode (no real student): run the workout locally
+    if (isAdminMode || !student) {
+      return startLocalSession();
     }
 
     setLoading(true);
@@ -95,9 +111,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       }
 
       if (!plannedSessionId) {
-        if (import.meta.env.DEV) console.error("Could not find or create planned session");
-        toast.error("Error al preparar la sesión");
-        return null;
+        if (import.meta.env.DEV) console.warn("Could not find or create planned session — running in local mode");
+        toast.info("Entrenamiento en modo prueba (no se guardará el progreso)");
+        return startLocalSession();
       }
 
       const { data, error } = await supabase
@@ -122,13 +138,13 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       setSession(newSession);
       return newSession;
     } catch (error) {
-      if (import.meta.env.DEV) console.error("Error starting session:", error);
-      toast.error(getUserErrorMessage(error, "Error al iniciar la sesión"));
-      return null;
+      if (import.meta.env.DEV) console.warn("Error starting session — running in local mode:", error);
+      toast.info("Entrenamiento en modo prueba (no se guardará el progreso)");
+      return startLocalSession();
     } finally {
       setLoading(false);
     }
-  }, [student, routineDayId, routineId]);
+  }, [student, isAdminMode, routineDayId, routineId, startLocalSession]);
 
   const completeSet = useCallback(async (
     exercise: CoachExercise,
@@ -137,9 +153,14 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     reps: number,
     _difficulty: string
   ): Promise<CompletedSet | null> => {
-    if (!session || !student) {
+    if (!session) {
       if (import.meta.env.DEV) console.error("No active session");
       return null;
+    }
+
+    // Demo/admin session: keep everything in local state, skip persistence
+    if (session.id === LOCAL_SESSION_ID) {
+      return { setNumber, weight, reps, completedAt: new Date() };
     }
 
     try {
@@ -181,6 +202,12 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     notes?: string
   ) => {
     if (!session) return null;
+
+    // Demo/admin session: nothing was persisted, just celebrate locally
+    if (session.id === LOCAL_SESSION_ID) {
+      toast.success("¡Entrenamiento completado! (modo demo, no se guardó)");
+      return { id: LOCAL_SESSION_ID };
+    }
 
     try {
       // Calculate total tonnage from completed exercises

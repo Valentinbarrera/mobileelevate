@@ -14,41 +14,38 @@ const getTimeGreeting = () => {
   return "Buenas noches";
 };
 
-const Greeting = ({ 
-  userName, 
+const Greeting = ({
+  userName,
   subtitle = "Tu entrenador online todo en uno",
-  todayStatus
+  todayStatus,
 }: GreetingProps) => {
   return (
-    <motion.div className="pt-2 pb-2" variants={fadeUp}>
-      <motion.p 
-        className="text-muted-foreground text-xs font-medium uppercase tracking-widest mb-1"
-        initial={{ opacity: 0, x: -10 }}
+    <motion.div className="pt-1" variants={fadeUp}>
+      <motion.p
+        className="text-muted-foreground text-sm font-medium"
+        initial={{ opacity: 0, x: -8 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.05 }}
       >
-        {getTimeGreeting()}
+        {getTimeGreeting()},
       </motion.p>
-      <h1 className="text-[2.2rem] font-black text-foreground tracking-tight leading-[1.05] italic uppercase">
-        <span className="text-gradient-primary">{userName}</span>
+
+      <h1 className="text-[2rem] font-black tracking-tight leading-none mt-1 text-gradient-primary">
+        {userName}
       </h1>
-      
-      {todayStatus && (
-        <motion.p 
-          className="text-muted-foreground text-[13px] mt-1.5 flex items-center gap-1.5"
+
+      {todayStatus ? (
+        <motion.div
+          className="flex items-center gap-2 mt-2.5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.18 }}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-          {todayStatus}
-        </motion.p>
-      )}
-      
-      {!todayStatus && (
-        <p className="text-muted-foreground text-[13px] mt-1">
-          {subtitle}
-        </p>
+          <p className="text-muted-foreground text-[13px] font-medium">{todayStatus}</p>
+        </motion.div>
+      ) : (
+        <p className="text-muted-foreground text-[13px] mt-2">{subtitle}</p>
       )}
     </motion.div>
   );

@@ -10,7 +10,7 @@ import { Dumbbell } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
-import RestTimer from "@/components/workout/RestTimer";
+import RestBar from "@/components/workout/RestBar";
 import WorkoutHero from "@/components/workout/WorkoutHero";
 import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
@@ -99,16 +99,16 @@ const CoachWorkoutDetail = () => {
     }
   }, [routineDay]);
 
-  // Workout timer
+  // Workout timer — keeps running during rest (the rest bar no longer blocks)
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (workoutStarted && !isPaused && !showRestTimer) {
+    if (workoutStarted && !isPaused) {
       interval = setInterval(() => {
         setElapsedTime(prev => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [workoutStarted, isPaused, showRestTimer]);
+  }, [workoutStarted, isPaused]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -449,16 +449,14 @@ const CoachWorkoutDetail = () => {
         onFinish={handleFinishWorkout}
       />
 
-      {/* Rest Timer Overlay */}
+      {/* Rest Bar — mini, non-blocking (no longer hijacks the screen) */}
       <AnimatePresence>
         {showRestTimer && (
-          <RestTimer 
+          <RestBar
             duration={restDuration}
             onComplete={handleRestComplete}
             onSkip={handleSkipRest}
-            nextExercise={nextExerciseForRest}
             enableVibration={true}
-            enableSound={true}
           />
         )}
       </AnimatePresence>

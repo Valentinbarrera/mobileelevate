@@ -39,15 +39,15 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
       {/* Fade transition to content */}
       <div className="absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-      <div className="px-5 pb-2 max-w-lg mx-auto">
+      <div className="px-4 pb-2 max-w-lg mx-auto">
         <div
-          className="flex items-center rounded-2xl px-2 h-[68px]"
+          className="flex items-center rounded-3xl px-1.5 h-[66px]"
           style={{
-            background: 'rgba(14, 14, 14, 0.96)',
-            backdropFilter: 'blur(24px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            boxShadow: '0 -2px 24px rgba(0, 0, 0, 0.35)',
+            background: 'rgba(16, 16, 16, 0.92)',
+            backdropFilter: 'blur(28px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(28px) saturate(1.8)',
+            border: '1px solid rgba(255, 255, 255, 0.07)',
+            boxShadow: '0 -1px 0 rgba(255,255,255,0.04) inset, 0 8px 28px rgba(0, 0, 0, 0.45)',
           }}
         >
           {navItems.map((item) => {
@@ -60,25 +60,25 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
                 <div key={item.id} className="flex-1 flex justify-center">
                   <motion.button
                     onClick={() => handleNavClick(item)}
-                    className="relative -mt-6 flex flex-col items-center"
+                    className="relative flex flex-col items-center justify-center min-h-[56px]"
                     whileTap={{ scale: 0.9 }}
                     aria-label={item.label}
                     aria-current={isActive ? "page" : undefined}
                   >
                     <motion.div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                      className="-mt-9 mb-1 w-[54px] h-[54px] rounded-2xl flex items-center justify-center ring-[3px] ring-background"
                       style={{
-                        background: 'linear-gradient(145deg, hsl(18 100% 58%), hsl(22 100% 48%))',
-                        boxShadow: '0 8px 24px hsl(18 100% 55% / 0.35)',
+                        background: 'linear-gradient(145deg, hsl(18 100% 60%), hsl(22 100% 47%))',
+                        boxShadow: '0 10px 26px hsl(18 100% 55% / 0.45), 0 1px 0 rgba(255,255,255,0.25) inset',
                       }}
                       animate={{ y: isActive ? -2 : 0 }}
                       transition={{ type: "spring", stiffness: 300, damping: 22 }}
                     >
-                      <Icon className="w-6 h-6 text-white" strokeWidth={2.2} />
+                      <Icon className="w-6 h-6 text-white" strokeWidth={2.4} />
                     </motion.div>
 
-                    <span className={`text-[11px] font-semibold mt-1.5 ${
-                      isActive ? "text-primary" : "text-muted-foreground"
+                    <span className={`text-[10px] leading-none ${
+                      isActive ? "text-primary font-bold" : "text-muted-foreground/70 font-semibold"
                     }`}>
                       {item.label}
                     </span>
@@ -108,15 +108,15 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
 
                 <Icon
                   className={`relative z-10 w-[22px] h-[22px] transition-colors duration-150 ${
-                    isActive ? "text-primary" : "text-muted-foreground/50"
+                    isActive ? "text-primary" : "text-muted-foreground/70"
                   }`}
-                  strokeWidth={isActive ? 2.4 : 1.6}
+                  strokeWidth={isActive ? 2.4 : 1.8}
                 />
 
-                <span className={`relative z-10 text-[11px] leading-none transition-colors duration-150 ${
+                <span className={`relative z-10 text-[10px] leading-none transition-colors duration-150 ${
                   isActive
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground/50 font-medium"
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground/70 font-semibold"
                 }`}>
                   {item.label}
                 </span>

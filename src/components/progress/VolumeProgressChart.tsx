@@ -59,11 +59,14 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-2xl p-4"
+      className="card-elevated rounded-2xl p-4"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <div className="flex items-center gap-2">
+          <span className="accent-bar" />
+          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+        </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />
           <span className="text-xs font-semibold">
@@ -119,7 +122,7 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
       </div>
 
       {/* Legend */}
-      <div className="mt-3 pt-3 border-t border-border">
+      <div className="mt-3 pt-3 border-t border-white/[0.06]">
         <p className="text-xs text-muted-foreground text-center">
           Volumen total (peso × reps × series) por sesión
         </p>

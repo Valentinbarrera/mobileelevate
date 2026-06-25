@@ -1,14 +1,15 @@
 /**
- * Exercise tracking card for active workout
- * Allows logging sets with weight, reps and difficulty
- * Uses enhanced modal with history, coach notes and offline support
+ * Tarjeta de ejercicio para el entrenamiento activo (estilo Hevy).
+ * Registro de series INLINE: columna "ANTERIOR" precargada, inputs de
+ * kg/reps con valores sugeridos, y un ✓ de un solo toque por serie.
+ * Incluye calculadora de discos y aviso de PR en vivo.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Trophy } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator } from "lucide-react";
+import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
-import SetInputModalV2 from "./SetInputModalV2";
-import type { DifficultyLevel } from "@/types/database";
+import { calcPlates } from "@/lib/plates";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 
@@ -57,9 +58,16 @@ interface CoachExerciseCardProps {
 }
 
 interface PerformanceRecord {
+  weight?: number;
+  reps?: number;
   maxWeight?: number;
   maxReps?: number;
 }
+
+const parseFirstRep = (reps: string): number | null => {
+  const m = reps?.match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+};
 
 const CoachExerciseCard = ({
   exercise,
@@ -71,10 +79,15 @@ const CoachExerciseCard = ({
 }: CoachExerciseCardProps) => {
   const { student } = useAuthContext();
   const [showVideo, setShowVideo] = useState(false);
-  const [showSetInput, setShowSetInput] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
   const [personalRecord, setPersonalRecord] = useState<PerformanceRecord | null>(null);
+
+  // Inputs de la serie actual
+  const [editWeight, setEditWeight] = useState("");
+  const [editReps, setEditReps] = useState("");
+  const [logging, setLogging] = useState(false);
+  const [showPlates, setShowPlates] = useState(false);
 
   useEffect(() => {
     if (!student || !exercise.id) return;
@@ -89,8 +102,8 @@ const CoachExerciseCard = ({
         if (!data || data.length === 0) return;
 
         const sorted = [...data].sort((a, b) => {
-          const dateA = (a.completed_sessions as { date: string } | null)?.date ?? '';
-          const dateB = (b.completed_sessions as { date: string } | null)?.date ?? '';
+          const dateA = (a.completed_sessions as { date: string } | null)?.date ?? "";
+          const dateB = (b.completed_sessions as { date: string } | null)?.date ?? "";
           return dateB.localeCompare(dateA);
         });
 
@@ -99,47 +112,73 @@ const CoachExerciseCard = ({
           setLastPerformance({ weight: last.weight, reps: last.reps });
         }
 
-        const pr = data.reduce((max, s) =>
-          (s.weight ?? 0) > (max.weight ?? 0) ? s : max, data[0]);
+        const pr = data.reduce((max, s) => ((s.weight ?? 0) > (max.weight ?? 0) ? s : max), data[0]);
         if (pr.weight && pr.reps) {
           setPersonalRecord({ maxWeight: pr.weight, maxReps: pr.reps });
         }
       });
   }, [student, exercise.id]);
 
-  const currentSetNumber = state.currentSet + 1;
   const isCompleted = state.completed;
+  const doneCount = state.completedSets.length;
+  const currentSetNumber = doneCount + 1;
 
-  // Get previous set from current session for auto-fill
-  const previousSetInSession = state.completedSets.length > 0 
-    ? {
-        weight: state.completedSets[state.completedSets.length - 1].weight,
-        reps: state.completedSets[state.completedSets.length - 1].reps,
-        difficulty: state.completedSets[state.completedSets.length - 1].difficulty as DifficultyLevel,
-      }
-    : null;
+  // Serie anterior dentro de esta misma sesión (para autocompletar)
+  const previousSetInSession = doneCount > 0 ? state.completedSets[doneCount - 1] : null;
 
-  const handleLogSet = () => {
-    if (!isCompleted) {
-      setShowSetInput(true);
+  // Texto de la columna "ANTERIOR"
+  const previousHint = useMemo(() => {
+    if (lastPerformance?.weight && lastPerformance?.reps) {
+      return `${lastPerformance.weight}×${lastPerformance.reps}`;
+    }
+    return "—";
+  }, [lastPerformance]);
+
+  // Precargar los inputs cuando avanza la serie o llegan los datos previos
+  useEffect(() => {
+    const w = previousSetInSession?.weight ?? lastPerformance?.weight;
+    const r = previousSetInSession?.reps ?? lastPerformance?.reps ?? parseFirstRep(exercise.reps);
+    setEditWeight(w != null ? String(w) : "");
+    setEditReps(r != null ? String(r) : "");
+    setShowPlates(false);
+  }, [doneCount, lastPerformance, exercise.reps, previousSetInSession?.weight, previousSetInSession?.reps]);
+
+  const plates = useMemo(() => calcPlates(parseFloat(editWeight) || 0), [editWeight]);
+
+  const handleLogCurrent = async () => {
+    const w = parseFloat(editWeight) || 0;
+    const r = parseInt(editReps, 10) || 0;
+    if (r <= 0) {
+      toast.error("Ingresá las repeticiones");
+      return;
+    }
+    setLogging(true);
+    const ok = await onCompleteSet(exercise.id, currentSetNumber, w, r, "moderate");
+    setLogging(false);
+    if (ok && personalRecord?.maxWeight && w > personalRecord.maxWeight) {
+      toast.success(`🏆 ¡Nuevo PR en ${exercise.name}! ${w} kg`);
+      setPersonalRecord({ ...personalRecord, maxWeight: w });
     }
   };
 
-  const handleConfirmSet = async (weight: number, reps: number, difficulty: DifficultyLevel): Promise<boolean> => {
-    const success = await onCompleteSet(exercise.id, currentSetNumber, weight, reps, difficulty);
-    return success;
-  };
+  // Filas de la tabla (una por serie planificada)
+  const rows = Array.from({ length: exercise.sets }, (_, i) => {
+    const setNum = i + 1;
+    const logged = state.completedSets[i];
+    const isCurrent = i === doneCount && !isCompleted;
+    return { setNum, logged, isCurrent };
+  });
 
   return (
     <>
       <motion.div
         className={`relative bg-card border rounded-2xl overflow-hidden transition-all ${
-          isActive 
-            ? "border-primary shadow-lg shadow-primary/10" 
-            : isCompleted 
-              ? "border-emerald-500/40 bg-emerald-500/5" 
+          isActive
+            ? "border-primary shadow-lg shadow-primary/10"
+            : isCompleted
+              ? "border-emerald-500/40 bg-emerald-500/5"
               : "border-border"
-        } ${isCompleted ? "opacity-70" : ""}`}
+        } ${isCompleted ? "opacity-80" : ""}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
@@ -148,9 +187,9 @@ const CoachExerciseCard = ({
           setExpanded(!expanded);
         }}
       >
-        {/* Completed overlay badge */}
+        {/* Completed badge */}
         {isCompleted && (
-          <motion.div 
+          <motion.div
             className="absolute top-3 right-3 z-10"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -164,14 +203,11 @@ const CoachExerciseCard = ({
 
         {/* Header */}
         <div className="p-4 flex items-center gap-4">
-          {/* Status indicator */}
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            isCompleted 
-              ? "bg-emerald-500" 
-              : isActive 
-                ? "bg-primary" 
-                : "bg-secondary"
-          }`}>
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              isCompleted ? "bg-emerald-500" : isActive ? "bg-primary" : "bg-secondary"
+            }`}
+          >
             {isCompleted ? (
               <Check className="w-5 h-5 text-white" />
             ) : (
@@ -181,27 +217,21 @@ const CoachExerciseCard = ({
             )}
           </div>
 
-          {/* Exercise info */}
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold text-sm truncate ${
-              isCompleted ? "text-emerald-500" : "text-foreground"
-            }`}>
+            <h3 className={`font-semibold text-sm truncate ${isCompleted ? "text-emerald-500" : "text-foreground"}`}>
               {exercise.name}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`text-xs ${isCompleted ? "text-emerald-500/70" : "text-muted-foreground"}`}>
-                {state.currentSet}/{exercise.sets} series • {exercise.reps} reps
+                {doneCount}/{exercise.sets} series • {exercise.reps} reps
               </span>
               {isCompleted && (
-                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
-                  ✓ Listo
-                </span>
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">✓ Listo</span>
               )}
             </div>
           </div>
 
-          {/* Expand toggle */}
-          <button 
+          <button
             className="p-2"
             onClick={(e) => {
               e.stopPropagation();
@@ -225,23 +255,17 @@ const CoachExerciseCard = ({
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 pb-4 space-y-3">
                 {/* Video preview */}
                 {exercise.videoUrl && (
-                  <div 
+                  <div
                     className="relative h-40 rounded-xl overflow-hidden bg-secondary cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowVideo(true);
-                    }}
+                    onClick={() => setShowVideo(true)}
                   >
                     {exercise.thumbnail ? (
-                      <img 
-                        src={exercise.thumbnail} 
-                        alt={exercise.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
@@ -264,41 +288,145 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
-                {/* Completed sets */}
-                {state.completedSets.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Series completadas
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {state.completedSets.map((set, i) => (
-                        <div 
-                          key={i}
-                          className="bg-secondary rounded-lg p-2 text-center"
-                        >
-                          <p className="text-xs text-muted-foreground">Serie {set.setNumber}</p>
-                          <p className="text-sm font-bold text-foreground">
-                            {set.weight}kg × {set.reps}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                {/* ─── Tabla de series inline ─── */}
+                <div className="space-y-1.5">
+                  {/* Header de columnas */}
+                  <div className="grid grid-cols-[1.75rem_3.25rem_1fr_1fr_2.25rem] gap-2 px-1 items-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-center">Set</span>
+                    <span className="text-center">Antes</span>
+                    <span className="text-center">Kg</span>
+                    <span className="text-center">Reps</span>
+                    <span />
                   </div>
-                )}
 
-                {/* Log set button */}
-                {!isCompleted && (
-                  <motion.button
-                    className="w-full py-3 bg-primary rounded-xl text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogSet();
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Trophy className="w-4 h-4" />
-                    Registrar Serie {currentSetNumber}
-                  </motion.button>
+                  {rows.map(({ setNum, logged, isCurrent }) => (
+                    <div
+                      key={setNum}
+                      className={`grid grid-cols-[1.75rem_3.25rem_1fr_1fr_2.25rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
+                        logged
+                          ? "bg-emerald-500/10"
+                          : isCurrent
+                            ? "bg-primary/5 ring-1 ring-primary/30"
+                            : "opacity-50"
+                      }`}
+                    >
+                      {/* Set # */}
+                      <span
+                        className={`text-center text-xs font-bold ${
+                          logged ? "text-emerald-500" : "text-muted-foreground"
+                        }`}
+                      >
+                        {setNum}
+                      </span>
+
+                      {/* Anterior */}
+                      <span className="text-center text-[11px] text-muted-foreground tabular-nums">
+                        {previousHint}
+                      </span>
+
+                      {logged ? (
+                        <>
+                          <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                            {logged.weight}
+                          </span>
+                          <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                            {logged.reps}
+                          </span>
+                          <div className="flex justify-center">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
+                              <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                            </div>
+                          </div>
+                        </>
+                      ) : isCurrent ? (
+                        <>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={editWeight}
+                            onChange={(e) => setEditWeight(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            placeholder="0"
+                            className="w-full h-9 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+                          />
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={editReps}
+                            onChange={(e) => setEditReps(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            placeholder="0"
+                            className="w-full h-9 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+                          />
+                          <div className="flex justify-center">
+                            <motion.button
+                              onClick={handleLogCurrent}
+                              disabled={logging}
+                              whileTap={{ scale: 0.9 }}
+                              className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center disabled:opacity-50"
+                              aria-label={`Registrar serie ${setNum}`}
+                            >
+                              <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+                            </motion.button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-center text-sm text-muted-foreground/40">–</span>
+                          <span className="text-center text-sm text-muted-foreground/40">–</span>
+                          <span />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calculadora de discos (solo mientras hay serie activa) */}
+                {!isCompleted && (parseFloat(editWeight) || 0) > 0 && (
+                  <div className="rounded-xl bg-secondary/40 border border-border overflow-hidden">
+                    <button
+                      onClick={() => setShowPlates((v) => !v)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground"
+                    >
+                      <Calculator className="w-3.5 h-3.5 text-primary" />
+                      Discos por lado ({editWeight} kg)
+                      {showPlates ? (
+                        <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+                      )}
+                    </button>
+                    <AnimatePresence>
+                      {showPlates && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 flex flex-wrap gap-1.5">
+                            {plates.perSide.length > 0 ? (
+                              plates.perSide.map((p, i) => (
+                                <span
+                                  key={i}
+                                  className="px-2 py-1 rounded-md bg-primary/15 border border-primary/30 text-xs font-bold text-primary tabular-nums"
+                                >
+                                  {p}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Solo la barra (20 kg)</span>
+                            )}
+                            {plates.leftover > 0 && (
+                              <span className="text-xs text-amber-500 self-center">
+                                +{plates.leftover} kg no exacto
+                              </span>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 )}
 
                 {isCompleted && (
@@ -321,26 +449,6 @@ const CoachExerciseCard = ({
           onClose={() => setShowVideo(false)}
         />
       )}
-
-      {/* Enhanced Set Input Modal */}
-      <SetInputModalV2
-        isOpen={showSetInput}
-        onClose={() => setShowSetInput(false)}
-        onSubmit={handleConfirmSet}
-        exerciseName={exercise.name}
-        setNumber={currentSetNumber}
-        totalSets={exercise.sets}
-        targetReps={exercise.reps}
-        coachNotes={exercise.notes}
-        videoUrl={exercise.videoUrl}
-        onShowVideo={() => {
-          setShowSetInput(false);
-          setShowVideo(true);
-        }}
-        lastPerformance={lastPerformance}
-        personalRecord={personalRecord}
-        previousSetInSession={previousSetInSession}
-      />
     </>
   );
 };

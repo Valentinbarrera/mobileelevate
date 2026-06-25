@@ -65,7 +65,7 @@ const Progress = () => {
             </div>
             <button
               onClick={() => navigate("/measurements")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-sm font-medium text-foreground"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl card-elevated text-sm font-semibold text-foreground"
             >
               <Ruler className="w-4 h-4" />
               Mediciones

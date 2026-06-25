@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
+import CountUp from "@/components/ui/count-up";
 
 interface WeeklyActivityProps {
   sessionsThisWeek: number;
@@ -9,7 +10,7 @@ interface WeeklyActivityProps {
 const WeeklyActivity = ({ sessionsThisWeek, goalMet }: WeeklyActivityProps) => {
   return (
     <motion.div
-      className="bg-card border border-border rounded-2xl p-4"
+      className="card-elevated rounded-2xl p-4 h-full"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}
@@ -19,7 +20,7 @@ const WeeklyActivity = ({ sessionsThisWeek, goalMet }: WeeklyActivityProps) => {
           Actividad Semanal
         </span>
         {goalMet && (
-          <div className="flex items-center gap-1 text-primary text-xs font-semibold">
+          <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Meta
           </div>
@@ -27,7 +28,7 @@ const WeeklyActivity = ({ sessionsThisWeek, goalMet }: WeeklyActivityProps) => {
       </div>
 
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-black text-foreground">{sessionsThisWeek}</span>
+        <CountUp value={sessionsThisWeek} className="text-3xl font-black text-foreground tabular-nums" />
         <span className="text-sm text-muted-foreground">
           {sessionsThisWeek === 1 ? "sesión" : "sesiones"}
         </span>
