@@ -122,7 +122,7 @@ const ActiveWorkoutHeader = ({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full max-w-sm bg-card border border-border rounded-2xl p-6 text-center"
+            className="w-full max-w-sm card-elevated rounded-3xl p-6 text-center"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
           >

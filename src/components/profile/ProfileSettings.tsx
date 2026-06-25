@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle, ChevronRight, LogOut } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 const ProfileSettings = () => {
   const { signOut } = useAuthContext();
   const navigate = useNavigate();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = async () => {
+    setShowLogoutConfirm(false);
     await signOut();
     navigate("/auth");
   };
@@ -49,7 +53,7 @@ const ProfileSettings = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.75 }}
           whileTap={{ scale: 0.98 }}
-          onClick={handleLogout}
+          onClick={() => setShowLogoutConfirm(true)}
         >
           <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
             <LogOut className="w-5 h-5 text-red-500" />
@@ -57,6 +61,18 @@ const ProfileSettings = () => {
           <p className="font-semibold text-red-500">Cerrar Sesión</p>
         </motion.button>
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="¿Cerrar sesión?"
+        message="Vas a tener que volver a iniciar sesión para entrar."
+        confirmLabel="Cerrar sesión"
+        cancelLabel="Cancelar"
+        destructive
+        icon={<LogOut className="w-7 h-7" />}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
 
       <motion.p
         className="text-center text-xs text-muted-foreground mt-8 mb-4"

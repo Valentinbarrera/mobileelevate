@@ -237,7 +237,7 @@ const WaterTracker = ({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Nutrition() {
-  const { data: plan, isLoading, error } = useStudentNutrition();
+  const { data: plan, isLoading, error, refetch } = useStudentNutrition();
   const [dayIndex, setDayIndex] = useState(0);
   const { water, setWater, isMealChecked, toggleMeal } = useDailyNutritionTracking();
 
@@ -321,8 +321,14 @@ export default function Nutrition() {
         <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
           {/* Error */}
           {error && (
-            <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 text-sm text-destructive">
-              Error al cargar el plan: {(error as Error).message}
+            <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+              <p className="text-sm text-destructive">No pudimos cargar tu plan.</p>
+              <button
+                onClick={() => refetch()}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-destructive/20 text-destructive text-xs font-bold active:scale-95 transition-transform"
+              >
+                Reintentar
+              </button>
             </div>
           )}
 

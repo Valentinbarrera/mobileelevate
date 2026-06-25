@@ -1,7 +1,10 @@
 import { Flame, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { fadeUp } from "@/lib/animations";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   userName: string;
@@ -10,6 +13,23 @@ interface HeaderProps {
 
 const Header = ({ userName, streakDays }: HeaderProps) => {
   const navigate = useNavigate();
+  const { student } = useAuthContext();
+
+  // Mensajes del coach sin leer → badge real en la campanita
+  const { data: unread = 0 } = useQuery({
+    queryKey: ["home-unread", student?.id],
+    enabled: !!student?.id,
+    queryFn: async () => {
+      if (!student?.id) return 0;
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", student.id)
+        .eq("sender", "coach")
+        .is("seen_at", null);
+      return count ?? 0;
+    },
+  });
 
   return (
     <motion.div 
@@ -47,17 +67,19 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
         </div>
       </motion.button>
       
-      {/* Notification */}
+      {/* Notificaciones → mensajes del coach */}
       <motion.button
+        onClick={() => navigate("/messages")}
+        aria-label="Mensajes del coach"
         className="w-10 h-10 rounded-full card-elevated flex items-center justify-center relative"
         whileTap={{ scale: 0.93 }}
       >
         <Bell className="w-[18px] h-[18px] text-muted-foreground" />
-        <motion.span 
-          className="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full ring-2 ring-background"
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-        />
+        {unread > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center ring-2 ring-background">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
       </motion.button>
     </motion.div>
   );
