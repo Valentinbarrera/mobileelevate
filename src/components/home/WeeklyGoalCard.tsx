@@ -64,7 +64,7 @@ const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) =
               <span className="text-[10px] text-muted-foreground uppercase font-semibold">racha</span>
             </div>
           </div>
-          <p className="text-xl font-black text-foreground tracking-tight leading-none mt-1">
+          <p className="text-2xl font-black text-foreground tracking-tight leading-none mt-1">
             <CountUp value={completed} />
             <span className="text-sm font-bold text-muted-foreground"> / {goal} entrenos</span>
           </p>

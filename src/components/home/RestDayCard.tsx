@@ -48,7 +48,7 @@ const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
             <Moon className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <p className="text-[11px] font-black text-primary uppercase tracking-widest">Hoy · Descanso</p>
+            <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Hoy · Descanso</p>
             <h2 className="text-xl font-black text-foreground leading-tight">Día de recuperación</h2>
           </div>
         </div>
@@ -57,7 +57,7 @@ const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
         {nextDay && (
           <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-transparent border border-primary/25 p-4 mb-4">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+              <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
                 Próximo entreno{when ? ` · ${when}` : ""}
               </p>
               <CalendarDays className="w-4 h-4 text-primary" />

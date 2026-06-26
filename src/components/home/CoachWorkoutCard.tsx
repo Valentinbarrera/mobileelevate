@@ -54,7 +54,7 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: Coach
           <span className="bg-white/5 backdrop-blur-sm text-foreground text-[11px] font-medium px-2 py-1 rounded-lg border border-white/10 truncate max-w-[40%]">
             {routineInfo.name}
           </span>
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-black text-primary uppercase tracking-widest">
+          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-primary uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             {inProgress ? "En curso" : "Hoy"}
           </span>
@@ -86,7 +86,7 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: Coach
 
         <div className="flex items-center gap-1.5 mb-5 text-muted-foreground text-sm">
           <Dumbbell className="w-4 h-4" />
-          <span>{routineDay.totalExercises} ejercicios · ~{routineDay.estimatedDuration} min</span>
+          <span>{routineDay.totalExercises} ejercicios</span>
         </div>
 
         {/* CTA — la acción principal de la pantalla */}
