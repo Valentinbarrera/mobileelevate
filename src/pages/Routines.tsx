@@ -1,39 +1,19 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, ChevronRight, CalendarDays, Plus } from "lucide-react";
+import { Dumbbell, Plus } from "lucide-react";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import RoutinesHeaderSlim from "@/components/routines/RoutinesHeaderSlim";
-import TodaySessionHero from "@/components/routines/TodaySessionHero";
-import WeekStrip from "@/components/routines/WeekStrip";
+import WeekProgram from "@/components/routines/WeekProgram";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
 import { useIsDesktop } from "@/hooks/use-media-query";
-import {
-  localISODate,
-  findSessionByDate,
-  findNextSession,
-  firstDaySession,
-  hasAnyPlannedSession,
-  getWeekDays,
-  getUpcomingSessions,
-  dayTitle,
-  estimateSessionMinutes,
-  type SessionInfo,
-} from "@/lib/routineSession";
+import { localISODate, getWeekDays, type SessionInfo } from "@/lib/routineSession";
 
 type View = "today" | "completed";
-
-const formatShortDate = (iso: string) => {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-AR", {
-    weekday: "short",
-    day: "numeric",
-  });
-};
 
 const Routines = () => {
   const navigate = useNavigate();
@@ -49,31 +29,11 @@ const Routines = () => {
   const today = localISODate();
   const assignments = useMemo(() => routines || [], [routines]);
 
-  // Sesión de hoy / estado del hero
-  const hero = useMemo(() => {
-    if (view !== "today" || assignments.length === 0) return null;
-
-    const todaySession = findSessionByDate(assignments, today);
-    if (todaySession) {
-      return { variant: "ready" as const, label: "Hoy", session: todaySession };
-    }
-    if (hasAnyPlannedSession(assignments)) {
-      const next = findNextSession(assignments, today) || firstDaySession(assignments);
-      return { variant: "rest" as const, label: "Descanso", session: next };
-    }
-    // Sin agenda: ofrecemos la rutina activa para empezar igual
-    return { variant: "ready" as const, label: "Tu rutina", session: firstDaySession(assignments) };
-  }, [assignments, today, view]);
-
   const weekDays = useMemo(
     () => (view === "today" ? getWeekDays(assignments, today) : []),
     [assignments, today, view]
   );
   const weeklyCount = weekDays.filter((d) => d.hasSession).length;
-  const upcoming = useMemo(
-    () => (view === "today" ? getUpcomingSessions(assignments, today) : []),
-    [assignments, today, view]
-  );
 
   const startSession = (session: SessionInfo) => {
     navigate(`/workout/${session.day.id}`, {
@@ -166,66 +126,23 @@ const Routines = () => {
 
           {/* ─── Vista HOY ───────────────────────────────────────────────── */}
           {!isLoading && !error && view === "today" && (() => {
-            const heroEl = hero?.session ? (
-              <TodaySessionHero
-                variant={hero.variant}
-                label={hero.label}
-                session={hero.session}
-                onStart={startSession}
-                onView={viewRoutine}
-              />
-            ) : (
-              <div className="rounded-3xl card-elevated p-8 text-center">
-                <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                <p className="font-semibold text-foreground">Sin rutinas todavía</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Tu coach aún no te asignó una rutina.
-                </p>
-              </div>
+            if (assignments.length === 0) {
+              return (
+                <div className="rounded-3xl card-elevated p-8 text-center">
+                  <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="font-semibold text-foreground">Sin rutinas todavía</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tu coach aún no te asignó una rutina.
+                  </p>
+                </div>
+              );
+            }
+
+            const program = (
+              <WeekProgram assignments={assignments} onStart={startSession} onView={viewRoutine} />
             );
 
-            const weekSection = hero?.session && (
-              <motion.div variants={fadeUp} className="space-y-2.5">
-                <div className="flex items-center gap-2 px-0.5">
-                  <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">Tu semana</h3>
-                </div>
-                <WeekStrip days={weekDays} />
-              </motion.div>
-            );
-
-            const upcomingSection = upcoming.length > 0 && (
-              <motion.div variants={fadeUp} className="space-y-2.5">
-                <div className="flex items-center gap-2 px-0.5">
-                  <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">Esta semana</h3>
-                </div>
-                <div className="space-y-2">
-                  {upcoming.map((s) => (
-                    <button
-                      key={`${s.assignment.id}-${s.date}`}
-                      onClick={() => viewRoutine(s.assignment.routine.id)}
-                      className="w-full flex items-center gap-3 rounded-2xl card-elevated px-4 py-3 active:scale-[0.99] hover:bg-secondary/30 transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <CalendarDays className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {dayTitle(s.day)}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {formatShortDate(s.date!)} · ~{estimateSessionMinutes(s.day)} min
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            );
-
-            const programasSection = assignments.length > 0 && (
+            const programasSection = (
               <motion.div variants={fadeUp} className="space-y-2.5">
                 <div className="flex items-center gap-2 px-0.5">
                   <span className="accent-bar" />
@@ -239,30 +156,21 @@ const Routines = () => {
               </motion.div>
             );
 
-            // Desktop: hero + semana a la izquierda, próximas en rail derecho,
-            // programas a todo el ancho. Mobile: pila única (sin cambios).
+            // Desktop: programa (calendario + ejercicios) a la izquierda, programas al rail.
             if (isDesktop) {
               return (
                 <div className="grid grid-cols-12 gap-6 items-start">
-                  <div className="col-span-12 xl:col-span-7 space-y-6">
-                    {heroEl}
-                    {weekSection}
-                  </div>
-                  <div className="col-span-12 xl:col-span-5 space-y-6">
-                    {upcomingSection}
-                  </div>
-                  <div className="col-span-12">{programasSection}</div>
+                  <div className="col-span-12 xl:col-span-7">{program}</div>
+                  <div className="col-span-12 xl:col-span-5">{programasSection}</div>
                 </div>
               );
             }
 
             return (
-              <>
-                {heroEl}
-                {weekSection}
-                {upcomingSection}
+              <div className="space-y-6">
+                {program}
                 {programasSection}
-              </>
+              </div>
             );
           })()}
 
