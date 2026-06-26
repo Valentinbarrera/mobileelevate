@@ -21,7 +21,7 @@ const ProfileHeader = ({ onBack }: ProfileHeaderProps) => {
           <ArrowLeft className="w-5 h-5" />
         </motion.button>
         
-        <h1 className="text-lg font-bold text-foreground">Perfil Elite</h1>
+        <h1 className="text-xl font-black tracking-tight text-foreground">Perfil Elite</h1>
         
         <motion.button
           className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"

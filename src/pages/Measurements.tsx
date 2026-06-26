@@ -59,9 +59,9 @@ export default function Measurements() {
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Ruler className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">Antropometría</span>
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Antropometría</span>
               </div>
-              <h1 className="text-xl font-bold text-foreground">Mediciones</h1>
+              <h1 className="text-xl font-black tracking-tight text-foreground">Mediciones</h1>
             </div>
           </div>
         </motion.header>

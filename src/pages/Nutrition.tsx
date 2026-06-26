@@ -297,7 +297,7 @@ export default function Nutrition() {
             <div className="max-w-2xl mx-auto flex items-center justify-between px-5 py-3">
               <div className="flex items-center gap-2">
                 <Apple className="w-4 h-4 text-primary" />
-                <h1 className="text-xl font-bold text-foreground">Nutrición</h1>
+                <h1 className="text-xl font-black tracking-tight text-foreground">Nutrición</h1>
               </div>
             </div>
           </motion.header>
@@ -369,11 +369,11 @@ export default function Nutrition() {
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Apple className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
                   Nutrición
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-foreground truncate max-w-[220px] lg:max-w-none">
+              <h1 className="text-xl font-black tracking-tight text-foreground truncate max-w-[220px] lg:max-w-none">
                 {plan.name}
               </h1>
             </div>

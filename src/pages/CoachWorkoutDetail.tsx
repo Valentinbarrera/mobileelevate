@@ -339,7 +339,7 @@ const CoachWorkoutDetail = () => {
         >
           <Dumbbell className="w-10 h-10 text-primary" />
         </motion.div>
-        <h2 className="text-xl font-bold text-foreground mb-2">
+        <h2 className="text-xl font-black tracking-tight text-foreground mb-2">
           Rutina no encontrada
         </h2>
         <p className="text-muted-foreground text-sm mb-6 max-w-xs">
@@ -415,7 +415,7 @@ const CoachWorkoutDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
         >
-          <h2 className="text-xs font-semibold text-primary uppercase tracking-wider">
+          <h2 className="text-[11px] font-bold text-primary uppercase tracking-wider">
             Lista de Ejercicios
           </h2>
           <button
@@ -532,7 +532,7 @@ const CoachWorkoutDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+          <h3 className="text-[11px] font-bold text-primary uppercase tracking-wider mb-3">
             Descripción
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed">

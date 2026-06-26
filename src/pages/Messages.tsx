@@ -158,7 +158,7 @@ export default function Messages() {
             <button onClick={() => navigate(-1)} className="text-muted-foreground">
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-bold text-foreground">Mensajes</h1>
+            <h1 className="text-xl font-black tracking-tight text-foreground">Mensajes</h1>
             {unseenCount > 0 && (
               <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {unseenCount}

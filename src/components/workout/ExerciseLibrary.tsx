@@ -44,9 +44,9 @@ const ExerciseLibrary = ({ onClose }: { onClose: () => void }) => {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <Dumbbell className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">Biblioteca</span>
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Biblioteca</span>
               </div>
-              <h1 className="text-xl font-bold text-foreground">Ejercicios</h1>
+              <h1 className="text-xl font-black tracking-tight text-foreground">Ejercicios</h1>
             </div>
           </div>
 

@@ -109,7 +109,7 @@ const SetInputModal = ({
                 <p className="text-xs text-primary font-semibold uppercase tracking-wider">
                   Serie {setNumber} de {totalSets}
                 </p>
-                <h3 className="text-xl font-bold text-foreground mt-1">{exerciseName}</h3>
+                <h3 className="text-xl font-black tracking-tight text-foreground mt-1">{exerciseName}</h3>
               </div>
               <button
                 onClick={onClose}

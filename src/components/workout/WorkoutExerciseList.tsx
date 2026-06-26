@@ -27,7 +27,7 @@ const WorkoutExerciseList = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
       >
-        <h2 className="text-xs font-semibold text-primary uppercase tracking-wider">
+        <h2 className="text-[11px] font-bold text-primary uppercase tracking-wider">
           Lista de Ejercicios
         </h2>
         <span className="text-xs text-muted-foreground">

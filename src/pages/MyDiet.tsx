@@ -109,9 +109,9 @@ export default function MyDiet() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <Soup className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">Nutrición</span>
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Nutrición</span>
               </div>
-              <h1 className="text-xl font-bold text-foreground">Mi dieta</h1>
+              <h1 className="text-xl font-black tracking-tight text-foreground">Mi dieta</h1>
             </div>
           </div>
         </header>
