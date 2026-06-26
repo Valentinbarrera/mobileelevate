@@ -97,6 +97,20 @@ const NavFab = ({
       {label}
     </span>
 
+    {/* Órbita: un punto que circula suave alrededor del botón (acento "vivo") */}
+    <motion.span
+      className="absolute left-1/2 -translate-x-1/2 w-[74px] h-[74px] pointer-events-none z-10"
+      style={{ top: "-39px" }}
+      animate={{ rotate: 360 }}
+      transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+      aria-hidden
+    >
+      <span
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white"
+        style={{ boxShadow: "0 0 10px hsl(18 100% 60%), 0 0 4px hsl(18 100% 60%)" }}
+      />
+    </motion.span>
+
     {/* Círculo flotante (absoluto, centrado en la celda completa, elevado).
         Centrado por CSS puro — sin animar transform para no pisar el translate. */}
     <span
