@@ -10,14 +10,12 @@ import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
-import { useIsDesktop } from "@/hooks/use-media-query";
 import { localISODate, getWeekDays, type SessionInfo } from "@/lib/routineSession";
 
 type View = "today" | "completed";
 
 const Routines = () => {
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
   const [view, setView] = useState<View>("today");
   const { student } = useAuthContext();
 
@@ -156,16 +154,8 @@ const Routines = () => {
               </motion.div>
             );
 
-            // Desktop: programa (calendario + ejercicios) a la izquierda, programas al rail.
-            if (isDesktop) {
-              return (
-                <div className="grid grid-cols-12 gap-6 items-start">
-                  <div className="col-span-12 xl:col-span-7">{program}</div>
-                  <div className="col-span-12 xl:col-span-5">{programasSection}</div>
-                </div>
-              );
-            }
-
+            // WeekProgram ya arma sus 2 columnas (calendario + día) en desktop,
+            // así que sólo apilamos el programa y "Mis programas" debajo.
             return (
               <div className="space-y-6">
                 {program}

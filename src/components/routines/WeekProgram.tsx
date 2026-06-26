@@ -76,39 +76,42 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
   const day = session?.day ?? null;
 
   return (
-    <div className="space-y-4">
-      {/* ── Calendario (siempre visible) ── */}
-      <TrainingCalendar
-        plannedDates={plannedDates}
-        doneDates={doneDates}
-        selectedDate={selectedDate}
-        today={today}
-        onSelect={setSelectedDate}
-      />
+    <div className="lg:grid lg:grid-cols-12 lg:gap-5 lg:items-start space-y-4 lg:space-y-0">
+      {/* ── Columna izquierda: calendario (tracker) ── */}
+      <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
+        <TrainingCalendar
+          plannedDates={plannedDates}
+          doneDates={doneDates}
+          selectedDate={selectedDate}
+          today={today}
+          onSelect={setSelectedDate}
+        />
 
-      {/* Sin agenda del coach: elegí qué día del plan hacés */}
-      {!hasAgenda && planDays.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {planDays.map(({ day: d }, i) => {
-            const selected = d.id === selectedDayId;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDayId(d.id)}
-                className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
-                  selected
-                    ? "bg-gradient-primary text-primary-foreground border-transparent"
-                    : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
-                }`}
-              >
-                D{d.order_index ?? d.day_number ?? i + 1}
-              </button>
-            );
-          })}
-        </div>
-      )}
+        {/* Sin agenda del coach: elegí qué día del plan hacés */}
+        {!hasAgenda && planDays.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+            {planDays.map(({ day: d }, i) => {
+              const selected = d.id === selectedDayId;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => setSelectedDayId(d.id)}
+                  className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                    selected
+                      ? "bg-gradient-primary text-primary-foreground border-transparent"
+                      : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
+                  }`}
+                >
+                  D{d.order_index ?? d.day_number ?? i + 1}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-      {/* ── Panel del día seleccionado ── */}
+      {/* ── Columna derecha: el día seleccionado ── */}
+      <div className="lg:col-span-7">
       {day ? (
         <motion.div
           key={day.id + selectedDate}
@@ -203,6 +206,7 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
           <p className="text-sm text-muted-foreground mt-1">No tenés entreno agendado este día.</p>
         </motion.div>
       )}
+      </div>
     </div>
   );
 };
