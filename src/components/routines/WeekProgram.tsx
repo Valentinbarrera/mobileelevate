@@ -6,11 +6,13 @@
  */
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Play, Moon, Clock, Dumbbell, ChevronRight } from "lucide-react";
+import { Play, Moon, Clock, Dumbbell, ChevronRight, Check } from "lucide-react";
 import DayExerciseList from "./DayExerciseList";
+import TrainingCalendar from "./TrainingCalendar";
+import { useManualCompletions } from "@/hooks/useManualCompletions";
+import { useCompletedDates } from "@/hooks/useCompletedDates";
 import {
   localISODate,
-  getWeekDays,
   findSessionByDate,
   hasAnyPlannedSession,
   dayTitle,
@@ -35,7 +37,22 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
   const today = localISODate();
   const hasAgenda = hasAnyPlannedSession(assignments);
 
-  const week = useMemo(() => getWeekDays(assignments, today), [assignments, today]);
+  const { manualDates, isDone, toggle } = useManualCompletions();
+  const completedReal = useCompletedDates();
+
+  // Fechas con entreno agendado (para los círculos del calendario)
+  const plannedDates = useMemo(() => {
+    const s = new Set<string>();
+    for (const a of assignments) for (const ps of a.planned_sessions || []) s.add(ps.date);
+    return s;
+  }, [assignments]);
+
+  // Completados = reales (base) + manuales (tilde del alumno)
+  const doneDates = useMemo(() => {
+    const s = new Set<string>(completedReal);
+    for (const d of manualDates) s.add(d);
+    return s;
+  }, [completedReal, manualDates]);
 
   // Días del plan (para el modo sin agenda)
   const planDays = useMemo<{ day: AlumnoDay; assignment: AlumnoRoutineWithDetails }[]>(() => {
@@ -62,37 +79,13 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
     <div className="space-y-4">
       {/* ── Selector ── */}
       {hasAgenda ? (
-        <div className="card-elevated rounded-2xl p-3">
-          <div className="grid grid-cols-7 gap-1.5">
-            {week.map((d) => {
-              const selected = d.date === selectedDate;
-              const isToday = d.date === today;
-              return (
-                <button
-                  key={d.date}
-                  onClick={() => setSelectedDate(d.date)}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <span className={`text-[9px] font-bold uppercase ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                    {d.label}
-                  </span>
-                  <div
-                    className={`w-full aspect-square max-w-[2.6rem] rounded-xl flex items-center justify-center text-sm font-black tabular-nums transition-colors ${
-                      selected
-                        ? "bg-gradient-primary text-primary-foreground"
-                        : d.hasSession
-                          ? "bg-primary/10 text-foreground border border-primary/20"
-                          : "bg-secondary/50 text-muted-foreground"
-                    } ${isToday && !selected ? "ring-2 ring-primary/60" : ""}`}
-                  >
-                    {d.dayNum}
-                  </div>
-                  <span className={`h-1.5 w-1.5 rounded-full ${d.hasSession ? "bg-primary" : "bg-transparent"}`} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <TrainingCalendar
+          plannedDates={plannedDates}
+          doneDates={doneDates}
+          selectedDate={selectedDate}
+          today={today}
+          onSelect={setSelectedDate}
+        />
       ) : (
         planDays.length > 1 && (
           <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
@@ -165,19 +158,42 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
           </div>
 
           {/* Acciones */}
-          <div className="flex gap-2 p-3 border-t border-white/[0.05]">
-            <button
-              onClick={() => session && onStart(session)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
-            >
-              <Play className="w-4 h-4 fill-current" /> Empezar
-            </button>
-            <button
-              onClick={() => session && onView(session.assignment.routine.id)}
-              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
-            >
-              Ver rutina <ChevronRight className="w-4 h-4" />
-            </button>
+          <div className="p-3 border-t border-white/[0.05] space-y-2">
+            {/* Tilde manual: marcá el entreno como hecho */}
+            {hasAgenda && (
+              <button
+                onClick={() => toggle(selectedDate)}
+                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                  isDone(selectedDate)
+                    ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400"
+                    : "bg-secondary/60 border border-white/[0.06] text-muted-foreground"
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                    isDone(selectedDate) ? "bg-emerald-500 text-white" : "border-2 border-current"
+                  }`}
+                >
+                  {isDone(selectedDate) && <Check className="w-3 h-3" strokeWidth={3} />}
+                </span>
+                {isDone(selectedDate) ? "Completado" : "Marcar como hecho"}
+              </button>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => session && onStart(session)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
+              >
+                <Play className="w-4 h-4 fill-current" /> Empezar
+              </button>
+              <button
+                onClick={() => session && onView(session.assignment.routine.id)}
+                className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+              >
+                Ver rutina <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </motion.div>
       ) : (
