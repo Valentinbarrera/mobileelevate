@@ -6,8 +6,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Dumbbell, LayoutGrid } from "lucide-react";
+import { Dumbbell, LayoutGrid, Check } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
 import RestBar from "@/components/workout/RestBar";
@@ -45,6 +46,7 @@ const CoachWorkoutDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, student, isAdminMode } = useAuthContext();
+  const isDesktop = useIsDesktop();
   const { allDays, activeRoutine } = useCoachHomeData();
   
   // Get routine day from navigation state or find in allDays
@@ -425,31 +427,101 @@ const CoachWorkoutDetail = () => {
           </button>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {exercises.map((exercise, index) => {
-            const state = exerciseStates.get(exercise.id);
-            
-            return workoutStarted ? (
-              <CoachExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
-                index={index}
-                isActive={activeExerciseId === exercise.id}
-                group={exerciseGroups.get(exercise.id)}
-                onSelect={() => setActiveExerciseId(exercise.id)}
-                onCompleteSet={handleCompleteSet}
-              />
-            ) : (
-              <CoachExerciseListItem
-                key={exercise.id}
-                exercise={exercise}
-                index={index + 1}
-                group={exerciseGroups.get(exercise.id)}
-              />
-            );
-          })}
-        </div>
+        {workoutStarted && isDesktop ? (
+          /* ── Desktop en entreno: master-detail (lista izq · ejercicio activo der) ── */
+          <div className="grid grid-cols-12 gap-5 items-start">
+            <aside className="col-span-5 xl:col-span-4 space-y-1.5 lg:sticky lg:top-24">
+              {exercises.map((exercise, index) => {
+                const state = exerciseStates.get(exercise.id);
+                const done = state?.completed;
+                const doneSets = state?.completedSets.length ?? 0;
+                const active = activeExerciseId === exercise.id;
+                const g = exerciseGroups.get(exercise.id);
+                return (
+                  <button
+                    key={exercise.id}
+                    onClick={() => setActiveExerciseId(exercise.id)}
+                    className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left border transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10"
+                        : done
+                          ? "border-emerald-500/30 bg-emerald-500/5"
+                          : "border-border bg-card hover:bg-secondary/40"
+                    }`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                        done
+                          ? "bg-emerald-500 text-white"
+                          : active
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-muted-foreground"
+                      }`}
+                    >
+                      {done ? <Check className="w-4 h-4" strokeWidth={3} /> : index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold truncate ${active ? "text-primary" : "text-foreground"}`}>
+                        {g && <span className="text-amber-400">{g.letter}{g.position} · </span>}
+                        {exercise.name}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground tabular-nums">
+                        {doneSets}/{exercise.sets} series
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </aside>
+
+            <div className="col-span-7 xl:col-span-8">
+              {(() => {
+                const idx = exercises.findIndex((e) => e.id === activeExerciseId);
+                const exercise = exercises[idx] ?? exercises[0];
+                if (!exercise) return null;
+                const state = exerciseStates.get(exercise.id);
+                return (
+                  <CoachExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
+                    index={idx < 0 ? 0 : idx}
+                    isActive
+                    group={exerciseGroups.get(exercise.id)}
+                    onSelect={() => setActiveExerciseId(exercise.id)}
+                    onCompleteSet={handleCompleteSet}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {exercises.map((exercise, index) => {
+              const state = exerciseStates.get(exercise.id);
+
+              return workoutStarted ? (
+                <CoachExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
+                  index={index}
+                  isActive={activeExerciseId === exercise.id}
+                  group={exerciseGroups.get(exercise.id)}
+                  onSelect={() => setActiveExerciseId(exercise.id)}
+                  onCompleteSet={handleCompleteSet}
+                />
+              ) : (
+                <CoachExerciseListItem
+                  key={exercise.id}
+                  exercise={exercise}
+                  index={index + 1}
+                  group={exerciseGroups.get(exercise.id)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Description Section */}
