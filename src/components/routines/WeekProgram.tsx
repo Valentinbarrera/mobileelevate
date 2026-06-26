@@ -77,36 +77,35 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
 
   return (
     <div className="space-y-4">
-      {/* ── Selector ── */}
-      {hasAgenda ? (
-        <TrainingCalendar
-          plannedDates={plannedDates}
-          doneDates={doneDates}
-          selectedDate={selectedDate}
-          today={today}
-          onSelect={setSelectedDate}
-        />
-      ) : (
-        planDays.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-            {planDays.map(({ day: d }, i) => {
-              const selected = d.id === selectedDayId;
-              return (
-                <button
-                  key={d.id}
-                  onClick={() => setSelectedDayId(d.id)}
-                  className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
-                    selected
-                      ? "bg-gradient-primary text-primary-foreground border-transparent"
-                      : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
-                  }`}
-                >
-                  D{d.order_index ?? d.day_number ?? i + 1}
-                </button>
-              );
-            })}
-          </div>
-        )
+      {/* ── Calendario (siempre visible) ── */}
+      <TrainingCalendar
+        plannedDates={plannedDates}
+        doneDates={doneDates}
+        selectedDate={selectedDate}
+        today={today}
+        onSelect={setSelectedDate}
+      />
+
+      {/* Sin agenda del coach: elegí qué día del plan hacés */}
+      {!hasAgenda && planDays.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+          {planDays.map(({ day: d }, i) => {
+            const selected = d.id === selectedDayId;
+            return (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDayId(d.id)}
+                className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                  selected
+                    ? "bg-gradient-primary text-primary-foreground border-transparent"
+                    : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
+                }`}
+              >
+                D{d.order_index ?? d.day_number ?? i + 1}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {/* ── Panel del día seleccionado ── */}
@@ -160,25 +159,23 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
           {/* Acciones */}
           <div className="p-3 border-t border-white/[0.05] space-y-2">
             {/* Tilde manual: marcá el entreno como hecho */}
-            {hasAgenda && (
-              <button
-                onClick={() => toggle(selectedDate)}
-                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                  isDone(selectedDate)
-                    ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400"
-                    : "bg-secondary/60 border border-white/[0.06] text-muted-foreground"
+            <button
+              onClick={() => toggle(selectedDate)}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                isDone(selectedDate)
+                  ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400"
+                  : "bg-secondary/60 border border-white/[0.06] text-muted-foreground"
+              }`}
+            >
+              <span
+                className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  isDone(selectedDate) ? "bg-emerald-500 text-white" : "border-2 border-current"
                 }`}
               >
-                <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    isDone(selectedDate) ? "bg-emerald-500 text-white" : "border-2 border-current"
-                  }`}
-                >
-                  {isDone(selectedDate) && <Check className="w-3 h-3" strokeWidth={3} />}
-                </span>
-                {isDone(selectedDate) ? "Completado" : "Marcar como hecho"}
-              </button>
-            )}
+                {isDone(selectedDate) && <Check className="w-3 h-3" strokeWidth={3} />}
+              </span>
+              {isDone(selectedDate) ? "Completado" : "Marcar como hecho"}
+            </button>
 
             <div className="flex gap-2">
               <button
