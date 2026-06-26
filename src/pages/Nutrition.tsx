@@ -13,6 +13,8 @@ import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking } from "@/hooks/useDailyNutritionTracking";
+import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
+import FoodLogSection from "@/components/nutrition/FoodLogSection";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
@@ -241,34 +243,65 @@ export default function Nutrition() {
   const isDesktop = useIsDesktop();
   const { data: plan, isLoading, error, refetch } = useStudentNutrition();
   const [dayIndex, setDayIndex] = useState(0);
-  const { water, setWater, isMealChecked, toggleMeal } = useDailyNutritionTracking();
+  const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
+    useDailyNutritionTracking();
+  const [showFoodSheet, setShowFoodSheet] = useState(false);
+
+  const foodLogSection = (
+    <FoodLogSection
+      foods={foods}
+      totalCalories={loggedTotals.calories}
+      onAdd={() => setShowFoodSheet(true)}
+      onRemove={removeFood}
+    />
+  );
+  const foodSheet = (
+    <FoodLogSheet open={showFoodSheet} onClose={() => setShowFoodSheet(false)} onAdd={addFood} />
+  );
 
   if (isLoading) return <PageLoading message="Cargando plan nutricional..." />;
 
-  // ── No plan assigned ──
+  // ── Sin plan asignado: igual puede registrar lo que comió ──
   if (!plan) {
     return (
       <AppShell>
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-            <Apple className="w-10 h-10 text-primary" />
+        <motion.div
+          className="min-h-screen bg-background pb-32 lg:pb-10"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <motion.header
+            className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
+            variants={fadeUp}
+          >
+            <div className="max-w-2xl mx-auto flex items-center justify-between px-5 py-3">
+              <div className="flex items-center gap-2">
+                <Apple className="w-4 h-4 text-primary" />
+                <h1 className="text-xl font-bold text-foreground">Nutrición</h1>
+              </div>
+            </div>
+          </motion.header>
+
+          <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
+              <p className="text-sm text-foreground/80">
+                Tu coach todavía no te asignó un plan, pero podés registrar lo que comés. 🍽️
+              </p>
+            </div>
+            {foodLogSection}
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">
-            Sin plan nutricional
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            Tu coach todavía no te asignó un plan de alimentación. Cuando lo
-            haga vas a verlo acá.
-          </p>
-        </div>
+
+          {foodSheet}
+        </motion.div>
       </AppShell>
     );
   }
 
   const currentDay = plan.days[dayIndex] ?? null;
 
-  // Totales CONSUMIDOS hoy (solo las comidas marcadas como comidas)
-  const dayTotals = currentDay
+  // Totales CONSUMIDOS hoy = comidas del plan marcadas + registro libre del alumno
+  const planTotals = currentDay
     ? currentDay.meals
         .filter((m) => isMealChecked(m.id))
         .reduce(
@@ -281,6 +314,13 @@ export default function Nutrition() {
           { calories: 0, protein: 0, carbs: 0, fats: 0 }
         )
     : { calories: 0, protein: 0, carbs: 0, fats: 0 };
+
+  const dayTotals = {
+    calories: planTotals.calories + loggedTotals.calories,
+    protein: planTotals.protein + loggedTotals.protein,
+    carbs: planTotals.carbs + loggedTotals.carbs,
+    fats: planTotals.fats + loggedTotals.fats,
+  };
 
   const totalMeals = currentDay?.meals.length ?? 0;
   const checkedCount = currentDay
@@ -452,6 +492,7 @@ export default function Nutrition() {
                     {noDays}
                     {dayNotes}
                     {mealsBlock}
+                    {foodLogSection}
                   </div>
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {macroSummary}
@@ -472,10 +513,13 @@ export default function Nutrition() {
               {noDays}
               {dayNotes}
               {mealsBlock}
+              {foodLogSection}
               {waterTracker}
             </div>
           );
         })()}
+
+        {foodSheet}
       </motion.div>
     </AppShell>
   );

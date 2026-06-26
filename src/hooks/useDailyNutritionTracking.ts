@@ -7,12 +7,30 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLocalDateString } from "@/lib/date";
 
+export type MealType = "desayuno" | "almuerzo" | "merienda" | "cena" | "snack";
+
+export interface LoggedFood {
+  id: string;
+  name: string;
+  mealType: MealType;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
 interface DailyLog {
   checkedMeals: string[]; // ids de comidas marcadas como comidas hoy
   water: number; // vasos
+  foods: LoggedFood[]; // registro libre del alumno (lo que comió fuera/dentro del plan)
 }
 
-const EMPTY: DailyLog = { checkedMeals: [], water: 0 };
+const EMPTY: DailyLog = { checkedMeals: [], water: 0, foods: [] };
+
+const newId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
 const keyFor = (studentId: string, date: string) => `elevate_nutri_${studentId}_${date}`;
 
 export function useDailyNutritionTracking() {
@@ -59,11 +77,34 @@ export function useDailyNutritionTracking() {
     [log.checkedMeals]
   );
 
+  const addFood = useCallback((food: Omit<LoggedFood, "id">) => {
+    setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: newId() }] }));
+  }, []);
+
+  const removeFood = useCallback((id: string) => {
+    setLog((prev) => ({ ...prev, foods: prev.foods.filter((f) => f.id !== id) }));
+  }, []);
+
+  // Totales del registro libre del día
+  const loggedTotals = (log.foods || []).reduce(
+    (acc, f) => ({
+      calories: acc.calories + (f.calories || 0),
+      protein: acc.protein + (f.protein || 0),
+      carbs: acc.carbs + (f.carbs || 0),
+      fats: acc.fats + (f.fats || 0),
+    }),
+    { calories: 0, protein: 0, carbs: 0, fats: 0 }
+  );
+
   return {
     checkedMeals: log.checkedMeals,
     water: log.water,
+    foods: log.foods || [],
     toggleMeal,
     setWater,
     isMealChecked,
+    addFood,
+    removeFood,
+    loggedTotals,
   };
 }
