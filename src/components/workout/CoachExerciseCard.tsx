@@ -16,6 +16,7 @@ import { getLastPerformance, getPR } from "@/lib/workoutLog";
 import { getLocalDateString } from "@/lib/date";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useIsDesktop } from "@/hooks/use-media-query";
 
 interface CoachExercise {
   id: string;
@@ -89,6 +90,7 @@ const CoachExerciseCard = ({
   onCompleteSet,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
+  const isDesktop = useIsDesktop();
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
@@ -332,7 +334,8 @@ const CoachExerciseCard = ({
                 {/* Técnica / ejecución + paso a paso */}
                 <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
 
-                {/* ─── Tabla de series inline ─── */}
+                {/* ─── Series — MOBILE (sin cambios) ─── */}
+                {!isDesktop && (
                 <div className="space-y-1.5">
                   {/* Header de columnas */}
                   <div className="grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 px-1 items-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -424,6 +427,96 @@ const CoachExerciseCard = ({
                     </div>
                   ))}
                 </div>
+                )}
+
+                {/* ─── Series — DESKTOP: planilla tipo Excel ─── */}
+                {isDesktop && (
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    {/* Header */}
+                    <div className="grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border bg-secondary/60 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      <span className="py-2 text-center">Set</span>
+                      <span className="py-2 text-center">Obj</span>
+                      <span className="py-2 text-center">Antes</span>
+                      <span className="py-2 text-center">Kg</span>
+                      <span className="py-2 text-center">Reps</span>
+                      <span className="py-2 text-center">✓</span>
+                    </div>
+
+                    {rows.map(({ setNum, logged, isCurrent }) => (
+                      <div
+                        key={setNum}
+                        className={`grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border border-t border-border transition-colors ${
+                          logged ? "bg-emerald-500/10" : isCurrent ? "bg-primary/10" : "opacity-60"
+                        }`}
+                      >
+                        <span
+                          className={`flex items-center justify-center text-sm font-bold ${
+                            logged ? "text-emerald-500" : isCurrent ? "text-primary" : "text-muted-foreground"
+                          }`}
+                        >
+                          {setNum}
+                        </span>
+                        <span className="flex items-center justify-center text-xs font-semibold text-muted-foreground tabular-nums">
+                          {exercise.reps}
+                        </span>
+                        <span className="flex items-center justify-center text-[11px] text-muted-foreground tabular-nums px-0.5">
+                          {previousHint}
+                        </span>
+
+                        {logged ? (
+                          <>
+                            <span className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums">
+                              {logged.weight}
+                            </span>
+                            <span className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums">
+                              {logged.reps}
+                            </span>
+                            <span className="flex items-center justify-center bg-emerald-500/90">
+                              <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                            </span>
+                          </>
+                        ) : isCurrent ? (
+                          <>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              value={editWeight}
+                              onChange={(e) => setEditWeight(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              placeholder="0"
+                              className="w-full min-w-0 h-11 bg-transparent text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
+                            />
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={editReps}
+                              onChange={(e) => setEditReps(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              onKeyDown={(e) => e.key === "Enter" && handleLogCurrent()}
+                              placeholder="0"
+                              className="w-full min-w-0 h-11 bg-transparent text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
+                            />
+                            <motion.button
+                              onClick={handleLogCurrent}
+                              disabled={logging}
+                              whileTap={{ scale: 0.9 }}
+                              className="flex items-center justify-center bg-primary disabled:opacity-50"
+                              aria-label={`Registrar serie ${setNum}`}
+                            >
+                              <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+                            </motion.button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex items-center justify-center py-2.5 text-sm text-muted-foreground/40">–</span>
+                            <span className="flex items-center justify-center text-sm text-muted-foreground/40">–</span>
+                            <span />
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Calculadora de discos (solo mientras hay serie activa) */}
                 {!isCompleted && (parseFloat(editWeight) || 0) > 0 && (
