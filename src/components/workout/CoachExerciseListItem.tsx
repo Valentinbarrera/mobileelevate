@@ -7,7 +7,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
-import { PrescriptionStrip, TechniqueBlock } from "./ExerciseMeta";
+import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
+import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 
 interface CoachExercise {
   id: string;
@@ -31,20 +32,28 @@ interface CoachExercise {
 interface CoachExerciseListItemProps {
   exercise: CoachExercise;
   index: number;
+  group?: ExerciseGroupInfo;
 }
 
-const CoachExerciseListItem = ({ exercise, index }: CoachExerciseListItemProps) => {
+const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItemProps) => {
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   return (
     <>
       <motion.div
-        className="card-elevated rounded-2xl overflow-hidden"
+        className={`card-elevated rounded-2xl overflow-hidden ${
+          group ? "border-l-2 border-l-amber-500/60" : ""
+        }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
       >
+        {group && (
+          <div className="px-4 pt-3">
+            <SupersetTag type={group.type} letter={group.letter} position={group.position} size={group.size} />
+          </div>
+        )}
         {/* Cabecera tappable */}
         <button
           onClick={() => setExpanded((v) => !v)}

@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
-import { PrescriptionStrip, TechniqueBlock } from "./ExerciseMeta";
+import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
+import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 import { calcPlates } from "@/lib/plates";
 import { getLastPerformance, getPR } from "@/lib/workoutLog";
 import { getLocalDateString } from "@/lib/date";
@@ -55,6 +56,7 @@ interface CoachExerciseCardProps {
   state: ExerciseState;
   index: number;
   isActive: boolean;
+  group?: ExerciseGroupInfo;
   onSelect: () => void;
   onCompleteSet: (
     exerciseId: string,
@@ -82,6 +84,7 @@ const CoachExerciseCard = ({
   state,
   index,
   isActive,
+  group,
   onSelect,
   onCompleteSet,
 }: CoachExerciseCardProps) => {
@@ -197,7 +200,7 @@ const CoachExerciseCard = ({
             : isCompleted
               ? "border-emerald-500/40 bg-emerald-500/5"
               : "border-border"
-        } ${isCompleted ? "opacity-80" : ""}`}
+        } ${isCompleted ? "opacity-80" : ""} ${group ? "border-l-2 border-l-amber-500/70" : ""}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
@@ -218,6 +221,13 @@ const CoachExerciseCard = ({
               <Check className="w-5 h-5 text-white" strokeWidth={3} />
             </div>
           </motion.div>
+        )}
+
+        {/* Chip de biserie/superserie */}
+        {group && (
+          <div className="px-4 pt-3 -mb-1">
+            <SupersetTag type={group.type} letter={group.letter} position={group.position} size={group.size} />
+          </div>
         )}
 
         {/* Header */}

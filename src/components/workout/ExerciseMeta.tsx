@@ -20,11 +20,11 @@ export interface PrescriptionData {
 const fmtRest = (s: number) =>
   s >= 60 ? `${Math.floor(s / 60)}′${s % 60 ? String(s % 60).padStart(2, "0") + "″" : ""}` : `${s}″`;
 
-// Métodos que NO son "serie normal" → merecen badge
-const isSpecialMethod = (m?: string | null) => {
+// Métodos que NO son "serie normal" → merecen badge / agrupado (biserie, superserie…)
+export const isSpecialMethod = (m?: string | null) => {
   if (!m) return false;
-  const v = m.toLowerCase();
-  return !["normal", "standard", "estandar", "estándar", "simple", "recta"].includes(v);
+  const v = m.trim().toLowerCase();
+  return v !== "" && !["normal", "standard", "estandar", "estándar", "simple", "recta", "directa"].includes(v);
 };
 
 const Chip = ({
@@ -63,6 +63,31 @@ export const PrescriptionStrip = ({ data }: { data: PrescriptionData }) => {
     </div>
   );
 };
+
+/** Chip de bloque (biserie/superserie): "Superserie A" + posición A1/2. */
+export const SupersetTag = ({
+  type,
+  letter,
+  position,
+  size,
+}: {
+  type: string;
+  letter: string;
+  position: number;
+  size: number;
+}) => (
+  <div className="flex items-center gap-1.5">
+    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[10px] font-black text-amber-400 uppercase tracking-wider">
+      <Layers className="w-3 h-3 inline-block -mt-0.5 mr-1" />
+      <span className="capitalize">{type}</span> {letter}
+    </span>
+    <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
+      {letter}
+      {position}
+      <span className="text-muted-foreground/50"> · {position}/{size}</span>
+    </span>
+  </div>
+);
 
 /** Técnica / ejecución (description) + paso a paso (instructions). */
 export const TechniqueBlock = ({

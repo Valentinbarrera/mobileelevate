@@ -18,6 +18,7 @@ import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
+import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
@@ -361,6 +362,7 @@ const CoachWorkoutDetail = () => {
   }
 
   const exercises = routineDay.exercises;
+  const exerciseGroups = computeExerciseGroups(exercises);
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
   const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
   const completedSets = exercises.reduce((acc, e) => {
@@ -428,6 +430,7 @@ const CoachWorkoutDetail = () => {
                 state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
                 index={index}
                 isActive={activeExerciseId === exercise.id}
+                group={exerciseGroups.get(exercise.id)}
                 onSelect={() => setActiveExerciseId(exercise.id)}
                 onCompleteSet={handleCompleteSet}
               />
@@ -436,6 +439,7 @@ const CoachWorkoutDetail = () => {
                 key={exercise.id}
                 exercise={exercise}
                 index={index + 1}
+                group={exerciseGroups.get(exercise.id)}
               />
             );
           })}
