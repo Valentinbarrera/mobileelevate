@@ -29,6 +29,7 @@ const Messages = React.lazy(() => import("./pages/Messages"));
 const Measurements = React.lazy(() => import("./pages/Measurements"));
 const Nutrition = React.lazy(() => import("./pages/Nutrition"));
 const MyDiet = React.lazy(() => import("./pages/MyDiet"));
+const ExerciseLibraryPage = React.lazy(() => import("./pages/ExerciseLibraryPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -77,6 +78,7 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/" element={<ProtectedRoute><Lazy><Index /></Lazy></ProtectedRoute>} />
               <Route path="/routines" element={<ProtectedRoute><Lazy><Routines /></Lazy></ProtectedRoute>} />
+              <Route path="/exercises" element={<ProtectedRoute><Lazy><ExerciseLibraryPage /></Lazy></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Lazy><Progress /></Lazy></ProtectedRoute>} />
               <Route path="/progress/photos" element={<ProtectedRoute><Lazy><ProgressPhotos /></Lazy></ProtectedRoute>} />
               <Route path="/measurements" element={<ProtectedRoute><Lazy><Measurements /></Lazy></ProtectedRoute>} />

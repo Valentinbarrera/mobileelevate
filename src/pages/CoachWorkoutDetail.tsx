@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, LayoutGrid } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
@@ -16,6 +16,7 @@ import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
+import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
@@ -78,7 +79,8 @@ const CoachWorkoutDetail = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
-  
+  const [showLibrary, setShowLibrary] = useState(false);
+
   // Exercise completed modal state
   const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
   const [completedExerciseInfo, setCompletedExerciseInfo] = useState<{
@@ -414,9 +416,13 @@ const CoachWorkoutDetail = () => {
           <h2 className="text-xs font-semibold text-primary uppercase tracking-wider">
             Lista de Ejercicios
           </h2>
-          <span className="text-xs text-muted-foreground">
-            {exercises.length} ejercicios
-          </span>
+          <button
+            onClick={() => setShowLibrary(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl card-elevated text-xs font-bold text-foreground active:scale-95 transition-transform"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+            Ver todos
+          </button>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -501,6 +507,21 @@ const CoachWorkoutDetail = () => {
         onComplete={completeWorkout}
         onSkip={() => completeWorkout(null)}
       />
+
+      {/* "Ver todos": biblioteca de ejercicios sin salir del entreno */}
+      <AnimatePresence>
+        {showLibrary && (
+          <motion.div
+            className="fixed inset-0 z-[120] bg-background overflow-y-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ExerciseLibrary onClose={() => setShowLibrary(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

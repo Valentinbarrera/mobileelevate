@@ -8,7 +8,7 @@ import { Scale, Apple, Ruler, Dumbbell } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 const ACTIONS = [
-  { icon: Dumbbell, label: "Ejercicios", to: "/routines" },
+  { icon: Dumbbell, label: "Ejercicios", to: "/exercises" },
   { icon: Apple, label: "Nutrición", to: "/nutrition" },
   { icon: Scale, label: "Peso", to: "/progress" },
   { icon: Ruler, label: "Medidas", to: "/measurements" },
