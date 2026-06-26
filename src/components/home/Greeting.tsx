@@ -17,13 +17,15 @@ const getTimeGreeting = () => {
 const Greeting = ({ userName, contextLine }: GreetingProps) => {
   return (
     <motion.div className="pt-1" variants={fadeUp}>
-      <p className="text-sm text-muted-foreground font-medium">{getTimeGreeting()},</p>
-      <h1 className="text-2xl font-black tracking-tight leading-none mt-0.5 text-foreground">
+      <p className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground/80">
+        {getTimeGreeting()}
+      </p>
+      <h1 className="text-[30px] font-black tracking-tight leading-[1.05] mt-1 text-foreground">
         {userName}
       </h1>
 
       {contextLine && (
-        <p className="text-[13px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
+        <p className="text-sm font-medium text-muted-foreground mt-2 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block shrink-0" />
           {contextLine}
         </p>

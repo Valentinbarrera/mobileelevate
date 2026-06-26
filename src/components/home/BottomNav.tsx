@@ -48,7 +48,7 @@ const NavItem = ({
 
     <motion.div animate={{ scale: active ? 1.06 : 1, y: active ? -1 : 0 }} transition={SPRING}>
       <Icon
-        className={`w-[22px] h-[22px] transition-colors duration-200 ${
+        className={`w-[26px] h-[26px] transition-colors duration-200 ${
           active ? "text-primary" : "text-muted-foreground/55"
         }`}
         strokeWidth={active ? 2.3 : 1.8}
@@ -56,7 +56,7 @@ const NavItem = ({
     </motion.div>
 
     <span
-      className={`text-[10px] leading-none tracking-tight transition-colors duration-200 ${
+      className={`text-[11px] leading-none tracking-tight transition-colors duration-200 ${
         active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
       }`}
     >
@@ -87,10 +87,10 @@ const NavFab = ({
     aria-current={active ? "page" : undefined}
   >
     {/* Placeholder con la altura del ícono regular → alinea el label */}
-    <span className="block w-[22px] h-[22px]" aria-hidden />
+    <span className="block w-[26px] h-[26px]" aria-hidden />
 
     <span
-      className={`text-[10px] leading-none tracking-tight transition-colors duration-200 ${
+      className={`text-[11px] leading-none tracking-tight transition-colors duration-200 ${
         active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
       }`}
     >
@@ -100,14 +100,14 @@ const NavFab = ({
     {/* Círculo flotante (absoluto, centrado en la celda completa, elevado).
         Centrado por CSS puro — sin animar transform para no pisar el translate. */}
     <span
-      className="absolute left-1/2 -translate-x-1/2 -top-7 w-[52px] h-[52px] rounded-[18px] flex items-center justify-center ring-4 ring-background"
+      className="absolute left-1/2 -translate-x-1/2 -top-8 w-[60px] h-[60px] rounded-[20px] flex items-center justify-center ring-4 ring-background"
       style={{
         background: "linear-gradient(145deg, hsl(18 100% 61%), hsl(22 100% 46%))",
         boxShadow:
           "0 10px 24px hsl(18 100% 55% / 0.45), 0 1px 0 rgba(255,255,255,0.3) inset, 0 0 0 1px hsl(18 100% 50% / 0.5)",
       }}
     >
-      <Icon className="w-[26px] h-[26px] text-white" strokeWidth={2.4} />
+      <Icon className="w-7 h-7 text-white" strokeWidth={2.4} />
     </span>
   </motion.button>
 );
@@ -144,7 +144,7 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
 
       <div className="px-4 pb-2 max-w-lg mx-auto">
         <div
-          className="flex items-stretch rounded-[26px] px-1.5 h-16"
+          className="flex items-stretch rounded-[28px] px-1.5 h-[74px]"
           style={{
             background: "rgba(15, 15, 15, 0.9)",
             backdropFilter: "blur(28px) saturate(1.8)",
