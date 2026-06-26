@@ -4,7 +4,7 @@
  * series con peso × reps y se guarda LOCAL (alimenta historial, PRs y "la vez
  * pasada"). Estilo "empty workout" de Hevy.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type FocusEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Check, X, Dumbbell, Clock } from "lucide-react";
@@ -46,6 +46,14 @@ const FreeExerciseCard = ({
   const last = getLastPerformance(studentId, ex.id, today);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
+  const weightRef = useRef<HTMLInputElement>(null);
+  const repsRef = useRef<HTMLInputElement>(null);
+
+  // Trae el input enfocado por encima del teclado y de la barra fija
+  const focusScroll = (e: FocusEvent<HTMLInputElement>) => {
+    e.target.select();
+    setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+  };
 
   // Precargar con la serie anterior de la sesión o la última vez
   useEffect(() => {
@@ -104,26 +112,42 @@ const FreeExerciseCard = ({
       )}
 
       {/* Fila de carga */}
-      <div className="grid grid-cols-[1fr_1fr_2.75rem] gap-2 items-center">
-        <input
-          type="number"
-          inputMode="decimal"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          placeholder="kg"
-          className="h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
-        />
-        <input
-          type="number"
-          inputMode="numeric"
-          value={reps}
-          onChange={(e) => setReps(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          onKeyDown={(e) => e.key === "Enter" && add()}
-          placeholder="reps"
-          className="h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
-        />
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 items-end">
+        <label className="flex flex-col gap-1 min-w-0">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Peso (kg)</span>
+          <input
+            ref={weightRef}
+            type="number"
+            inputMode="decimal"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            onFocus={focusScroll}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                repsRef.current?.focus();
+              }
+            }}
+            enterKeyHint="next"
+            placeholder="0"
+            className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+          />
+        </label>
+        <label className="flex flex-col gap-1 min-w-0">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Reps</span>
+          <input
+            ref={repsRef}
+            type="number"
+            inputMode="numeric"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+            onFocus={focusScroll}
+            onKeyDown={(e) => e.key === "Enter" && add()}
+            enterKeyHint="done"
+            placeholder="0"
+            className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+          />
+        </label>
         <button
           onClick={add}
           aria-label="Registrar serie"
@@ -225,7 +249,7 @@ const FreeWorkout = () => {
   const recentToShow = recent.filter((n) => !exercises.some((e) => e.id === slugify(n))).slice(0, 6);
 
   return (
-    <motion.div className="min-h-screen bg-background pb-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="min-h-screen bg-background pb-44" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 py-3">
@@ -255,8 +279,9 @@ const FreeWorkout = () => {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addExercise(newName)}
+              enterKeyHint="done"
               placeholder="Ej: Press banca"
-              className="flex-1 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
+              className="flex-1 min-w-0 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
             />
             <button
               onClick={() => addExercise(newName)}
@@ -305,7 +330,10 @@ const FreeWorkout = () => {
       </div>
 
       {/* Botón finalizar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 px-5 pb-5 pt-10 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 px-5 pt-10 bg-gradient-to-t from-background via-background to-transparent pointer-events-none"
+        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+      >
         <div className="max-w-2xl mx-auto pointer-events-auto">
           <motion.button
             onClick={finish}

@@ -52,7 +52,7 @@ export default function Measurements() {
           className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
           variants={fadeUp}
         >
-          <div className="max-w-4xl mx-auto flex items-center gap-3 px-5 py-3">
+          <div className="max-w-4xl lg:max-w-6xl mx-auto flex items-center gap-3 px-5 lg:px-8 py-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -66,14 +66,14 @@ export default function Measurements() {
           </div>
         </motion.header>
 
-        <div className="max-w-4xl mx-auto px-5 pt-5 space-y-4">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
           {/* Latest measurements grid */}
           {latest ? (
             <motion.div variants={fadeUp}>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">
                 Última medición &middot; {new Date(latest.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 <MeasurementCard label="Peso" value={latest.weight_kg} unit="kg" />
                 <MeasurementCard label="Cintura" value={latest.waist_cm} unit="cm" />
                 <MeasurementCard label="Pecho" value={latest.chest_cm} unit="cm" />
@@ -91,31 +91,32 @@ export default function Measurements() {
             </motion.div>
           )}
 
-          <div className="md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
-            {/* Weight chart */}
-            <motion.div variants={fadeUp}>
-              <BodyMetricChart
-                data={weightHistory}
-                title="Evolución de Peso"
-                unit="kg"
-                color="hsl(var(--primary))"
-              />
-            </motion.div>
+          <div className="xl:grid xl:grid-cols-12 xl:gap-4 xl:space-y-0 space-y-4 items-start">
+            <div className="xl:col-span-8 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
+              {/* Weight chart */}
+              <motion.div variants={fadeUp}>
+                <BodyMetricChart
+                  data={weightHistory}
+                  title="Evolución de Peso"
+                  unit="kg"
+                  color="hsl(var(--primary))"
+                />
+              </motion.div>
 
-            {/* Waist chart */}
-            <motion.div variants={fadeUp}>
-              <BodyMetricChart
-                data={waistHistory}
-                title="Evolución de Cintura"
-                unit="cm"
-                color="#f59e0b"
-              />
-            </motion.div>
-          </div>
+              {/* Waist chart */}
+              <motion.div variants={fadeUp}>
+                <BodyMetricChart
+                  data={waistHistory}
+                  title="Evolución de Cintura"
+                  unit="cm"
+                  color="#f59e0b"
+                />
+              </motion.div>
+            </div>
 
-          {/* History */}
-          {entries.length > 0 && (
-            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
+            {/* History */}
+            {entries.length > 0 && (
+              <motion.div variants={fadeUp} className="xl:col-span-4 card-elevated rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="accent-bar" />
                 <h3 className="text-sm font-black tracking-tight text-foreground">Historial</h3>
@@ -135,7 +136,8 @@ export default function Measurements() {
                 ))}
               </div>
             </motion.div>
-          )}
+            )}
+          </div>
         </div>
       </motion.div>
     </AppShell>

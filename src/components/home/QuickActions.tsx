@@ -4,14 +4,14 @@
  */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Scale, Apple, Ruler, MessageCircle } from "lucide-react";
+import { Scale, Apple, Ruler, Dumbbell } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 const ACTIONS = [
-  { icon: Scale, label: "Peso", to: "/progress" },
+  { icon: Dumbbell, label: "Ejercicios", to: "/routines" },
   { icon: Apple, label: "Nutrición", to: "/nutrition" },
+  { icon: Scale, label: "Peso", to: "/progress" },
   { icon: Ruler, label: "Medidas", to: "/measurements" },
-  { icon: MessageCircle, label: "Coach", to: "/messages" },
 ];
 
 const QuickActions = () => {

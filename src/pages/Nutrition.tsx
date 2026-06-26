@@ -13,6 +13,7 @@ import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking } from "@/hooks/useDailyNutritionTracking";
+import { useIsDesktop } from "@/hooks/use-media-query";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
   useStudentNutrition,
@@ -237,6 +238,7 @@ const WaterTracker = ({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Nutrition() {
+  const isDesktop = useIsDesktop();
   const { data: plan, isLoading, error, refetch } = useStudentNutrition();
   const [dayIndex, setDayIndex] = useState(0);
   const { water, setWater, isMealChecked, toggleMeal } = useDailyNutritionTracking();
@@ -303,7 +305,7 @@ export default function Nutrition() {
           className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
           variants={fadeUp}
         >
-          <div className="max-w-2xl mx-auto flex items-center justify-between px-5 py-3">
+          <div className="max-w-2xl lg:max-w-6xl mx-auto flex items-center justify-between px-5 lg:px-8 py-3">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Apple className="w-4 h-4 text-primary" />
@@ -311,16 +313,15 @@ export default function Nutrition() {
                   Nutrición
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-foreground truncate max-w-[220px]">
+              <h1 className="text-xl font-bold text-foreground truncate max-w-[220px] lg:max-w-none">
                 {plan.name}
               </h1>
             </div>
           </div>
         </motion.header>
 
-        <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
-          {/* Error */}
-          {error && (
+        {(() => {
+          const errorBanner = error && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 flex items-center justify-between gap-3">
               <p className="text-sm text-destructive">No pudimos cargar tu plan.</p>
               <button
@@ -330,10 +331,9 @@ export default function Nutrition() {
                 Reintentar
               </button>
             </div>
-          )}
+          );
 
-          {/* Macro targets summary */}
-          {plan.calories_target && (
+          const macroSummary = plan.calories_target && (
             <motion.div
               variants={fadeUp}
               className="card-elevated rounded-2xl p-4"
@@ -382,19 +382,19 @@ export default function Nutrition() {
                 />
               </div>
             </motion.div>
-          )}
+          );
 
-          {/* Day selector */}
-          <motion.div variants={fadeUp}>
-            <DaySelector
-              days={plan.days}
-              currentIndex={dayIndex}
-              onChange={setDayIndex}
-            />
-          </motion.div>
+          const daySelector = (
+            <motion.div variants={fadeUp}>
+              <DaySelector
+                days={plan.days}
+                currentIndex={dayIndex}
+                onChange={setDayIndex}
+              />
+            </motion.div>
+          );
 
-          {/* No days */}
-          {plan.days.length === 0 && (
+          const noDays = plan.days.length === 0 && (
             <motion.div
               variants={fadeUp}
               className="card-elevated rounded-2xl p-6 text-center"
@@ -407,10 +407,9 @@ export default function Nutrition() {
                 Tu coach todavía está armando tu plan
               </p>
             </motion.div>
-          )}
+          );
 
-          {/* Day notes */}
-          {currentDay?.notes && (
+          const dayNotes = currentDay?.notes && (
             <motion.div
               variants={fadeUp}
               className="bg-primary/5 border border-primary/20 rounded-2xl px-4 py-3"
@@ -420,27 +419,63 @@ export default function Nutrition() {
               </p>
               <p className="text-sm text-foreground/80">{currentDay.notes}</p>
             </motion.div>
-          )}
+          );
 
-          {/* Meals */}
-          {currentDay && currentDay.meals.length > 0 && (
-            <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5 pt-1">
-              <span className="accent-bar" />
-              <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
-            </motion.div>
-          )}
-          {currentDay?.meals.map((meal) => (
-            <MealCard
-              key={meal.id}
-              meal={meal}
-              checked={isMealChecked(meal.id)}
-              onToggle={() => toggleMeal(meal.id)}
-            />
-          ))}
+          const mealsBlock = (
+            <>
+              {currentDay && currentDay.meals.length > 0 && (
+                <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5 pt-1">
+                  <span className="accent-bar" />
+                  <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+                </motion.div>
+              )}
+              {currentDay?.meals.map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  checked={isMealChecked(meal.id)}
+                  onToggle={() => toggleMeal(meal.id)}
+                />
+              ))}
+            </>
+          );
 
-          {/* Tracker de agua */}
-          <WaterTracker glasses={water} goal={8} onChange={setWater} />
-        </div>
+          const waterTracker = <WaterTracker glasses={water} goal={8} onChange={setWater} />;
+
+          // Desktop: comidas a la izquierda; macros, selector y agua en rail derecho (sticky).
+          if (isDesktop) {
+            return (
+              <div className="max-w-6xl mx-auto px-8 pt-5">
+                {errorBanner}
+                <div className="grid grid-cols-12 gap-6 items-start mt-4">
+                  <div className="col-span-7 space-y-4">
+                    {noDays}
+                    {dayNotes}
+                    {mealsBlock}
+                  </div>
+                  <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
+                    {macroSummary}
+                    {daySelector}
+                    {waterTracker}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Mobile: pila única (sin cambios).
+          return (
+            <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
+              {errorBanner}
+              {macroSummary}
+              {daySelector}
+              {noDays}
+              {dayNotes}
+              {mealsBlock}
+              {waterTracker}
+            </div>
+          );
+        })()}
       </motion.div>
     </AppShell>
   );

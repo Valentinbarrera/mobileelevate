@@ -11,6 +11,7 @@ import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
+import { useIsDesktop } from "@/hooks/use-media-query";
 import {
   localISODate,
   findSessionByDate,
@@ -36,6 +37,7 @@ const formatShortDate = (iso: string) => {
 
 const Routines = () => {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [view, setView] = useState<View>("today");
   const { student } = useAuthContext();
 
@@ -108,44 +110,47 @@ const Routines = () => {
         initial="initial"
         animate="animate"
       >
-        <div className="max-w-2xl mx-auto px-5 pt-5 space-y-6">
-          {/* Toggle Hoy / Completadas */}
-          <div className="flex gap-2 p-1 rounded-2xl bg-secondary/40 border border-border/50">
-            {(["today", "completed"] as View[]).map((v) => {
-              const active = view === v;
-              return (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  className={`relative flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                    active ? "text-primary-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {active && (
-                    <motion.div
-                      layoutId="routinesViewToggle"
-                      className="absolute inset-0 bg-gradient-primary rounded-xl"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10">
-                    {v === "today" ? "Hoy" : "Completadas"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="max-w-2xl lg:max-w-6xl mx-auto px-5 lg:px-8 pt-5 space-y-6">
+          {/* Fila superior: toggle + entreno libre (en desktop conviven en una línea) */}
+          <div className="lg:flex lg:items-center lg:gap-3 space-y-3 lg:space-y-0">
+            {/* Toggle Hoy / Completadas */}
+            <div className="flex gap-2 p-1 rounded-2xl bg-secondary/40 border border-border/50 lg:flex-1 lg:max-w-md">
+              {(["today", "completed"] as View[]).map((v) => {
+                const active = view === v;
+                return (
+                  <button
+                    key={v}
+                    onClick={() => setView(v)}
+                    className={`relative flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                      active ? "text-primary-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {active && (
+                      <motion.div
+                        layoutId="routinesViewToggle"
+                        className="absolute inset-0 bg-gradient-primary rounded-xl"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">
+                      {v === "today" ? "Hoy" : "Completadas"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Entreno libre — armar tu propio entrenamiento fuera del plan */}
-          <motion.button
-            variants={fadeUp}
-            onClick={() => navigate("/free-workout")}
-            whileTap={{ scale: 0.99 }}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3 text-primary font-bold text-sm active:scale-[0.99] transition-transform"
-          >
-            <Plus className="w-4 h-4" />
-            Entreno libre
-          </motion.button>
+            {/* Entreno libre — armar tu propio entrenamiento fuera del plan */}
+            <motion.button
+              variants={fadeUp}
+              onClick={() => navigate("/free-workout")}
+              whileTap={{ scale: 0.99 }}
+              className="w-full lg:w-auto flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3 lg:px-6 text-primary font-bold text-sm active:scale-[0.99] hover:bg-primary/15 transition-all whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              Entreno libre
+            </motion.button>
+          </div>
 
           {isLoading && <PageLoading message="Cargando rutinas..." />}
 
@@ -160,85 +165,106 @@ const Routines = () => {
           )}
 
           {/* ─── Vista HOY ───────────────────────────────────────────────── */}
-          {!isLoading && !error && view === "today" && (
-            <>
-              {hero?.session ? (
-                <TodaySessionHero
-                  variant={hero.variant}
-                  label={hero.label}
-                  session={hero.session}
-                  onStart={startSession}
-                  onView={viewRoutine}
-                />
-              ) : (
-                <div className="rounded-3xl card-elevated p-8 text-center">
-                  <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="font-semibold text-foreground">Sin rutinas todavía</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Tu coach aún no te asignó una rutina.
-                  </p>
+          {!isLoading && !error && view === "today" && (() => {
+            const heroEl = hero?.session ? (
+              <TodaySessionHero
+                variant={hero.variant}
+                label={hero.label}
+                session={hero.session}
+                onStart={startSession}
+                onView={viewRoutine}
+              />
+            ) : (
+              <div className="rounded-3xl card-elevated p-8 text-center">
+                <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="font-semibold text-foreground">Sin rutinas todavía</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tu coach aún no te asignó una rutina.
+                </p>
+              </div>
+            );
+
+            const weekSection = hero?.session && (
+              <motion.div variants={fadeUp} className="space-y-2.5">
+                <div className="flex items-center gap-2 px-0.5">
+                  <span className="accent-bar" />
+                  <h3 className="text-sm font-black text-foreground tracking-tight">Tu semana</h3>
                 </div>
-              )}
+                <WeekStrip days={weekDays} />
+              </motion.div>
+            );
 
-              {/* Semana */}
-              {hero?.session && (
-                <motion.div variants={fadeUp} className="space-y-2.5">
-                  <div className="flex items-center gap-2 px-0.5">
-                    <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Tu semana</h3>
-                  </div>
-                  <WeekStrip days={weekDays} />
-                </motion.div>
-              )}
+            const upcomingSection = upcoming.length > 0 && (
+              <motion.div variants={fadeUp} className="space-y-2.5">
+                <div className="flex items-center gap-2 px-0.5">
+                  <span className="accent-bar" />
+                  <h3 className="text-sm font-black text-foreground tracking-tight">Esta semana</h3>
+                </div>
+                <div className="space-y-2">
+                  {upcoming.map((s) => (
+                    <button
+                      key={`${s.assignment.id}-${s.date}`}
+                      onClick={() => viewRoutine(s.assignment.routine.id)}
+                      className="w-full flex items-center gap-3 rounded-2xl card-elevated px-4 py-3 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CalendarDays className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {dayTitle(s.day)}
+                        </p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {formatShortDate(s.date!)} · ~{estimateSessionMinutes(s.day)} min
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            );
 
-              {/* Próximas sesiones */}
-              {upcoming.length > 0 && (
-                <motion.div variants={fadeUp} className="space-y-2.5">
-                  <div className="flex items-center gap-2 px-0.5">
-                    <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Esta semana</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {upcoming.map((s) => (
-                      <button
-                        key={`${s.assignment.id}-${s.date}`}
-                        onClick={() => viewRoutine(s.assignment.routine.id)}
-                        className="w-full flex items-center gap-3 rounded-2xl card-elevated px-4 py-3 active:scale-[0.99] transition-transform"
-                      >
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <CalendarDays className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0 text-left">
-                          <p className="text-sm font-semibold text-foreground truncate">
-                            {dayTitle(s.day)}
-                          </p>
-                          <p className="text-xs text-muted-foreground capitalize">
-                            {formatShortDate(s.date!)} · ~{estimateSessionMinutes(s.day)} min
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+            const programasSection = assignments.length > 0 && (
+              <motion.div variants={fadeUp} className="space-y-2.5">
+                <div className="flex items-center gap-2 px-0.5">
+                  <span className="accent-bar" />
+                  <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {assignments.map((assignment, index) => (
+                    <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
+                  ))}
+                </div>
+              </motion.div>
+            );
 
-              {/* Mis programas (secundario) */}
-              {assignments.length > 0 && (
-                <motion.div variants={fadeUp} className="space-y-2.5">
-                  <div className="flex items-center gap-2 px-0.5">
-                    <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+            // Desktop: hero + semana a la izquierda, próximas en rail derecho,
+            // programas a todo el ancho. Mobile: pila única (sin cambios).
+            if (isDesktop) {
+              return (
+                <div className="grid grid-cols-12 gap-6 items-start">
+                  <div className="col-span-12 xl:col-span-7 space-y-6">
+                    {heroEl}
+                    {weekSection}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {assignments.map((assignment, index) => (
-                      <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
-                    ))}
+                  <div className="col-span-12 xl:col-span-5 space-y-6">
+                    {upcomingSection}
                   </div>
-                </motion.div>
-              )}
-            </>
-          )}
+                  <div className="col-span-12">{programasSection}</div>
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {heroEl}
+                {weekSection}
+                {upcomingSection}
+                {programasSection}
+              </>
+            );
+          })()}
 
           {/* ─── Vista COMPLETADAS ───────────────────────────────────────── */}
           {!isLoading && !error && view === "completed" && (
@@ -252,7 +278,7 @@ const Routines = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {assignments.map((assignment, index) => (
                     <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
                   ))}

@@ -7,6 +7,7 @@ export interface Exercise {
   name: string;
   video_url: string | null;
   description: string | null;
+  instructions: string[] | null;
   muscle: string | null;       // actual DB column name
   muscle_group: string | null; // alias kept for compatibility
   category: string | null;

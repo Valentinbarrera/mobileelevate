@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
+import { PrescriptionStrip, TechniqueBlock } from "./ExerciseMeta";
 import { calcPlates } from "@/lib/plates";
 import { getLastPerformance, getPR } from "@/lib/workoutLog";
 import { getLocalDateString } from "@/lib/date";
@@ -22,11 +23,16 @@ interface CoachExercise {
   sets: number;
   reps: string;
   restSeconds: number | null;
+  rir?: number | null;
+  tempo?: string | null;
+  method?: string | null;
   notes: string | null;
   videoUrl: string | null;
   thumbnail: string | null;
   muscleGroup: string | null;
   equipment: string | null;
+  description?: string | null;
+  instructions?: string[] | null;
 }
 
 interface CompletedSet {
@@ -271,6 +277,18 @@ const CoachExerciseCard = ({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 pb-4 space-y-3">
+                {/* Prescripción del coach: series · reps · descanso · RIR · tempo · método */}
+                <PrescriptionStrip
+                  data={{
+                    sets: exercise.sets,
+                    reps: exercise.reps,
+                    restSeconds: exercise.restSeconds,
+                    rir: exercise.rir,
+                    tempo: exercise.tempo,
+                    method: exercise.method,
+                  }}
+                />
+
                 {/* Video preview */}
                 {exercise.videoUrl && (
                   <div
@@ -300,6 +318,9 @@ const CoachExerciseCard = ({
                     </p>
                   </div>
                 )}
+
+                {/* Técnica / ejecución + paso a paso */}
+                <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
 
                 {/* ─── Tabla de series inline ─── */}
                 <div className="space-y-1.5">

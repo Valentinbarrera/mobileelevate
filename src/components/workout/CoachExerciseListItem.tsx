@@ -7,6 +7,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
+import { PrescriptionStrip, TechniqueBlock } from "./ExerciseMeta";
 
 interface CoachExercise {
   id: string;
@@ -15,11 +16,16 @@ interface CoachExercise {
   sets: number;
   reps: string;
   restSeconds: number | null;
+  rir?: number | null;
+  tempo?: string | null;
+  method?: string | null;
   notes: string | null;
   videoUrl: string | null;
   thumbnail: string | null;
   muscleGroup: string | null;
   equipment: string | null;
+  description?: string | null;
+  instructions?: string[] | null;
 }
 
 interface CoachExerciseListItemProps {
@@ -111,6 +117,21 @@ const CoachExerciseListItem = ({ exercise, index }: CoachExerciseListItemProps) 
               className="overflow-hidden"
             >
               <div className="px-4 pb-4 space-y-3">
+                {/* Prescripción del coach */}
+                <PrescriptionStrip
+                  data={{
+                    sets: exercise.sets,
+                    reps: exercise.reps,
+                    restSeconds: exercise.restSeconds,
+                    rir: exercise.rir,
+                    tempo: exercise.tempo,
+                    method: exercise.method,
+                  }}
+                />
+
+                {/* Técnica / ejecución + paso a paso */}
+                <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
+
                 {/* Serie por serie */}
                 <div className="rounded-xl bg-secondary/40 border border-white/[0.05] overflow-hidden">
                   <div className="grid grid-cols-[2rem_1fr_1fr] gap-2 px-3 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">

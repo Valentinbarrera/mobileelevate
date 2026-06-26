@@ -21,11 +21,16 @@ export interface TodayRoutineDay {
     sets: number;
     reps: string;
     restSeconds: number | null;
+    rir: number | null;
+    tempo: string | null;
+    method: string | null;
     notes: string | null;
     videoUrl: string | null;
     thumbnail: string | null;
     muscleGroup: string | null;
     equipment: string | null;
+    description: string | null;
+    instructions: string[] | null;
   }[];
   totalExercises: number;
   estimatedDuration: number; // in minutes
@@ -76,11 +81,16 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
     sets: re.series,
     reps: re.reps,
     restSeconds: re.rest,
+    rir: re.rir ?? null,
+    tempo: re.tempo ?? null,
+    method: re.training_method ?? re.type ?? null,
     notes: re.notes,
     videoUrl: re.exercise?.video_url || null,
     thumbnail: re.exercise?.thumbnail || re.exercise?.thumbnail_url || null,
     muscleGroup: re.exercise?.muscle_group || re.exercise?.muscle || null,
     equipment: re.exercise?.equipment || null,
+    description: re.exercise?.description ?? null,
+    instructions: re.exercise?.instructions ?? null,
   }));
 
   return {

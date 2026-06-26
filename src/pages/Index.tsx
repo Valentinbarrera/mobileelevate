@@ -22,8 +22,10 @@ import { useSessionOverrides } from "@/hooks/useSessionOverrides";
 import { localISODate } from "@/lib/routineSession";
 import { hasLoggedToday } from "@/lib/workoutLog";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useIsDesktop } from "@/hooks/use-media-query";
 
 const Index = () => {
+  const isDesktop = useIsDesktop();
   const { student, user, isAdminMode } = useAuthContext();
   const {
     activeRoutine,
@@ -102,6 +104,118 @@ const Index = () => {
     );
   }
 
+  // ── Fragmentos reutilizables (mismo elemento, se monta en UN solo layout) ──
+  const greeting = <Greeting userName={displayName} contextLine={contextLine} />;
+
+  const weeklyGoalCard = (
+    <WeeklyGoalCard
+      completedDates={completedDates}
+      goal={weeklyGoal}
+      streak={currentStreak}
+      bestTonnage={personalBestTonnage}
+    />
+  );
+
+  const hero =
+    todayRoutineDay && activeRoutine ? (
+      <>
+        <motion.div variants={fadeUp}>
+          <CoachWorkoutCard
+            routineDay={todayRoutineDay}
+            routineInfo={activeRoutine}
+            inProgress={inProgress}
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <ViewAllRoutinesLink />
+        </motion.div>
+      </>
+    ) : (
+      <motion.div variants={fadeUp}>
+        <RestDayCard
+          nextDay={nextRoutineDay}
+          nextDate={nextSessionDate}
+          routineId={activeRoutine?.id}
+        />
+      </motion.div>
+    );
+
+  const rescheduleBtn = activeRoutine && allDays.length > 0 && (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => setShowReschedule(true)}
+      className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground active:text-foreground hover:text-foreground py-1"
+    >
+      <RefreshCw className="w-4 h-4" />
+      Reprogramar el día de hoy
+    </motion.button>
+  );
+
+  const quickActions = <QuickActions />;
+
+  const planDays = activeRoutine && allDays.length > 0 && (
+    <PlanDaysCarousel
+      days={allDays}
+      todayId={todayRoutineDay?.id ?? null}
+      routineId={activeRoutine.id}
+    />
+  );
+
+  const coachCard = <CoachCard />;
+
+  const rescheduleSheet = (
+    <RescheduleSheet
+      open={showReschedule}
+      onClose={() => setShowReschedule(false)}
+      days={allDays}
+      todayId={todayRoutineDay?.id ?? null}
+      hasToday={!!todayRoutineDay}
+      onSwap={applySwap}
+      onRest={applyRest}
+      onReset={applyReset}
+      onMoveTomorrow={moveTomorrow}
+    />
+  );
+
+  // ── Desktop: dashboard cockpit (columna principal + rail derecho) ──
+  if (isDesktop) {
+    return (
+      <AppShell>
+        <div className="relative min-h-screen bg-background pb-10">
+          <motion.div
+            className="relative max-w-6xl mx-auto px-8"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            <Header userName={displayName} streakDays={currentStreak} />
+
+            <div className="mt-4">{greeting}</div>
+
+            <div className="mt-6 grid grid-cols-12 gap-6 items-start">
+              {/* Columna principal — el héroe del entreno de hoy */}
+              <div className="col-span-12 xl:col-span-7 space-y-5">
+                {hero}
+                {rescheduleBtn}
+                {planDays}
+              </div>
+
+              {/* Rail derecho — glance: meta, atajos, coach */}
+              <div className="col-span-12 xl:col-span-5 space-y-5">
+                {weeklyGoalCard}
+                {quickActions}
+                {coachCard}
+              </div>
+            </div>
+
+            {rescheduleSheet}
+          </motion.div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  // ── Mobile: columna única (sin cambios) ──
   return (
     <AppShell>
       <div className="relative min-h-screen bg-background pb-32 lg:pb-10">
@@ -115,79 +229,28 @@ const Index = () => {
 
         <div className="max-w-2xl mx-auto px-5 mt-3 space-y-5">
           {/* 1. Saludo contextual + motivador */}
-          <Greeting userName={displayName} contextLine={contextLine} />
+          {greeting}
 
           {/* 2. Objetivo semanal — glance arriba */}
-          <WeeklyGoalCard
-            completedDates={completedDates}
-            goal={weeklyGoal}
-            streak={currentStreak}
-            bestTonnage={personalBestTonnage}
-          />
+          {weeklyGoalCard}
 
           {/* 3. ENTRENO DE HOY — el HÉROE / acción principal de la pantalla */}
-          {todayRoutineDay && activeRoutine ? (
-            <>
-              <motion.div variants={fadeUp}>
-                <CoachWorkoutCard
-                  routineDay={todayRoutineDay}
-                  routineInfo={activeRoutine}
-                  inProgress={inProgress}
-                />
-              </motion.div>
-              <motion.div variants={fadeUp}>
-                <ViewAllRoutinesLink />
-              </motion.div>
-            </>
-          ) : (
-            <motion.div variants={fadeUp}>
-              <RestDayCard
-                nextDay={nextRoutineDay}
-                nextDate={nextSessionDate}
-                routineId={activeRoutine?.id}
-              />
-            </motion.div>
-          )}
+          {hero}
 
           {/* Reprogramar / cambiar el día de hoy */}
-          {activeRoutine && allDays.length > 0 && (
-            <motion.button
-              variants={fadeUp}
-              onClick={() => setShowReschedule(true)}
-              className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground active:text-foreground py-1"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Reprogramar el día de hoy
-            </motion.button>
-          )}
+          {rescheduleBtn}
 
           {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
-          <QuickActions />
+          {quickActions}
 
           {/* 5. Carrusel del plan */}
-          {activeRoutine && allDays.length > 0 && (
-            <PlanDaysCarousel
-              days={allDays}
-              todayId={todayRoutineDay?.id ?? null}
-              routineId={activeRoutine.id}
-            />
-          )}
+          {planDays}
 
           {/* 6. Card del coach — el diferenciador coach→alumno */}
-          <CoachCard />
+          {coachCard}
         </div>
 
-        <RescheduleSheet
-          open={showReschedule}
-          onClose={() => setShowReschedule(false)}
-          days={allDays}
-          todayId={todayRoutineDay?.id ?? null}
-          hasToday={!!todayRoutineDay}
-          onSwap={applySwap}
-          onRest={applyRest}
-          onReset={applyReset}
-          onMoveTomorrow={moveTomorrow}
-        />
+        {rescheduleSheet}
         </motion.div>
       </div>
     </AppShell>

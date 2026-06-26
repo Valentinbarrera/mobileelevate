@@ -154,7 +154,7 @@ export default function Messages() {
       >
         {/* Header */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50 px-5 py-4">
-          <div className="max-w-2xl mx-auto flex items-center gap-3">
+          <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -169,7 +169,7 @@ export default function Messages() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto py-4 space-y-3" ref={scrollRef}>
-          <div className="max-w-2xl mx-auto px-5 space-y-3">
+          <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 space-y-3">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -215,7 +215,7 @@ export default function Messages() {
 
         {/* Input */}
         <div className="sticky bottom-28 lg:bottom-0 bg-background border-t border-border/50 px-5 py-3">
-          <div className="max-w-2xl mx-auto flex items-end gap-2">
+          <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-end gap-2">
             <Input
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
