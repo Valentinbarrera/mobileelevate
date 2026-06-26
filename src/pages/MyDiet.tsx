@@ -102,7 +102,7 @@ export default function MyDiet() {
       >
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 py-3">
+          <div className="max-w-4xl mx-auto flex items-center gap-3 px-5 lg:px-8 py-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -116,7 +116,7 @@ export default function MyDiet() {
           </div>
         </header>
 
-        <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
+        <div className="max-w-4xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
           {/* Resumen del día */}
           {hasDiet && (
             <motion.div variants={fadeUp} className="card-hero rounded-2xl p-4">
@@ -214,7 +214,8 @@ export default function MyDiet() {
             </motion.div>
           )}
 
-          {/* Comidas */}
+          {/* Comidas (grilla de 2 columnas en desktop) */}
+          <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:items-start space-y-4">
           {meals.map((meal) => {
             const mt = sumFoods(meal.foods);
             return (
@@ -288,6 +289,7 @@ export default function MyDiet() {
               </motion.div>
             );
           })}
+          </div>
 
           {/* Agregar comida */}
           {hasDiet && (

@@ -64,7 +64,7 @@ export default function ProgressPhotos() {
       >
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 py-3">
+          <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 py-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -78,7 +78,7 @@ export default function ProgressPhotos() {
           </div>
         </header>
 
-        <div className="max-w-2xl mx-auto px-5 pt-5 space-y-5">
+        <div className="max-w-3xl mx-auto px-5 pt-5 space-y-5">
           {/* Toggle galería / comparar */}
           {hasPhotos && (
             <div className="flex gap-2 p-1 rounded-2xl bg-secondary/40 border border-border/50">

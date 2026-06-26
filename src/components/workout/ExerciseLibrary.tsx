@@ -36,7 +36,7 @@ const ExerciseLibrary = ({ onClose }: { onClose: () => void }) => {
     <div className="min-h-screen bg-background pb-28 lg:pb-10">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-3xl mx-auto px-5 py-3">
+        <div className="max-w-5xl mx-auto px-5 py-3">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground">
               <ArrowLeft className="w-5 h-5" />
@@ -73,7 +73,7 @@ const ExerciseLibrary = ({ onClose }: { onClose: () => void }) => {
 
         {/* Filtro por músculo */}
         {muscles.length > 0 && (
-          <div className="max-w-3xl mx-auto flex gap-1.5 overflow-x-auto scrollbar-hide px-5 pb-3">
+          <div className="max-w-5xl mx-auto flex gap-1.5 overflow-x-auto scrollbar-hide px-5 pb-3">
             <button
               onClick={() => setMuscle(null)}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
@@ -98,7 +98,7 @@ const ExerciseLibrary = ({ onClose }: { onClose: () => void }) => {
       </div>
 
       {/* Contenido */}
-      <div className="max-w-3xl mx-auto px-5 pt-4">
+      <div className="max-w-5xl mx-auto px-5 pt-4">
         {loading ? (
           <div className="flex justify-center py-20">
             <LoadingSpinner size="lg" />
@@ -111,7 +111,7 @@ const ExerciseLibrary = ({ onClose }: { onClose: () => void }) => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filtered.map((ex, i) => (
               <motion.button
                 key={ex.id}
