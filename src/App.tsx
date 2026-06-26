@@ -74,18 +74,21 @@ const App = () => (
             <Route path="/free-workout" element={<ProtectedRoute><Lazy><FreeWorkout /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
 
-            {/* Pantallas con nav persistente + transición de contenido */}
+            {/* Pantallas con nav persistente + transición de contenido.
+                El Suspense vive en AppLayout (fuera del AnimatePresence), así que
+                acá NO envolvemos en <Lazy> para evitar la pantalla en negro al
+                entrar por primera vez a una pantalla aún no cargada. */}
             <Route element={<AppLayout />}>
-              <Route path="/" element={<ProtectedRoute><Lazy><Index /></Lazy></ProtectedRoute>} />
-              <Route path="/routines" element={<ProtectedRoute><Lazy><Routines /></Lazy></ProtectedRoute>} />
-              <Route path="/exercises" element={<ProtectedRoute><Lazy><ExerciseLibraryPage /></Lazy></ProtectedRoute>} />
-              <Route path="/progress" element={<ProtectedRoute><Lazy><Progress /></Lazy></ProtectedRoute>} />
-              <Route path="/progress/photos" element={<ProtectedRoute><Lazy><ProgressPhotos /></Lazy></ProtectedRoute>} />
-              <Route path="/measurements" element={<ProtectedRoute><Lazy><Measurements /></Lazy></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
-              <Route path="/nutrition" element={<ProtectedRoute><Lazy><Nutrition /></Lazy></ProtectedRoute>} />
-              <Route path="/nutrition/my-diet" element={<ProtectedRoute><Lazy><MyDiet /></Lazy></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
+              <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
+              <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
+              <Route path="/progress/photos" element={<ProtectedRoute><ProgressPhotos /></ProtectedRoute>} />
+              <Route path="/measurements" element={<ProtectedRoute><Measurements /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
+              <Route path="/nutrition/my-diet" element={<ProtectedRoute><MyDiet /></ProtectedRoute>} />
             </Route>
 
             {/* Catch-all */}
