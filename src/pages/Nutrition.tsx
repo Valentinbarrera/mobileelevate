@@ -7,7 +7,8 @@
  */
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
@@ -240,12 +241,30 @@ const WaterTracker = ({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Nutrition() {
+  const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { data: plan, isLoading, error, refetch } = useStudentNutrition();
   const [dayIndex, setDayIndex] = useState(0);
   const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
     useDailyNutritionTracking();
   const [showFoodSheet, setShowFoodSheet] = useState(false);
+
+  const myDietEntry = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => navigate("/nutrition/my-diet")}
+      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+        <Soup className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Mi dieta</p>
+        <p className="text-sm font-semibold text-foreground">Diseñá tu propio plan</p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </motion.button>
+  );
 
   const foodLogSection = (
     <FoodLogSection
@@ -286,9 +305,10 @@ export default function Nutrition() {
           <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
             <div className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
               <p className="text-sm text-foreground/80">
-                Tu coach todavía no te asignó un plan, pero podés registrar lo que comés. 🍽️
+                Tu coach todavía no te asignó un plan, pero podés diseñar tu dieta y registrar lo que comés. 🍽️
               </p>
             </div>
+            {myDietEntry}
             {foodLogSection}
           </div>
 
@@ -497,6 +517,7 @@ export default function Nutrition() {
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {macroSummary}
                     {daySelector}
+                    {myDietEntry}
                     {waterTracker}
                   </div>
                 </div>
@@ -514,6 +535,7 @@ export default function Nutrition() {
               {dayNotes}
               {mealsBlock}
               {foodLogSection}
+              {myDietEntry}
               {waterTracker}
             </div>
           );
