@@ -97,32 +97,23 @@ const NavFab = ({
       {label}
     </span>
 
-    {/* Órbita: un punto que circula suave alrededor del botón (acento "vivo") */}
-    <motion.span
-      className="absolute left-1/2 -translate-x-1/2 w-[74px] h-[74px] pointer-events-none z-10"
-      style={{ top: "-39px" }}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-      aria-hidden
-    >
-      <span
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white"
-        style={{ boxShadow: "0 0 10px hsl(18 100% 60%), 0 0 4px hsl(18 100% 60%)" }}
-      />
-    </motion.span>
-
     {/* Círculo flotante (absoluto, centrado en la celda completa, elevado).
-        Centrado por CSS puro — sin animar transform para no pisar el translate. */}
-    <span
+        Centrado por CSS puro — sin animar transform para no pisar el translate.
+        Animación leve: el glow "respira" (solo box-shadow, no toca transform). */}
+    <motion.span
       className="absolute left-1/2 -translate-x-1/2 -top-8 w-[60px] h-[60px] rounded-[20px] flex items-center justify-center ring-4 ring-background"
-      style={{
-        background: "linear-gradient(145deg, hsl(18 100% 61%), hsl(22 100% 46%))",
-        boxShadow:
-          "0 10px 24px hsl(18 100% 55% / 0.45), 0 1px 0 rgba(255,255,255,0.3) inset, 0 0 0 1px hsl(18 100% 50% / 0.5)",
+      style={{ background: "linear-gradient(145deg, hsl(18 100% 61%), hsl(22 100% 46%))" }}
+      animate={{
+        boxShadow: [
+          "0 10px 24px hsl(18 100% 55% / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0px hsl(18 100% 60% / 0)",
+          "0 10px 24px hsl(18 100% 55% / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 22px hsl(18 100% 60% / 0.55)",
+          "0 10px 24px hsl(18 100% 55% / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0px hsl(18 100% 60% / 0)",
+        ],
       }}
+      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
     >
       <Icon className="w-7 h-7 text-white" strokeWidth={2.4} />
-    </span>
+    </motion.span>
   </motion.button>
 );
 
