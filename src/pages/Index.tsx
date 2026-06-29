@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -21,11 +22,13 @@ import { useProgressData } from "@/hooks/useProgressData";
 import { useSessionOverrides } from "@/hooks/useSessionOverrides";
 import { localISODate } from "@/lib/routineSession";
 import { hasLoggedToday } from "@/lib/workoutLog";
+import { isOnboardingComplete } from "@/lib/onboarding";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 
 const Index = () => {
   const isDesktop = useIsDesktop();
+  const navigate = useNavigate();
   const { student, user, isAdminMode } = useAuthContext();
   const {
     activeRoutine,
@@ -42,6 +45,17 @@ const Index = () => {
   const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
   const { setForDate } = useSessionOverrides(overrideSid);
   const [showReschedule, setShowReschedule] = useState(false);
+
+  // Onboarding obligatorio la 1ª vez: si es alumno real y no completó el
+  // cuestionario, lo llevamos una vez por sesión (flag para no atraparlo si sale).
+  useEffect(() => {
+    const isReal = !!student?.id && !isAdminMode;
+    if (!isReal) return;
+    if (isOnboardingComplete(student.id)) return;
+    if (sessionStorage.getItem("elevate_onboarding_prompted")) return;
+    sessionStorage.setItem("elevate_onboarding_prompted", "1");
+    navigate("/onboarding");
+  }, [student, isAdminMode, navigate]);
 
   const today = localISODate();
   const tomorrow = (() => {

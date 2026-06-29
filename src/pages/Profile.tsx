@@ -83,6 +83,12 @@ const Profile = () => {
                 )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
               </button>
+              <button
+                onClick={() => navigate("/cuestionarios")}
+                className="mt-2 text-xs font-bold text-primary px-1 active:opacity-70"
+              >
+                Ver todos los cuestionarios →
+              </button>
             </motion.div>
           );
 
