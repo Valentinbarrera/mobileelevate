@@ -6,12 +6,13 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 import { calcPlates } from "@/lib/plates";
+import { playSetLoggedSound, playPRSound } from "@/lib/sound";
 import { getLastPerformance, getPR } from "@/lib/workoutLog";
 import { getLocalDateString } from "@/lib/date";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +67,13 @@ interface CoachExerciseCardProps {
     reps: number,
     difficulty: string
   ) => Promise<boolean>;
+  onUpdateSet?: (
+    exerciseId: string,
+    setNumber: number,
+    weight: number,
+    reps: number
+  ) => Promise<boolean>;
+  onDeleteSet?: (exerciseId: string, setNumber: number) => Promise<boolean>;
 }
 
 interface PerformanceRecord {
@@ -88,6 +96,8 @@ const CoachExerciseCard = ({
   group,
   onSelect,
   onCompleteSet,
+  onUpdateSet,
+  onDeleteSet,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
@@ -101,6 +111,16 @@ const CoachExerciseCard = ({
   const [editReps, setEditReps] = useState("");
   const [logging, setLogging] = useState(false);
   const [showPlates, setShowPlates] = useState(false);
+
+  // Feedback al registrar (flash + pop del check, y burst de PR)
+  const [justLogged, setJustLogged] = useState<number | null>(null);
+  const [prSet, setPrSet] = useState<number | null>(null);
+
+  // Edición de una serie ya cargada (modificar kg/reps o borrar)
+  const [editingSetNum, setEditingSetNum] = useState<number | null>(null);
+  const [editSetWeight, setEditSetWeight] = useState("");
+  const [editSetReps, setEditSetReps] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     const sid = student?.id || (isAdminMode ? "admin" : null);
@@ -176,12 +196,61 @@ const CoachExerciseCard = ({
       toast.error("Ingresá las repeticiones");
       return;
     }
+    const loggedSetNum = currentSetNumber;
     setLogging(true);
-    const ok = await onCompleteSet(exercise.id, currentSetNumber, w, r, "moderate");
+    const ok = await onCompleteSet(exercise.id, loggedSetNum, w, r, "moderate");
     setLogging(false);
-    if (ok && personalRecord?.maxWeight && w > personalRecord.maxWeight) {
+    if (!ok) return;
+
+    const isPR = !!personalRecord?.maxWeight && w > personalRecord.maxWeight;
+    if (isPR) {
+      playPRSound();
       toast.success(`🏆 ¡Nuevo PR en ${exercise.name}! ${w} kg`);
       setPersonalRecord({ ...personalRecord, maxWeight: w });
+      setPrSet(loggedSetNum);
+      setTimeout(() => setPrSet(null), 1500);
+    } else {
+      playSetLoggedSound();
+    }
+
+    // Flash + pop del check en la fila recién registrada
+    setJustLogged(loggedSetNum);
+    setTimeout(() => setJustLogged(null), 750);
+  };
+
+  const startEditSet = (s: CompletedSet) => {
+    setEditingSetNum(s.setNumber);
+    setEditSetWeight(String(s.weight));
+    setEditSetReps(String(s.reps));
+  };
+
+  const cancelEditSet = () => setEditingSetNum(null);
+
+  const saveEditSet = async () => {
+    if (editingSetNum == null || !onUpdateSet) return;
+    const w = parseFloat(editSetWeight) || 0;
+    const r = parseInt(editSetReps, 10) || 0;
+    if (r <= 0) {
+      toast.error("Ingresá las repeticiones");
+      return;
+    }
+    setSavingEdit(true);
+    const ok = await onUpdateSet(exercise.id, editingSetNum, w, r);
+    setSavingEdit(false);
+    if (ok) {
+      toast.success("Serie actualizada");
+      setEditingSetNum(null);
+    }
+  };
+
+  const deleteEditSet = async () => {
+    if (editingSetNum == null || !onDeleteSet) return;
+    setSavingEdit(true);
+    const ok = await onDeleteSet(exercise.id, editingSetNum);
+    setSavingEdit(false);
+    if (ok) {
+      toast.success("Serie borrada");
+      setEditingSetNum(null);
     }
   };
 
@@ -301,11 +370,12 @@ const CoachExerciseCard = ({
                   }}
                 />
 
-                {/* Video preview */}
-                {exercise.videoUrl && (
-                  <div
-                    className="relative h-40 rounded-xl overflow-hidden bg-secondary cursor-pointer"
+                {/* Video de técnica */}
+                {exercise.videoUrl ? (
+                  <button
+                    type="button"
                     onClick={() => setShowVideo(true)}
+                    className="relative w-full h-40 rounded-xl overflow-hidden bg-secondary active:scale-[0.99] transition-transform"
                   >
                     {exercise.thumbnail ? (
                       <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
@@ -314,11 +384,25 @@ const CoachExerciseCard = ({
                         <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
                       <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
                         <Play className="w-6 h-6 text-primary fill-current ml-1" />
                       </div>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">Ver técnica</span>
                     </div>
+                  </button>
+                ) : (
+                  <div className="w-full flex items-center gap-3 rounded-xl border border-dashed border-border bg-secondary/30 px-3.5 py-3">
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                      <Video className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Video de técnica</p>
+                      <p className="text-xs text-muted-foreground">Pronto vas a poder ver la ejecución</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
+                      Próximamente
+                    </span>
                   </div>
                 )}
 
@@ -349,7 +433,7 @@ const CoachExerciseCard = ({
                   {rows.map(({ setNum, logged, isCurrent }) => (
                     <div
                       key={setNum}
-                      className={`grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
+                      className={`relative grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
                         logged
                           ? "bg-emerald-500/10"
                           : isCurrent
@@ -357,34 +441,130 @@ const CoachExerciseCard = ({
                             : "opacity-50"
                       }`}
                     >
-                      {/* Set # */}
-                      <span
-                        className={`text-center text-sm font-bold ${
-                          logged ? "text-emerald-500" : "text-muted-foreground"
-                        }`}
-                      >
-                        {setNum}
-                      </span>
+                      {/* Feedback al registrar: flash + burst de PR */}
+                      {justLogged === setNum && (
+                        <motion.span
+                          className="absolute inset-0 rounded-xl bg-emerald-400/25 pointer-events-none"
+                          initial={{ opacity: 0.9 }}
+                          animate={{ opacity: 0 }}
+                          transition={{ duration: 0.65 }}
+                        />
+                      )}
+                      {prSet === setNum && (
+                        <motion.span
+                          className="absolute right-2 -top-2 z-10 text-lg pointer-events-none"
+                          initial={{ scale: 0, y: 4, opacity: 0 }}
+                          animate={{ scale: [0, 1.3, 1], y: -22, opacity: [0, 1, 0] }}
+                          transition={{ duration: 1.3, ease: "easeOut" }}
+                        >
+                          🏆
+                        </motion.span>
+                      )}
 
-                      {/* Anterior */}
-                      <span className="text-center text-xs text-muted-foreground tabular-nums">
-                        {previousHint}
-                      </span>
+                      {/* Set # · en edición → cancelar */}
+                      {logged && editingSetNum === setNum ? (
+                        <button
+                          type="button"
+                          onClick={cancelEditSet}
+                          className="flex items-center justify-center text-muted-foreground"
+                          aria-label="Cancelar edición"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <span
+                          className={`text-center text-sm font-bold ${
+                            logged ? "text-emerald-500" : "text-muted-foreground"
+                          }`}
+                        >
+                          {setNum}
+                        </span>
+                      )}
+
+                      {/* Anterior · en edición de la última serie → borrar */}
+                      {logged && editingSetNum === setNum && setNum === doneCount ? (
+                        <button
+                          type="button"
+                          onClick={deleteEditSet}
+                          disabled={savingEdit}
+                          className="flex items-center justify-center text-red-400 disabled:opacity-50"
+                          aria-label={`Borrar serie ${setNum}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <span className="text-center text-xs text-muted-foreground tabular-nums">
+                          {previousHint}
+                        </span>
+                      )}
 
                       {logged ? (
-                        <>
-                          <span className="text-center text-base font-bold text-foreground tabular-nums">
-                            {logged.weight}
-                          </span>
-                          <span className="text-center text-base font-bold text-foreground tabular-nums">
-                            {logged.reps}
-                          </span>
-                          <div className="flex justify-center">
-                            <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        editingSetNum === setNum ? (
+                          <>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              value={editSetWeight}
+                              onChange={(e) => setEditSetWeight(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              placeholder="0"
+                              className="w-full h-11 rounded-lg bg-secondary border border-primary/50 text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+                            />
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={editSetReps}
+                              onChange={(e) => setEditSetReps(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              onKeyDown={(e) => e.key === "Enter" && saveEditSet()}
+                              placeholder="0"
+                              className="w-full h-11 rounded-lg bg-secondary border border-primary/50 text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+                            />
+                            <div className="flex justify-center">
+                              <motion.button
+                                onClick={saveEditSet}
+                                disabled={savingEdit}
+                                whileTap={{ scale: 0.9 }}
+                                className="w-full h-11 rounded-lg bg-primary flex items-center justify-center disabled:opacity-50"
+                                aria-label={`Guardar serie ${setNum}`}
+                              >
+                                <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+                              </motion.button>
                             </div>
-                          </div>
-                        </>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => startEditSet(logged)}
+                              className="w-full text-center text-base font-bold text-foreground tabular-nums"
+                            >
+                              {logged.weight}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => startEditSet(logged)}
+                              className="w-full text-center text-base font-bold text-foreground tabular-nums"
+                            >
+                              {logged.reps}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => startEditSet(logged)}
+                              className="flex justify-center"
+                              aria-label={`Editar serie ${setNum}`}
+                            >
+                              <motion.div
+                                className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center"
+                                initial={justLogged === setNum ? { scale: 0, rotate: -90 } : false}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 14 }}
+                              >
+                                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                              </motion.div>
+                            </button>
+                          </>
+                        )
                       ) : isCurrent ? (
                         <>
                           <input
@@ -445,36 +625,120 @@ const CoachExerciseCard = ({
                     {rows.map(({ setNum, logged, isCurrent }) => (
                       <div
                         key={setNum}
-                        className={`grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border border-t border-border transition-colors ${
+                        className={`relative grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border border-t border-border transition-colors ${
                           logged ? "bg-emerald-500/10" : isCurrent ? "bg-primary/10" : "opacity-60"
                         }`}
                       >
-                        <span
-                          className={`flex items-center justify-center text-sm font-bold ${
-                            logged ? "text-emerald-500" : isCurrent ? "text-primary" : "text-muted-foreground"
-                          }`}
-                        >
-                          {setNum}
-                        </span>
+                        {/* Feedback al registrar: flash (dorado si es PR) */}
+                        {justLogged === setNum && (
+                          <motion.span
+                            className={`absolute inset-0 z-10 pointer-events-none ${
+                              prSet === setNum ? "bg-amber-400/30" : "bg-emerald-400/25"
+                            }`}
+                            initial={{ opacity: 0.9 }}
+                            animate={{ opacity: 0 }}
+                            transition={{ duration: 0.65 }}
+                          />
+                        )}
+
+                        {logged && editingSetNum === setNum ? (
+                          <button
+                            type="button"
+                            onClick={cancelEditSet}
+                            className="flex items-center justify-center text-muted-foreground"
+                            aria-label="Cancelar edición"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <span
+                            className={`flex items-center justify-center text-sm font-bold ${
+                              logged ? "text-emerald-500" : isCurrent ? "text-primary" : "text-muted-foreground"
+                            }`}
+                          >
+                            {setNum}
+                          </span>
+                        )}
                         <span className="flex items-center justify-center text-xs font-semibold text-muted-foreground tabular-nums">
                           {exercise.reps}
                         </span>
-                        <span className="flex items-center justify-center text-[11px] text-muted-foreground tabular-nums px-0.5">
-                          {previousHint}
-                        </span>
+                        {logged && editingSetNum === setNum && setNum === doneCount ? (
+                          <button
+                            type="button"
+                            onClick={deleteEditSet}
+                            disabled={savingEdit}
+                            className="flex items-center justify-center text-red-400 disabled:opacity-50"
+                            aria-label={`Borrar serie ${setNum}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <span className="flex items-center justify-center text-[11px] text-muted-foreground tabular-nums px-0.5">
+                            {previousHint}
+                          </span>
+                        )}
 
                         {logged ? (
-                          <>
-                            <span className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums">
-                              {logged.weight}
-                            </span>
-                            <span className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums">
-                              {logged.reps}
-                            </span>
-                            <span className="flex items-center justify-center bg-emerald-500/90">
-                              <Check className="w-4 h-4 text-white" strokeWidth={3} />
-                            </span>
-                          </>
+                          editingSetNum === setNum ? (
+                            <>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                value={editSetWeight}
+                                onChange={(e) => setEditSetWeight(e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                                placeholder="0"
+                                className="w-full min-w-0 h-11 bg-primary/5 text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
+                              />
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                value={editSetReps}
+                                onChange={(e) => setEditSetReps(e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                                onKeyDown={(e) => e.key === "Enter" && saveEditSet()}
+                                placeholder="0"
+                                className="w-full min-w-0 h-11 bg-primary/5 text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
+                              />
+                              <motion.button
+                                onClick={saveEditSet}
+                                disabled={savingEdit}
+                                whileTap={{ scale: 0.9 }}
+                                className="flex items-center justify-center bg-primary disabled:opacity-50"
+                                aria-label={`Guardar serie ${setNum}`}
+                              >
+                                <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+                              </motion.button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => startEditSet(logged)}
+                                className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums"
+                              >
+                                {logged.weight}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => startEditSet(logged)}
+                                className="flex items-center justify-center py-2.5 text-base font-bold text-foreground tabular-nums"
+                              >
+                                {logged.reps}
+                              </button>
+                              <motion.button
+                                type="button"
+                                onClick={() => startEditSet(logged)}
+                                className="flex items-center justify-center bg-emerald-500/90"
+                                aria-label={`Editar serie ${setNum}`}
+                                initial={justLogged === setNum ? { scale: 0.4, opacity: 0 } : false}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 14 }}
+                              >
+                                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                              </motion.button>
+                            </>
+                          )
                         ) : isCurrent ? (
                           <>
                             <input

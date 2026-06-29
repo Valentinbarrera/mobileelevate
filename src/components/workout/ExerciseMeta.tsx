@@ -111,7 +111,7 @@ export const TechniqueBlock = ({
       )}
       {steps.length > 0 && (
         <div>
-          <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1.5">Paso a paso</p>
+          <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1.5">Posición inicial</p>
           <ol className="space-y-1.5">
             {steps.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground/85 leading-relaxed">

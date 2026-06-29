@@ -44,6 +44,43 @@ export function getExerciseSets(studentId: string, exerciseId: string): LoggedSe
   return read(studentId).filter((s) => s.exerciseId === exerciseId);
 }
 
+/** Edita la última serie cargada que coincida (mismo ejercicio/fecha/número). */
+export function updateLoggedSet(
+  studentId: string,
+  exerciseId: string,
+  date: string,
+  setNumber: number,
+  patch: { weight: number; reps: number }
+) {
+  const all = read(studentId);
+  for (let i = all.length - 1; i >= 0; i--) {
+    const s = all[i];
+    if (s.exerciseId === exerciseId && s.date === date && s.setNumber === setNumber) {
+      all[i] = { ...s, ...patch };
+      write(studentId, all);
+      return;
+    }
+  }
+}
+
+/** Borra la última serie cargada que coincida (mismo ejercicio/fecha/número). */
+export function deleteLoggedSet(
+  studentId: string,
+  exerciseId: string,
+  date: string,
+  setNumber: number
+) {
+  const all = read(studentId);
+  for (let i = all.length - 1; i >= 0; i--) {
+    const s = all[i];
+    if (s.exerciseId === exerciseId && s.date === date && s.setNumber === setNumber) {
+      all.splice(i, 1);
+      write(studentId, all);
+      return;
+    }
+  }
+}
+
 /** ¿Ya hay series cargadas HOY para alguno de estos ejercicios? (entreno en curso) */
 export function hasLoggedToday(studentId: string, exerciseIds: string[], date: string): boolean {
   if (!exerciseIds.length) return false;

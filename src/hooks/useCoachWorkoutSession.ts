@@ -10,7 +10,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { getLocalDateString, getStartOfWeekLocal } from "@/lib/date";
 import { getUserErrorMessage } from "@/lib/errors";
-import { logSet } from "@/lib/workoutLog";
+import { logSet, updateLoggedSet, deleteLoggedSet } from "@/lib/workoutLog";
 
 interface CoachExercise {
   id: string;
@@ -209,6 +209,75 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     }
   }, [session, student, isAdminMode]);
 
+  // Editar una serie ya cargada (modificar kg/reps sobre la marcha)
+  const updateSet = useCallback(async (
+    exerciseId: string,
+    setNumber: number,
+    weight: number,
+    reps: number
+  ): Promise<boolean> => {
+    if (!session) return false;
+
+    const localStudentId = student?.id || (isAdminMode ? "admin" : "anon");
+    updateLoggedSet(localStudentId, exerciseId, session.date, setNumber, { weight, reps });
+
+    if (session.id === LOCAL_SESSION_ID) return true;
+
+    try {
+      const tonnage = weight * reps;
+      const { error } = await supabase
+        .from("completed_exercises")
+        .update({ reps, weight: weight || null, tonnage: tonnage || null })
+        .eq("completed_session_id", session.id)
+        .eq("routine_exercise_id", exerciseId)
+        .eq("series", setNumber);
+
+      if (error) {
+        if (import.meta.env.DEV) console.warn("Error updating set:", error);
+        toast.error("Error al actualizar la serie");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error("Error updating set:", error);
+      toast.error(getUserErrorMessage(error, "Error al actualizar la serie"));
+      return false;
+    }
+  }, [session, student, isAdminMode]);
+
+  // Borrar una serie ya cargada (deshacer / volver atrás)
+  const deleteSet = useCallback(async (
+    exerciseId: string,
+    setNumber: number
+  ): Promise<boolean> => {
+    if (!session) return false;
+
+    const localStudentId = student?.id || (isAdminMode ? "admin" : "anon");
+    deleteLoggedSet(localStudentId, exerciseId, session.date, setNumber);
+
+    if (session.id === LOCAL_SESSION_ID) return true;
+
+    try {
+      const { error } = await supabase
+        .from("completed_exercises")
+        .delete()
+        .eq("completed_session_id", session.id)
+        .eq("routine_exercise_id", exerciseId)
+        .eq("series", setNumber);
+
+      if (error) {
+        if (import.meta.env.DEV) console.warn("Error deleting set:", error);
+        toast.error("Error al borrar la serie");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error("Error deleting set:", error);
+      toast.error(getUserErrorMessage(error, "Error al borrar la serie"));
+      return false;
+    }
+  }, [session, student, isAdminMode]);
+
   const finishSession = useCallback(async (
     totalDurationSeconds: number,
     notes?: string
@@ -259,6 +328,8 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     loading,
     startSession,
     completeSet,
+    updateSet,
+    deleteSet,
     finishSession,
   };
 }

@@ -22,6 +22,7 @@ import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal"
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
+import { playStartSound } from "@/lib/sound";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import type { DifficultyLevel } from "@/types/database";
@@ -60,11 +61,13 @@ const CoachWorkoutDetail = () => {
   const routineId = navState?.routineId || activeRoutine?.id || "";
   
   // Session persistence hook
-  const { 
-    session, 
-    startSession, 
-    completeSet: persistSet, 
-    finishSession 
+  const {
+    session,
+    startSession,
+    completeSet: persistSet,
+    updateSet: persistUpdateSet,
+    deleteSet: persistDeleteSet,
+    finishSession
   } = useCoachWorkoutSession(routineDayId || "", routineId);
 
   // State
@@ -134,6 +137,9 @@ const CoachWorkoutDetail = () => {
       });
       return;
     }
+
+    // Sonido + vibración de arranque (dentro del gesto del usuario)
+    playStartSound();
 
     // Start session in database
     const newSession = await startSession();
@@ -233,6 +239,63 @@ const CoachWorkoutDetail = () => {
 
     return savedSuccessfully;
   }, [routineDay, session, persistSet]);
+
+  // Editar una serie ya cargada (modificar kg/reps sobre la marcha)
+  const handleUpdateSet = useCallback(async (
+    exerciseId: string,
+    setNumber: number,
+    weight: number,
+    reps: number
+  ): Promise<boolean> => {
+    if (!routineDay) return false;
+    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return false;
+
+    let ok = true;
+    if (session) ok = await persistUpdateSet(exerciseId, setNumber, weight, reps);
+
+    setExerciseStates(prev => {
+      const newStates = new Map(prev);
+      const state = newStates.get(exerciseId);
+      if (!state) return prev;
+      const completedSets = state.completedSets.map(s =>
+        s.setNumber === setNumber ? { ...s, weight, reps } : s
+      );
+      newStates.set(exerciseId, { ...state, completedSets });
+      return newStates;
+    });
+
+    return ok;
+  }, [routineDay, session, persistUpdateSet]);
+
+  // Borrar una serie ya cargada (deshacer / volver atrás)
+  const handleDeleteSet = useCallback(async (
+    exerciseId: string,
+    setNumber: number
+  ): Promise<boolean> => {
+    if (!routineDay) return false;
+    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return false;
+
+    let ok = true;
+    if (session) ok = await persistDeleteSet(exerciseId, setNumber);
+
+    setExerciseStates(prev => {
+      const newStates = new Map(prev);
+      const state = newStates.get(exerciseId);
+      if (!state) return prev;
+      const completedSets = state.completedSets.filter(s => s.setNumber !== setNumber);
+      newStates.set(exerciseId, {
+        ...state,
+        completedSets,
+        currentSet: completedSets.length,
+        completed: completedSets.length >= exercise.sets,
+      });
+      return newStates;
+    });
+
+    return ok;
+  }, [routineDay, session, persistDeleteSet]);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
@@ -490,6 +553,8 @@ const CoachWorkoutDetail = () => {
                     group={exerciseGroups.get(exercise.id)}
                     onSelect={() => setActiveExerciseId(exercise.id)}
                     onCompleteSet={handleCompleteSet}
+                    onUpdateSet={handleUpdateSet}
+                    onDeleteSet={handleDeleteSet}
                   />
                 );
               })()}
@@ -510,6 +575,8 @@ const CoachWorkoutDetail = () => {
                   group={exerciseGroups.get(exercise.id)}
                   onSelect={() => setActiveExerciseId(exercise.id)}
                   onCompleteSet={handleCompleteSet}
+                  onUpdateSet={handleUpdateSet}
+                  onDeleteSet={handleDeleteSet}
                 />
               ) : (
                 <CoachExerciseListItem
