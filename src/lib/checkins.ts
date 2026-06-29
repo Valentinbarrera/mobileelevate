@@ -1,8 +1,11 @@
 /**
- * Check-ins post-entreno (LOCAL). El alumno registra cómo le fue (esfuerzo/RPE,
- * energía, sueño + nota). Son datos de recuperación que el coach usa para
- * ajustar el plan. Guardado local; se sincroniza a la base más adelante.
+ * Check-ins post-entreno. El alumno registra cómo le fue (esfuerzo/RPE, energía,
+ * sueño + nota). Son datos de recuperación que el coach usa para ajustar el plan.
+ * Guardado LOCAL + dual-write best-effort a Supabase (tabla daily_tracking) para
+ * que el coach los vea — requiere correr scripts/setup-daily-tracking.sql.
  */
+import { upsertCheckInRemote } from "./dailyTrackingApi";
+
 export interface CheckInData {
   rpe: number; // 1-10 esfuerzo percibido
   energy: number; // 1-5
@@ -34,6 +37,15 @@ export function saveCheckIn(studentId: string, entry: CheckIn) {
   } catch {
     /* almacenamiento no disponible */
   }
+  // Remoto best-effort (solo alumno real; la API ignora "admin"/"anon" y falla suave)
+  upsertCheckInRemote(studentId, {
+    date: entry.date,
+    rpe: entry.rpe,
+    energy: entry.energy,
+    sleep: entry.sleep,
+    note: entry.note,
+    workoutName: entry.workoutName,
+  });
 }
 
 export function getCheckIns(studentId: string): CheckIn[] {

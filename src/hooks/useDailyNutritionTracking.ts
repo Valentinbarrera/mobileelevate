@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLocalDateString } from "@/lib/date";
 import { addNutritionLogRemote, removeNutritionLogRemote } from "@/lib/nutritionLogApi";
+import { upsertWaterRemote } from "@/lib/dailyTrackingApi";
 
 export type MealType = "desayuno" | "almuerzo" | "merienda" | "cena" | "snack";
 
@@ -132,9 +133,14 @@ export function useDailyNutritionTracking() {
     [log, canSync, student, date]
   );
 
-  const setWater = useCallback((n: number) => {
-    setLog((prev) => ({ ...prev, water: Math.max(0, n) }));
-  }, []);
+  const setWater = useCallback(
+    (n: number) => {
+      const v = Math.max(0, n);
+      setLog((prev) => ({ ...prev, water: v }));
+      if (canSync) upsertWaterRemote(student!.id, date, v);
+    },
+    [canSync, student, date]
+  );
 
   const isMealChecked = useCallback(
     (mealId: string) => log.foods.some((f) => f.planMealId === mealId),
