@@ -31,6 +31,7 @@ const Messages = React.lazy(() => import("./pages/Messages"));
 const Measurements = React.lazy(() => import("./pages/Measurements"));
 const Nutrition = React.lazy(() => import("./pages/Nutrition"));
 const MyDiet = React.lazy(() => import("./pages/MyDiet"));
+const NutritionHistory = React.lazy(() => import("./pages/NutritionHistory"));
 const ExerciseLibraryPage = React.lazy(() => import("./pages/ExerciseLibraryPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/cuestionarios" element={<ProtectedRoute><Questionnaires /></ProtectedRoute>} />
               <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
               <Route path="/nutrition/my-diet" element={<ProtectedRoute><MyDiet /></ProtectedRoute>} />
+              <Route path="/nutrition/history" element={<ProtectedRoute><NutritionHistory /></ProtectedRoute>} />
             </Route>
 
             {/* Catch-all */}

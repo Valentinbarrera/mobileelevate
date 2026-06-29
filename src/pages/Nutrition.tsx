@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
@@ -266,6 +266,23 @@ export default function Nutrition() {
     </motion.button>
   );
 
+  const historyEntry = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => navigate("/nutrition/history")}
+      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+        <History className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Historial</p>
+        <p className="text-sm font-semibold text-foreground">Qué venís comiendo + macros</p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </motion.button>
+  );
+
   const foodLogSection = (
     <FoodLogSection
       foods={foods}
@@ -309,6 +326,7 @@ export default function Nutrition() {
               </p>
             </div>
             {myDietEntry}
+            {historyEntry}
             {foodLogSection}
           </div>
 
@@ -518,6 +536,7 @@ export default function Nutrition() {
                     {macroSummary}
                     {daySelector}
                     {myDietEntry}
+                    {historyEntry}
                     {waterTracker}
                   </div>
                 </div>
@@ -536,6 +555,7 @@ export default function Nutrition() {
               {mealsBlock}
               {foodLogSection}
               {myDietEntry}
+              {historyEntry}
               {waterTracker}
             </div>
           );
