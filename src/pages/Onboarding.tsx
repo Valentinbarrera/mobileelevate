@@ -2,9 +2,9 @@
  * Cuestionario de intake del alumno (Fase 1, persistencia local).
  * Wizard de 11 pasos que captura el contexto para el coach. SIN motor de calorías.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Check, Pencil,
   Sprout, TrendingUp, Trophy,
@@ -12,8 +12,8 @@ import {
   Armchair, Footprints, PersonStanding, Bike,
   CalendarDays, Repeat,
 } from "lucide-react";
-import { toast } from "sonner";
 import OnboardingLayout from "@/components/onboarding/OnboardingLayout";
+import CompletionCelebration from "@/components/onboarding/CompletionCelebration";
 import { StepHeader, ChoiceCard, Chip, ChipMultiSelect, NumberField, Stepper, NotesField } from "@/components/onboarding/controls";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -52,17 +52,32 @@ const MODE_ICONS = { weekly: CalendarDays, free_cycle: Repeat } as const;
 const labelOf = (opts: { value: string; label: string }[], v: string | null) =>
   v ? opts.find((o) => o.value === v)?.label ?? v : "—";
 
-const buzz = () => {
-  if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(10);
+const buzz = (pattern: number | number[] = 10) => {
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern);
 };
+
+// Slide direccional entre pasos (premium): adelante entra desde la derecha.
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir >= 0 ? 48 : -48, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
+  exit: (dir: number) => ({ x: dir >= 0 ? -48 : 48, opacity: 0, transition: { duration: 0.18, ease: "easeIn" } }),
+};
+
+// Pasos de selección única que auto-avanzan al elegir (best practice tipo Typeform).
+const AUTO_ADVANCE_STEPS = new Set([2, 5, 8]);
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { student, isAdminMode } = useAuthContext();
   const sid = student?.id || (isAdminMode ? "admin" : "anon");
   const isReal = !!student?.id && !isAdminMode;
+  const firstName = student?.full_name?.trim().split(" ")[0] || null;
 
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
+  const [done, setDone] = useState(false);
+  const [synced, setSynced] = useState(true);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout>>();
   const [hydrated, setHydrated] = useState(false);
   const [data, setData] = useState<OnboardingData>(() => {
     const base = loadOnboarding(sid);
@@ -128,8 +143,33 @@ const Onboarding = () => {
   const canContinue = isStepValid(step);
 
   const goTo = (s: number) => {
+    setDirection(s >= step ? 1 : -1);
+    clearTimeout(advanceTimer.current);
     setStep(s);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Elegir en un paso de selección única → marca y auto-avanza (deja ver el check).
+  const pickSingle = (patch: Partial<OnboardingData>) => {
+    choose(patch);
+    clearTimeout(advanceTimer.current);
+    if (step < TOTAL) {
+      const target = step + 1;
+      advanceTimer.current = setTimeout(() => goTo(target), 420);
+    }
+  };
+
+  useEffect(() => () => clearTimeout(advanceTimer.current), []);
+
+  const finish = async () => {
+    const final = { ...data, completedAt: new Date().toISOString() };
+    saveOnboarding(sid, final);
+    buzz([12, 40, 12, 40, 24]); // patrón celebratorio
+    setDone(true);
+    if (isReal) {
+      const ok = await saveOnboardingRemote(sid, final);
+      setSynced(ok);
+    }
   };
 
   const next = async () => {
@@ -138,18 +178,7 @@ const Onboarding = () => {
       goTo(step + 1);
       return;
     }
-    const final = { ...data, completedAt: new Date().toISOString() };
-    saveOnboarding(sid, final);
-    buzz();
-    if (isReal) {
-      const ok = await saveOnboardingRemote(sid, final);
-      toast.success(ok
-        ? "¡Listo! Tu coach ya tiene tu contexto 💪"
-        : "Guardado. Se sincronizará con tu coach cuando haya conexión.");
-    } else {
-      toast.success("¡Listo! (modo demo, no se sincroniza)");
-    }
-    navigate("/profile");
+    await finish();
   };
 
   const back = () => (step > 1 ? goTo(step - 1) : navigate(-1));
@@ -160,7 +189,11 @@ const Onboarding = () => {
         return (
           <>
             <motion.div variants={fadeUp}>
-              <StepHeader eyebrow={EYEBROWS[1]} title="Tus datos corporales" subtitle="Lo básico para armar tu perfil." />
+              <StepHeader
+                eyebrow={firstName ? `Hola, ${firstName} 👋` : "¡Empecemos!"}
+                title="Armemos tu perfil"
+                subtitle="Arranquemos por lo básico. Toma 2 minutos y tu coach lo usa para programarte."
+              />
             </motion.div>
             <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
               {SEX_OPTIONS.map((o) => (
@@ -180,7 +213,7 @@ const Onboarding = () => {
             </motion.div>
             {EXPERIENCE_OPTIONS.map((o) => (
               <motion.div key={o.value} variants={fadeUp}>
-                <ChoiceCard label={o.label} desc={o.desc} icon={EXPERIENCE_ICONS[o.value]} selected={data.experience === o.value} onClick={() => choose({ experience: o.value })} />
+                <ChoiceCard label={o.label} desc={o.desc} icon={EXPERIENCE_ICONS[o.value]} selected={data.experience === o.value} onClick={() => pickSingle({ experience: o.value })} />
               </motion.div>
             ))}
           </>
@@ -226,7 +259,7 @@ const Onboarding = () => {
             </motion.div>
             {GOAL_OPTIONS.map((o) => (
               <motion.div key={o.value} variants={fadeUp}>
-                <ChoiceCard label={o.label} desc={o.desc} icon={GOAL_ICONS[o.value]} selected={data.goal === o.value} onClick={() => choose({ goal: o.value })} />
+                <ChoiceCard label={o.label} desc={o.desc} icon={GOAL_ICONS[o.value]} selected={data.goal === o.value} onClick={() => pickSingle({ goal: o.value })} />
               </motion.div>
             ))}
           </>
@@ -273,7 +306,7 @@ const Onboarding = () => {
             </motion.div>
             {ACTIVITY_OPTIONS.map((o) => (
               <motion.div key={o.value} variants={fadeUp}>
-                <ChoiceCard label={o.label} desc={o.desc} icon={ACTIVITY_ICONS[o.value]} selected={data.activityLevel === o.value} onClick={() => choose({ activityLevel: o.value })} />
+                <ChoiceCard label={o.label} desc={o.desc} icon={ACTIVITY_ICONS[o.value]} selected={data.activityLevel === o.value} onClick={() => pickSingle({ activityLevel: o.value })} />
               </motion.div>
             ))}
           </>
@@ -365,18 +398,28 @@ const Onboarding = () => {
     }
   };
 
+  if (done) {
+    return <CompletionCelebration name={firstName} synced={synced} onDone={() => navigate("/profile")} />;
+  }
+
   return (
     <OnboardingLayout currentStep={step} totalSteps={TOTAL} onBack={back}>
-      <div className="flex-1 pb-44">
-        <motion.div
-          key={step}
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="px-5 py-6 space-y-3"
-        >
-          {renderStep()}
-        </motion.div>
+      <div className="flex-1 pb-44 overflow-x-hidden">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="px-5 py-6"
+          >
+            <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
+              {renderStep()}
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Footer fijo: continuar / finalizar */}
