@@ -22,6 +22,7 @@ const RoutineDetail = React.lazy(() => import("./pages/RoutineDetail"));
 const CoachWorkoutDetail = React.lazy(() => import("./pages/CoachWorkoutDetail"));
 const FreeWorkout = React.lazy(() => import("./pages/FreeWorkout"));
 const WorkoutSummary = React.lazy(() => import("./pages/WorkoutSummary"));
+const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Progress = React.lazy(() => import("./pages/Progress"));
 const ProgressPhotos = React.lazy(() => import("./pages/ProgressPhotos"));
 const Profile = React.lazy(() => import("./pages/Profile"));
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
             <Route path="/free-workout" element={<ProtectedRoute><Lazy><FreeWorkout /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><Lazy><Onboarding /></Lazy></ProtectedRoute>} />
 
             {/* Pantallas con nav persistente + transición de contenido.
                 El Suspense vive en AppLayout (fuera del AnimatePresence), así que

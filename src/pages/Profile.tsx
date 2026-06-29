@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, Dumbbell, Calendar, Mail } from "lucide-react";
+import { Target, Dumbbell, Calendar, Mail, ClipboardList, ChevronRight, Check } from "lucide-react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfileSettings from "@/components/profile/ProfileSettings";
@@ -8,11 +8,14 @@ import AppShell from "@/components/layout/AppShell";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
+import { isOnboardingComplete } from "@/lib/onboarding";
 
 const Profile = () => {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const { student, user } = useAuthContext();
+  const { student, user, isAdminMode } = useAuthContext();
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  const intakeDone = isOnboardingComplete(sid);
 
   const userData = {
     name: student?.full_name || user?.email?.split('@')[0] || "Atleta",
@@ -54,6 +57,35 @@ const Profile = () => {
             </motion.div>
           );
 
+          const intakeCard = (
+            <motion.div variants={fadeUp} className="px-5 lg:px-0 mb-6 lg:mb-0">
+              <button
+                onClick={() => navigate("/onboarding")}
+                className="w-full text-left rounded-2xl card-hero p-4 flex items-center gap-3.5 active:scale-[0.99] transition-transform"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <ClipboardList className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-foreground">Mi perfil de entrenamiento</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {intakeDone ? "Cuestionario completo · tocá para editar" : "Completá el cuestionario para tu coach"}
+                  </p>
+                </div>
+                {intakeDone ? (
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 shrink-0">
+                    <Check className="w-4 h-4" /> Listo
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
+                    Pendiente
+                  </span>
+                )}
+                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+              </button>
+            </motion.div>
+          );
+
           const infoCards = infoItems.length > 0 && (
             <motion.div variants={fadeUp} className="px-5 lg:px-0 mb-6 lg:mb-0">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-3">
@@ -82,6 +114,7 @@ const Profile = () => {
               <div className="max-w-5xl mx-auto px-8 grid grid-cols-12 gap-8 items-start">
                 <div className="col-span-5 space-y-6">
                   {avatar}
+                  {intakeCard}
                   {infoCards}
                 </div>
                 <div className="col-span-7">{settings}</div>
@@ -93,6 +126,7 @@ const Profile = () => {
           return (
             <div className="max-w-2xl mx-auto">
               {avatar}
+              {intakeCard}
               {infoCards}
               {settings}
             </div>
