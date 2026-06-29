@@ -251,8 +251,8 @@ const Progress = () => {
                     {bodySection}
                   </div>
                   <div className="col-span-4 space-y-4">
-                    {weightLog}
                     {photosEntry}
+                    {weightLog}
                     {wellbeing}
                     {prs}
                   </div>
@@ -261,14 +261,14 @@ const Progress = () => {
             );
           }
 
-          // Mobile: pila única (sin cambios).
+          // Mobile: fotos de progreso arriba (lo más impactante), luego racha+almanaque.
           return (
             <div className="max-w-5xl mx-auto px-5 pt-5 space-y-4">
+              {photosEntry}
               {statsRow}
               {volumeChart}
               {weightLog}
               {weightStats}
-              {photosEntry}
               {bodySection}
               {wellbeing}
               {prs}
