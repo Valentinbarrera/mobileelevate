@@ -17,6 +17,7 @@ import OnboardingLayout from "@/components/onboarding/OnboardingLayout";
 import { StepHeader, ChoiceCard, Chip, ChipMultiSelect, NumberField, Stepper, NotesField } from "@/components/onboarding/controls";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { fetchOnboardingRemote, saveOnboardingRemote } from "@/lib/onboardingApi";
 import {
   OnboardingData,
   loadOnboarding,
@@ -59,8 +60,10 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { student, isAdminMode } = useAuthContext();
   const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  const isReal = !!student?.id && !isAdminMode;
 
   const [step, setStep] = useState(1);
+  const [hydrated, setHydrated] = useState(false);
   const [data, setData] = useState<OnboardingData>(() => {
     const base = loadOnboarding(sid);
     return {
@@ -71,7 +74,30 @@ const Onboarding = () => {
     };
   });
 
-  // Persistir el progreso (sin marcar completado)
+  // Hidratar desde Supabase al abrir (si es alumno real); cae a local si falla
+  useEffect(() => {
+    if (hydrated) return;
+    if (!isReal) {
+      setHydrated(true);
+      return;
+    }
+    let cancelled = false;
+    fetchOnboardingRemote(sid).then((remote) => {
+      if (cancelled) return;
+      if (remote) {
+        setData((d) => ({
+          ...remote,
+          age: remote.age ?? d.age,
+          heightCm: remote.heightCm ?? d.heightCm,
+          weightKg: remote.weightKg ?? d.weightKg,
+        }));
+      }
+      setHydrated(true);
+    });
+    return () => { cancelled = true; };
+  }, [isReal, sid, hydrated]);
+
+  // Persistir el progreso local (sin marcar completado)
   useEffect(() => {
     saveOnboarding(sid, data);
   }, [sid, data]);
@@ -106,17 +132,24 @@ const Onboarding = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const next = () => {
+  const next = async () => {
     if (!canContinue) return;
     if (step < TOTAL) {
       goTo(step + 1);
-    } else {
-      const final = { ...data, completedAt: new Date().toISOString() };
-      saveOnboarding(sid, final);
-      buzz();
-      toast.success("¡Listo! Tu coach ya tiene tu contexto 💪");
-      navigate("/profile");
+      return;
     }
+    const final = { ...data, completedAt: new Date().toISOString() };
+    saveOnboarding(sid, final);
+    buzz();
+    if (isReal) {
+      const ok = await saveOnboardingRemote(sid, final);
+      toast.success(ok
+        ? "¡Listo! Tu coach ya tiene tu contexto 💪"
+        : "Guardado. Se sincronizará con tu coach cuando haya conexión.");
+    } else {
+      toast.success("¡Listo! (modo demo, no se sincroniza)");
+    }
+    navigate("/profile");
   };
 
   const back = () => (step > 1 ? goTo(step - 1) : navigate(-1));
