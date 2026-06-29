@@ -274,6 +274,105 @@ function generateCompletedSessions() {
 
 export const MOCK_COMPLETED_SESSIONS = generateCompletedSessions();
 
+// ─── Completed Exercises (sets per session, for history + strength charts) ───
+
+const BASE_WEIGHTS: Record<string, number> = {
+  "Press de Banca": 80,
+  "Press Inclinado": 60,
+  "Extensión de Tríceps": 25,
+  "Elevaciones Laterales": 12,
+  "Dominadas": 10,
+  "Remo en Polea": 70,
+  "Peso Muerto": 120,
+  "Curl de Bíceps": 22,
+  "Sentadilla": 100,
+  "Prensa de Piernas": 160,
+  "Curl Femoral": 40,
+  "Press Militar": 50,
+};
+
+function generateCompletedExercises() {
+  const rows: {
+    completed_session_id: string;
+    series: number;
+    weight: number;
+    reps: number;
+    routine_exercises: { name: string };
+  }[] = [];
+
+  // Las sesiones están ordenadas de más reciente (idx 0) a más vieja.
+  // Progresión lineal: el peso sube ~0.5kg por sesión hacia las más recientes.
+  MOCK_COMPLETED_SESSIONS.forEach((s, idx) => {
+    const day = ROUTINE_DAYS.find((d) => d.day_name === s.notes) || ROUTINE_DAYS[0];
+    const recencyBonus = Math.round((MOCK_COMPLETED_SESSIONS.length - 1 - idx) * 0.5);
+
+    day.routine_exercises.forEach((re) => {
+      const base = BASE_WEIGHTS[re.name] ?? 40;
+      for (let set = 1; set <= re.series; set++) {
+        rows.push({
+          completed_session_id: s.id,
+          series: set,
+          weight: base + recencyBonus,
+          reps: 8 + (set % 2),
+          routine_exercises: { name: re.name },
+        });
+      }
+    });
+  });
+
+  return rows;
+}
+
+export const MOCK_COMPLETED_EXERCISES = generateCompletedExercises();
+
+// ─── Nutrition tracking history (demo del historial de comidas) ──────────────
+
+function generateNutritionHistory() {
+  const pool = [
+    { name: "Avena con banana", mealType: "desayuno", calories: 420, protein: 14, carbs: 70, fats: 8 },
+    { name: "Huevos revueltos", mealType: "desayuno", calories: 220, protein: 18, carbs: 2, fats: 15 },
+    { name: "Pollo con arroz", mealType: "almuerzo", calories: 650, protein: 50, carbs: 70, fats: 12 },
+    { name: "Ensalada con atún", mealType: "almuerzo", calories: 380, protein: 35, carbs: 15, fats: 18 },
+    { name: "Yogur con frutos secos", mealType: "merienda", calories: 250, protein: 15, carbs: 22, fats: 10 },
+    { name: "Batido de proteína", mealType: "merienda", calories: 180, protein: 30, carbs: 8, fats: 3 },
+    { name: "Carne con puré", mealType: "cena", calories: 600, protein: 45, carbs: 50, fats: 20 },
+    { name: "Salmón con vegetales", mealType: "cena", calories: 480, protein: 40, carbs: 18, fats: 25 },
+    { name: "Manzana", mealType: "snack", calories: 95, protein: 0, carbs: 25, fats: 0 },
+    { name: "Almendras", mealType: "snack", calories: 160, protein: 6, carbs: 6, fats: 14 },
+  ];
+  const base = new Date();
+  const days = [];
+
+  for (let i = 0; i < 14; i++) {
+    if (i % 6 === 4) continue; // saltear algunos días (días sin registro)
+    const d = new Date(base);
+    d.setDate(base.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    const count = 3 + (i % 3); // 3-5 comidas por día
+    const foods = [];
+    for (let j = 0; j < count; j++) {
+      const p = pool[(i * 2 + j) % pool.length];
+      foods.push({ id: `mnf-${i}-${j}`, ...p });
+    }
+    const totals = foods.reduce(
+      (a, f) => ({
+        calories: a.calories + f.calories,
+        protein: a.protein + f.protein,
+        carbs: a.carbs + f.carbs,
+        fats: a.fats + f.fats,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+
+    days.push({ date: dateStr, foods, totals, water: 4 + (i % 5), checkedMealsCount: i % 4 });
+  }
+
+  return days;
+}
+
+export const MOCK_NUTRITION_HISTORY = generateNutritionHistory();
+
 // ─── Anthropometry (Body measurements) ──────────────────────────────────────
 
 export const MOCK_ANTHROPOMETRY = [

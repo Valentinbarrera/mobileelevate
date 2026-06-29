@@ -10,8 +10,11 @@ import BodyMetricChart from "@/components/progress/BodyMetricChart";
 import WeightLogCard from "@/components/progress/WeightLogCard";
 import WeightStats from "@/components/progress/WeightStats";
 import PersonalRecords from "@/components/progress/PersonalRecords";
+import ExerciseProgressCard from "@/components/progress/ExerciseProgressCard";
+import WorkoutHistoryList from "@/components/progress/WorkoutHistoryList";
 import PageLoading from "@/components/ui/page-loading";
 import { useProgressData } from "@/hooks/useProgressData";
+import { useWorkoutDetails } from "@/hooks/useWorkoutDetails";
 import { useAnthropometryData } from "@/hooks/useAnthropometryData";
 import { useLocalBodyLog } from "@/hooks/useLocalBodyLog";
 import { usePRData } from "@/hooks/usePRData";
@@ -32,6 +35,7 @@ const Progress = () => {
   } = useProgressData();
   const { weightHistory, waistHistory } = useAnthropometryData();
   const { records } = usePRData();
+  const { sessions: workoutSessions, exerciseProgress } = useWorkoutDetails();
   const { entries: localWeights, logWeight } = useLocalBodyLog();
   const { student, isAdminMode } = useAuthContext();
   const latestCheckIn = getLatestCheckIn(student?.id || (isAdminMode ? "admin" : "anon"));
@@ -131,6 +135,18 @@ const Progress = () => {
           const volumeChart = chartData.length > 0 && (
             <motion.div variants={fadeUp}>
               <VolumeProgressChart data={chartData} title="Entrenamientos Semanales" />
+            </motion.div>
+          );
+
+          const exerciseProgressCard = exerciseProgress.length > 0 && (
+            <motion.div variants={fadeUp}>
+              <ExerciseProgressCard exercises={exerciseProgress} />
+            </motion.div>
+          );
+
+          const historyList = workoutSessions.length > 0 && (
+            <motion.div variants={fadeUp}>
+              <WorkoutHistoryList sessions={workoutSessions} />
             </motion.div>
           );
 
@@ -248,6 +264,8 @@ const Progress = () => {
                     {statsRow}
                     {weightStats}
                     {volumeChart}
+                    {exerciseProgressCard}
+                    {historyList}
                     {bodySection}
                   </div>
                   <div className="col-span-4 space-y-4">
@@ -267,6 +285,8 @@ const Progress = () => {
               {photosEntry}
               {statsRow}
               {volumeChart}
+              {exerciseProgressCard}
+              {historyList}
               {weightLog}
               {weightStats}
               {bodySection}
