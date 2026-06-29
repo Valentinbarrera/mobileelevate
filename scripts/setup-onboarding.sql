@@ -79,8 +79,8 @@ CREATE POLICY "coach_select_students_onboarding" ON public.athlete_onboarding
   FOR SELECT TO authenticated
   USING (student_id IN (SELECT id FROM public.students WHERE coach_id = auth.uid()));
 
--- ── 4. updated_at automático ────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.set_updated_at()
+-- ── 4. updated_at automático (nombre único para no pisar funciones existentes) ─
+CREATE OR REPLACE FUNCTION public.set_athlete_onboarding_updated_at()
 RETURNS trigger AS $$
 BEGIN
   NEW.updated_at = now();
@@ -91,7 +91,7 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_athlete_onboarding_updated_at ON public.athlete_onboarding;
 CREATE TRIGGER trg_athlete_onboarding_updated_at
   BEFORE UPDATE ON public.athlete_onboarding
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.set_athlete_onboarding_updated_at();
 
 -- ── 5. (Opcional) Espejar lo básico en `students` para la ficha del coach ────
 -- El coach ya ve goal/level/age/height_cm/weight_kg/injuries en `students`.

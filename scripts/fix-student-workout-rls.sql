@@ -96,3 +96,39 @@ create policy "students_select_own_completed_exercises"
       where s.email = auth.email()
     )
   );
+
+-- ── 5. completed_exercises: EDITAR y BORRAR las series propias ────────────────
+-- Necesario para "editar/borrar serie" en el entreno (modificar kg/reps, deshacer).
+drop policy if exists "students_update_own_completed_exercises" on public.completed_exercises;
+create policy "students_update_own_completed_exercises"
+  on public.completed_exercises
+  for update to authenticated
+  using (
+    completed_session_id in (
+      select cs.id
+      from public.completed_sessions cs
+      join public.students s on s.id = cs.student_id
+      where s.email = auth.email()
+    )
+  )
+  with check (
+    completed_session_id in (
+      select cs.id
+      from public.completed_sessions cs
+      join public.students s on s.id = cs.student_id
+      where s.email = auth.email()
+    )
+  );
+
+drop policy if exists "students_delete_own_completed_exercises" on public.completed_exercises;
+create policy "students_delete_own_completed_exercises"
+  on public.completed_exercises
+  for delete to authenticated
+  using (
+    completed_session_id in (
+      select cs.id
+      from public.completed_sessions cs
+      join public.students s on s.id = cs.student_id
+      where s.email = auth.email()
+    )
+  );
