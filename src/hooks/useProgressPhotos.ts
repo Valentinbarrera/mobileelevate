@@ -48,10 +48,11 @@ export interface PhotoMonth {
   photos: ProgressPhoto[];
 }
 
-const monthKey = (date: string) => date.slice(0, 7);
-const monthLabel = (date: string) => {
+// Agrupamos por FECHA (cada sesión de fotos), no por mes, así no se oculta
+// ninguna foto cuando hay varias del mismo tipo en el mismo mes.
+const dateLabel = (date: string) => {
   const d = parseLocalDateString(date);
-  const s = d.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  const s = d.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
@@ -109,21 +110,19 @@ export function useProgressPhotos() {
         };
       });
 
-      // Agrupar por mes
-      const byMonth = new Map<string, PhotoMonth>();
+      // Agrupar por FECHA (cada día de fotos muestra sus frente/lateral/espalda)
+      const byDate = new Map<string, PhotoMonth>();
       photos.forEach((p) => {
         if (!p.date) return;
-        const mk = monthKey(p.date);
-        const existing = byMonth.get(mk);
+        const existing = byDate.get(p.date);
         if (existing) {
           existing.photos.push(p);
-          if (p.date > existing.sortKey) existing.sortKey = p.date;
         } else {
-          byMonth.set(mk, { month: mk, label: monthLabel(p.date), sortKey: p.date, photos: [p] });
+          byDate.set(p.date, { month: p.date, label: dateLabel(p.date), sortKey: p.date, photos: [p] });
         }
       });
 
-      return [...byMonth.values()].sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1)); // más reciente primero
+      return [...byDate.values()].sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1)); // más reciente primero
     },
   });
 

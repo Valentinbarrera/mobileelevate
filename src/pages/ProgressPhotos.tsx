@@ -247,11 +247,12 @@ function CompareView({ months }: { months: ReturnType<typeof useProgressPhotos>[
   }, [months, pose]);
 
   const [leftIdx, setLeftIdx] = useState(0);
-  const [rightIdx, setRightIdx] = useState(0);
+  // null = "todavía no elegí" → por defecto muestro la última (más reciente)
+  const [rightIdx, setRightIdx] = useState<number | null>(null);
 
-  // Defaults: primera vs última (se recalcula si cambia la serie)
-  const li = Math.min(leftIdx, Math.max(0, series.length - 1));
-  const ri = series.length > 1 && rightIdx === 0 ? series.length - 1 : Math.min(rightIdx, Math.max(0, series.length - 1));
+  const lastIdx = Math.max(0, series.length - 1);
+  const li = Math.min(leftIdx, lastIdx);
+  const ri = rightIdx == null ? lastIdx : Math.min(rightIdx, lastIdx);
   const left = series[li] ?? null;
   const right = series[ri] ?? null;
 
