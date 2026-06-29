@@ -3,8 +3,8 @@
  * feature (coach, entrenamiento, nutrición, progreso), barra de progreso y
  * diseño premium. Termina llevando a /auth.
  */
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
@@ -206,18 +206,101 @@ const SlideVisual = ({ step }: { step: number }) => {
   );
 };
 
+const AUTOPLAY_MS = 4600;
+
+/** Barra de progreso estilo "stories": el segmento actual se llena solo y al
+ *  completarse avanza. Aislada en su propio componente para no re-renderizar los
+ *  visuales en cada frame. */
+const StoryProgress = ({
+  count,
+  step,
+  playing,
+  onComplete,
+}: {
+  count: number;
+  step: number;
+  playing: boolean;
+  onComplete: () => void;
+}) => {
+  const [p, setP] = useState(0);
+
+  useEffect(() => {
+    setP(0);
+    if (!playing) return;
+    let raf = 0;
+    let start: number | null = null;
+    const loop = (ts: number) => {
+      if (start === null) start = ts;
+      const np = Math.min(1, (ts - start) / AUTOPLAY_MS);
+      setP(np);
+      if (np >= 1) {
+        onComplete();
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [step, playing, onComplete]);
+
+  return (
+    <div className="flex-1 flex gap-1.5">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full bg-gradient-primary rounded-full"
+            style={{ width: i < step ? "100%" : i === step ? `${p * 100}%` : "0%" }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Slide direccional + swipe.
+const slideVariants = {
+  enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 60 : -60, scale: 0.96 }),
+  center: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.34, ease: [0.16, 1, 0.3, 1] } },
+  exit: (dir: number) => ({ opacity: 0, x: dir >= 0 ? -60 : 60, scale: 0.96, transition: { duration: 0.2 } }),
+};
+
 const Welcome = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
 
   const isLast = step === slides.length - 1;
   const slide = slides[step];
 
   const haptic = () => navigator.vibrate?.(10);
+
+  const advance = useCallback(() => {
+    setDirection(1);
+    setStep((s) => Math.min(s + 1, slides.length - 1));
+  }, []);
+
   const next = () => {
     haptic();
     if (isLast) navigate("/auth");
-    else setStep((s) => s + 1);
+    else advance();
+  };
+
+  const prev = () => {
+    setDirection(-1);
+    setStep((s) => Math.max(0, s - 1));
+  };
+
+  const goTo = (i: number) => {
+    setDirection(i >= step ? 1 : -1);
+    setStep(i);
+  };
+
+  const onDragEnd = (_e: unknown, info: PanInfo) => {
+    if (info.offset.x < -60) next();
+    else if (info.offset.x > 60 && step > 0) {
+      haptic();
+      prev();
+    }
   };
 
   return (
@@ -244,18 +327,7 @@ const Welcome = () => {
       {/* Top: barra de progreso + saltar */}
       <div className="relative z-10 px-6 pt-12">
         <div className="flex items-center gap-3">
-          <div className="flex-1 flex gap-1.5">
-            {slides.map((_, i) => (
-              <div key={i} className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-primary rounded-full"
-                  initial={false}
-                  animate={{ width: i <= step ? "100%" : "0%" }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                />
-              </div>
-            ))}
-          </div>
+          <StoryProgress count={slides.length} step={step} playing={!isLast} onComplete={advance} />
           {!isLast && (
             <button onClick={() => navigate("/auth")} className="text-sm font-semibold text-muted-foreground active:text-foreground">
               Saltar
@@ -264,15 +336,23 @@ const Welcome = () => {
         </div>
       </div>
 
-      {/* Slide */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <AnimatePresence mode="wait">
+      {/* Slide (swipe con el dedo) */}
+      <motion.div
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 text-center touch-pan-y"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.18}
+        dragSnapToOrigin
+        onDragEnd={onDragEnd}
+      >
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="flex flex-col items-center"
           >
             <div className="mb-8 flex items-center justify-center min-h-[12rem]">
@@ -286,7 +366,7 @@ const Welcome = () => {
             <p className="text-muted-foreground text-[15px] leading-relaxed max-w-[19rem]">{slide.desc}</p>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* Bottom: dots + CTA */}
       <div className="relative z-10 px-6 pb-10 space-y-5">
@@ -294,7 +374,7 @@ const Welcome = () => {
           {slides.map((_, i) => (
             <button
               key={i}
-              onClick={() => setStep(i)}
+              onClick={() => goTo(i)}
               aria-label={`Ir al paso ${i + 1}`}
               className={`h-2 rounded-full transition-all duration-300 ${
                 i === step ? "w-6 bg-primary" : "w-2 bg-white/15"
