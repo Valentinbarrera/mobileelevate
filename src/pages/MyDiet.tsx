@@ -214,6 +214,21 @@ export default function MyDiet() {
             </motion.div>
           )}
 
+          {/* Cómo se usa: diseñar acá → "Comer hoy" lo suma al registro del día */}
+          {hasDiet && (
+            <motion.div
+              variants={fadeUp}
+              className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3 flex items-start gap-2.5"
+            >
+              <CalendarPlus className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <p className="text-xs text-foreground/80">
+                Diseñá tus comidas acá. Cuando comas una, tocá{" "}
+                <span className="font-bold text-primary">"Comer hoy"</span> y se suma a tu registro del
+                día — cuenta en tus macros y queda en tu historial.
+              </p>
+            </motion.div>
+          )}
+
           {/* Comidas (grilla de 2 columnas en desktop) */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:items-start space-y-4">
           {meals.map((meal) => {

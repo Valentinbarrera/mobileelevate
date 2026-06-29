@@ -93,6 +93,9 @@ export function useNutritionHistory() {
 
   const { data: days = [], isLoading } = useQuery<NutritionDay[]>({
     queryKey: ["nutrition-history", studentId, isAdminMode],
+    // Relee local + remoto en cada entrada a la pantalla (refleja lo recién tildado)
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async () => {
       if (isAdminMode) return MOCK_NUTRITION_HISTORY as unknown as NutritionDay[];
 

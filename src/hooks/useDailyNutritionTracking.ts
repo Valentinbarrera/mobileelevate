@@ -20,6 +20,21 @@ export interface LoggedFood {
   fats: number;
   /** id en Supabase (si se sincronizó). Permite borrar la fila remota. */
   remoteId?: string;
+  /** Origen: "manual" (lo cargó el alumno) o "plan" (comida del coach tildada). */
+  source?: "manual" | "plan";
+  /** Si vino de tildar una comida del plan, su id (para destildar/quitar). */
+  planMealId?: string;
+}
+
+/** Payload mínimo de una comida del plan para registrarla al tildarla. */
+export interface PlanMealInput {
+  id: string;
+  name: string;
+  mealType: MealType;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
 }
 
 interface DailyLog {
@@ -61,32 +76,76 @@ export function useDailyNutritionTracking() {
     }
   }, [storageKey, log]);
 
-  const toggleMeal = useCallback((mealId: string) => {
-    setLog((prev) => {
-      const has = prev.checkedMeals.includes(mealId);
-      return {
+  /**
+   * Tilda/destilda una comida del plan. Al tildarla la REGISTRA como un alimento
+   * (con sus macros) para que cuente en el día, el historial y Supabase; al
+   * destildarla la quita (local + remoto). Devuelve true si quedó tildada.
+   */
+  const toggleMeal = useCallback(
+    (meal: PlanMealInput): boolean => {
+      const existing = log.foods.filter((f) => f.planMealId === meal.id);
+      if (existing.length) {
+        // destildar → quitar
+        existing.forEach((f) => f.remoteId && removeNutritionLogRemote(f.remoteId));
+        setLog((prev) => ({ ...prev, foods: prev.foods.filter((f) => f.planMealId !== meal.id) }));
+        return false;
+      }
+      // tildar → registrar la comida del plan
+      const localId = newId();
+      setLog((prev) => ({
         ...prev,
-        checkedMeals: has
-          ? prev.checkedMeals.filter((id) => id !== mealId)
-          : [...prev.checkedMeals, mealId],
-      };
-    });
-  }, []);
+        foods: [
+          ...prev.foods,
+          {
+            id: localId,
+            planMealId: meal.id,
+            source: "plan",
+            name: meal.name,
+            mealType: meal.mealType,
+            calories: meal.calories,
+            protein: meal.protein,
+            carbs: meal.carbs,
+            fats: meal.fats,
+          },
+        ],
+      }));
+      if (canSync) {
+        addNutritionLogRemote(student!.id, {
+          date,
+          mealType: meal.mealType,
+          name: meal.name,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fats: meal.fats,
+        }).then((remoteId) => {
+          if (remoteId) {
+            setLog((prev) => ({
+              ...prev,
+              foods: prev.foods.map((f) => (f.id === localId ? { ...f, remoteId } : f)),
+            }));
+          }
+        });
+      }
+      return true;
+    },
+    [log, canSync, student, date]
+  );
 
   const setWater = useCallback((n: number) => {
     setLog((prev) => ({ ...prev, water: Math.max(0, n) }));
   }, []);
 
   const isMealChecked = useCallback(
-    (mealId: string) => log.checkedMeals.includes(mealId),
-    [log.checkedMeals]
+    (mealId: string) => log.foods.some((f) => f.planMealId === mealId),
+    [log.foods]
   );
 
   const addFood = useCallback(
     (food: Omit<LoggedFood, "id">) => {
       const localId = newId();
       // Local inmediato (optimista)
-      setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: localId }] }));
+      setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: localId, source: food.source ?? "manual" }] }));
       // Remoto best-effort: al volver, guardamos el remoteId para poder borrar
       if (canSync) {
         addNutritionLogRemote(student!.id, { date, mealType: food.mealType, ...food }).then((remoteId) => {

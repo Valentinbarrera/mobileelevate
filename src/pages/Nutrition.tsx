@@ -8,12 +8,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
-import { useDailyNutritionTracking } from "@/hooks/useDailyNutritionTracking";
+import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
 import { useIsDesktop } from "@/hooks/use-media-query";
@@ -25,6 +26,22 @@ import {
   type NutritionDay,
   type NutritionMeal,
 } from "@/hooks/useStudentNutrition";
+
+// Mapea el meal_type del plan (inglés) al tipo local del registro (español)
+const planMealTypeToLocal = (mt: string): MealType => {
+  switch (mt) {
+    case "breakfast":
+      return "desayuno";
+    case "lunch":
+      return "almuerzo";
+    case "snack":
+      return "merienda";
+    case "dinner":
+      return "cena";
+    default:
+      return "snack"; // pre_workout / post_workout / other
+  }
+};
 
 // ─── Macro pill ───────────────────────────────────────────────────────────────
 
@@ -283,10 +300,15 @@ export default function Nutrition() {
     </motion.button>
   );
 
+  // El registro libre lista SOLO lo manual; las comidas del plan tildadas se ven
+  // arriba como cards (aunque ambas cuenten para el total del día y el historial).
+  const manualFoods = foods.filter((f) => f.source !== "plan");
+  const manualCalories = manualFoods.reduce((s, f) => s + (f.calories || 0), 0);
+
   const foodLogSection = (
     <FoodLogSection
-      foods={foods}
-      totalCalories={loggedTotals.calories}
+      foods={manualFoods}
+      totalCalories={manualCalories}
       onAdd={() => setShowFoodSheet(true)}
       onRemove={removeFood}
     />
@@ -338,27 +360,9 @@ export default function Nutrition() {
 
   const currentDay = plan.days[dayIndex] ?? null;
 
-  // Totales CONSUMIDOS hoy = comidas del plan marcadas + registro libre del alumno
-  const planTotals = currentDay
-    ? currentDay.meals
-        .filter((m) => isMealChecked(m.id))
-        .reduce(
-          (acc, m) => ({
-            calories: acc.calories + m.totalCalories,
-            protein: acc.protein + m.totalProtein,
-            carbs: acc.carbs + m.totalCarbs,
-            fats: acc.fats + m.totalFats,
-          }),
-          { calories: 0, protein: 0, carbs: 0, fats: 0 }
-        )
-    : { calories: 0, protein: 0, carbs: 0, fats: 0 };
-
-  const dayTotals = {
-    calories: planTotals.calories + loggedTotals.calories,
-    protein: planTotals.protein + loggedTotals.protein,
-    carbs: planTotals.carbs + loggedTotals.carbs,
-    fats: planTotals.fats + loggedTotals.fats,
-  };
+  // Totales CONSUMIDOS hoy = todo el registro del día (lo manual + las comidas del
+  // plan que el alumno fue tildando, que ya quedan registradas como alimentos).
+  const dayTotals = loggedTotals;
 
   const totalMeals = currentDay?.meals.length ?? 0;
   const checkedCount = currentDay
@@ -502,19 +506,46 @@ export default function Nutrition() {
           const mealsBlock = (
             <>
               {currentDay && currentDay.meals.length > 0 && (
-                <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5 pt-1">
-                  <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+                <motion.div variants={fadeUp} className="px-0.5 pt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="accent-bar" />
+                    <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 ml-3">
+                    Tocá el ✓ cuando comas una — se suma a tu día y queda en tu historial.
+                  </p>
                 </motion.div>
               )}
-              {currentDay?.meals.map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  meal={meal}
-                  checked={isMealChecked(meal.id)}
-                  onToggle={() => toggleMeal(meal.id)}
-                />
-              ))}
+              {currentDay?.meals.map((meal) => {
+                const label = MEAL_TYPE_LABELS[meal.meal_type] ?? "Comida";
+                return (
+                  <MealCard
+                    key={meal.id}
+                    meal={meal}
+                    checked={isMealChecked(meal.id)}
+                    onToggle={() => {
+                      const wasChecked = isMealChecked(meal.id);
+                      toggleMeal({
+                        id: meal.id,
+                        name: label,
+                        mealType: planMealTypeToLocal(meal.meal_type),
+                        calories: meal.totalCalories,
+                        protein: meal.totalProtein,
+                        carbs: meal.totalCarbs,
+                        fats: meal.totalFats,
+                      });
+                      if (navigator.vibrate) navigator.vibrate(wasChecked ? 8 : [10, 30, 10]);
+                      if (wasChecked) {
+                        toast(`${label} quitada de tu día`);
+                      } else {
+                        toast.success(`✓ ${label} sumada a tu día`, {
+                          description: `+${Math.round(meal.totalCalories)} kcal · ya queda en tu historial`,
+                        });
+                      }
+                    }}
+                  />
+                );
+              })}
             </>
           );
 
