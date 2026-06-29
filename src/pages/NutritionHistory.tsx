@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Utensils, Flame, Beef, CalendarCheck } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
+import PageLoading from "@/components/ui/page-loading";
 import MacroTrendChart from "@/components/nutrition/MacroTrendChart";
 import NutritionHistoryList from "@/components/nutrition/NutritionHistoryList";
 import { useNutritionHistory } from "@/hooks/useNutritionHistory";
@@ -41,7 +42,7 @@ export default function NutritionHistory() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { isAdminMode } = useAuthContext();
-  const { days, summary } = useNutritionHistory();
+  const { days, summary, loading } = useNutritionHistory();
   const { data: plan } = useStudentNutrition();
   const { calorieGoal: ownGoal } = useCustomDiet();
 
@@ -81,6 +82,10 @@ export default function NutritionHistory() {
       <NutritionHistoryList days={days} calorieGoal={calorieGoal} />
     </motion.div>
   );
+
+  if (loading) {
+    return <PageLoading message="Cargando tu historial..." />;
+  }
 
   return (
     <AppShell>

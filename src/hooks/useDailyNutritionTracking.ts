@@ -6,6 +6,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLocalDateString } from "@/lib/date";
+import { addNutritionLogRemote, removeNutritionLogRemote } from "@/lib/nutritionLogApi";
 
 export type MealType = "desayuno" | "almuerzo" | "merienda" | "cena" | "snack";
 
@@ -17,6 +18,8 @@ export interface LoggedFood {
   protein: number;
   carbs: number;
   fats: number;
+  /** id en Supabase (si se sincronizó). Permite borrar la fila remota. */
+  remoteId?: string;
 }
 
 interface DailyLog {
@@ -36,6 +39,8 @@ const keyFor = (studentId: string, date: string) => `elevate_nutri_${studentId}_
 export function useDailyNutritionTracking() {
   const { student, isAdminMode } = useAuthContext();
   const studentId = student?.id || (isAdminMode ? "admin" : "anon");
+  // Solo sincronizamos a Supabase para un alumno real (no admin/anon)
+  const canSync = !!student?.id && !isAdminMode;
   const date = getLocalDateString();
   const storageKey = keyFor(studentId, date);
 
@@ -77,13 +82,35 @@ export function useDailyNutritionTracking() {
     [log.checkedMeals]
   );
 
-  const addFood = useCallback((food: Omit<LoggedFood, "id">) => {
-    setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: newId() }] }));
-  }, []);
+  const addFood = useCallback(
+    (food: Omit<LoggedFood, "id">) => {
+      const localId = newId();
+      // Local inmediato (optimista)
+      setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: localId }] }));
+      // Remoto best-effort: al volver, guardamos el remoteId para poder borrar
+      if (canSync) {
+        addNutritionLogRemote(student!.id, { date, mealType: food.mealType, ...food }).then((remoteId) => {
+          if (!remoteId) return;
+          setLog((prev) => ({
+            ...prev,
+            foods: prev.foods.map((f) => (f.id === localId ? { ...f, remoteId } : f)),
+          }));
+        });
+      }
+    },
+    [canSync, student, date]
+  );
 
-  const removeFood = useCallback((id: string) => {
-    setLog((prev) => ({ ...prev, foods: prev.foods.filter((f) => f.id !== id) }));
-  }, []);
+  const removeFood = useCallback(
+    (id: string) => {
+      setLog((prev) => {
+        const target = prev.foods.find((f) => f.id === id);
+        if (target?.remoteId) removeNutritionLogRemote(target.remoteId);
+        return { ...prev, foods: prev.foods.filter((f) => f.id !== id) };
+      });
+    },
+    []
+  );
 
   // Totales del registro libre del día
   const loggedTotals = (log.foods || []).reduce(
