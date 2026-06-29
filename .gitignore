@@ -49,3 +49,8 @@ AuthKey_*.p8
 
 # npm cache (should never be committed)
 npm-cache/
+
+# Variables de entorno — no commitear (se deja .env.example como plantilla)
+.env
+.env.local
+.env.*.local
