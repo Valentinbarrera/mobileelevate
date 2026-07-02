@@ -33,6 +33,7 @@ const Nutrition = React.lazy(() => import("./pages/Nutrition"));
 const MyDiet = React.lazy(() => import("./pages/MyDiet"));
 const NutritionHistory = React.lazy(() => import("./pages/NutritionHistory"));
 const ExerciseLibraryPage = React.lazy(() => import("./pages/ExerciseLibraryPage"));
+const Privacy = React.lazy(() => import("./pages/Privacy"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/auth" element={<PublicRoute><Lazy><Auth /></Lazy></PublicRoute>} />
             <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
             <Route path="/update-password" element={<Lazy><UpdatePassword /></Lazy>} />
+            <Route path="/privacidad" element={<Lazy><Privacy /></Lazy>} />
 
             {/* Protected full-screen (sin nav) */}
             <Route path="/routine/:id" element={<ProtectedRoute><Lazy><RoutineDetail /></Lazy></ProtectedRoute>} />
