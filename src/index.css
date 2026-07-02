@@ -121,6 +121,27 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Sensación nativa (App Store 4.2): que no se comporte ni se vea como una web.
+     Sin rebote de scroll ni pull-to-refresh, sin selección de texto ni menú de
+     "copiar/compartir" al mantener presionado, sin arrastrar imágenes. */
+  html, body {
+    overscroll-behavior: none;
+  }
+  * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Reactivar donde el usuario SÍ tiene que escribir o copiar */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
   /* Respuesta táctil: sin delay de 300ms ni doble-tap-zoom en controles */
   input, textarea, select, button {
     touch-action: manipulation;

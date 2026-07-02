@@ -40,6 +40,7 @@ begin
   begin delete from public.messages             where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.routine_assignments  where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.meal_plan_assignments where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  begin delete from public.device_tokens where email = auth.email(); exception when others then null; end;
   begin delete from public.students where email = auth.email(); exception when others then null; end;
 
   -- ── Fotos del storage (bucket privado, carpeta = uid) ────────────────────

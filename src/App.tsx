@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
 import AppLayout from "@/components/layout/AppLayout";
+import PushInit from "@/components/PushInit";
 import React, { Suspense } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -64,6 +65,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PushInit />
         <BrowserRouter>
           <Routes>
             {/* Public routes (sin nav) */}
