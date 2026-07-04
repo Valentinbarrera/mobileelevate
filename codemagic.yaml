@@ -7,7 +7,7 @@ workflows:
       app_store_connect: codemagic
     environment:
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "tech.elevatefit.app"
         APP_STORE_APP_ID: 6787338355
@@ -47,7 +47,7 @@ workflows:
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - ios/App/build/ios/ipa/*.ipa
@@ -78,7 +78,7 @@ workflows:
         distribution_type: development
         bundle_identifier: tech.elevatefit.app
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "tech.elevatefit.app"
       node: 22
@@ -102,7 +102,7 @@ workflows:
       - name: Build unsigned for verification
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - /tmp/xcodebuild_logs/*.log
