@@ -11,7 +11,7 @@ workflows:
         XCODE_SCHEME: "App"
         BUNDLE_ID: "tech.elevatefit.app"
         APP_STORE_APP_ID: 6787338355
-      node: 20
+      node: 22
       xcode: latest
     triggering:
       events:
@@ -81,7 +81,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "tech.elevatefit.app"
-      node: 20
+      node: 22
       xcode: latest
     triggering:
       events:
