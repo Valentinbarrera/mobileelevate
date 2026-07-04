@@ -8,12 +8,12 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.elevateap.mobile
+        bundle_identifier: tech.elevatefit.app
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.elevateap.mobile"
-        APP_STORE_APP_ID: 0000000000
+        BUNDLE_ID: "tech.elevatefit.app"
+        APP_STORE_APP_ID: 6787338355
       node: 20
       xcode: latest
     triggering:
@@ -79,11 +79,11 @@ workflows:
     environment:
       ios_signing:
         distribution_type: development
-        bundle_identifier: com.elevateap.mobile
+        bundle_identifier: tech.elevatefit.app
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.elevateap.mobile"
+        BUNDLE_ID: "tech.elevatefit.app"
       node: 20
       xcode: latest
     triggering:

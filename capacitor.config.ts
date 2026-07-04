@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.elevateap.mobile',
+  appId: 'tech.elevatefit.app',
   appName: 'Elevate',
   webDir: 'dist',
   server: {
