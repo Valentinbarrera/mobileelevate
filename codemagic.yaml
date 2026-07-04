@@ -33,10 +33,13 @@ workflows:
           npx cap sync ios
       - name: Set up signing
         script: |
+          keychain initialize
+          # Generar clave privada y que Codemagic cree su propio certificado de distribución
+          openssl genrsa -out /tmp/cert_key.pem 2048
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --create
-          keychain initialize
+            --create \
+            --certificate-key=@file:/tmp/cert_key.pem
           keychain add-certificates
           xcode-project use-profiles
       - name: Increment build number
