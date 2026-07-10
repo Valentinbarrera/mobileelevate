@@ -96,7 +96,8 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
   return {
     id: day.id,
     name: day.day_name || day.name || "Día de entrenamiento",
-    dayNumber: day.order_index ?? day.day_number ?? 1,
+    // order_index es 0-based → +1 para mostrar "Día 1" (no "Día 0"). day_number ya viene 1-based.
+    dayNumber: day.order_index != null ? day.order_index + 1 : (day.day_number ?? 1),
     description: day.notes,
     exercises,
     totalExercises: exercises.length,

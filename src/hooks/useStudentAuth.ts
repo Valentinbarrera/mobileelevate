@@ -3,7 +3,7 @@
  * Usa el Supabase de Elevate Web (gssgoeaupfssexhliazy)
  * Autentica y fetchea perfil de tabla students
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserErrorMessage } from "@/lib/errors";
@@ -36,6 +36,8 @@ export function useStudentAuth() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem(ADMIN_MODE_KEY) === 'true');
+  // Guarda el user.id cuyo perfil ya buscamos, para evitar refetch innecesario en TOKEN_REFRESHED
+  const fetchedUserIdRef = useRef<string | null>(null);
 
   const fetchStudentProfile = async (email: string) => {
     try {
@@ -65,38 +67,44 @@ export function useStudentAuth() {
   };
 
   useEffect(() => {
-    const loadSession = async () => {
-      // Admin mode — skip Supabase auth entirely
-      if (isAdminMode) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user?.email) {
-          await fetchStudentProfile(session.user.email);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        setError(getUserErrorMessage(err, "No pudimos verificar tu sesión"));
-        setLoading(false);
-      }
-    };
-
-    void loadSession();
-
-    // Listen for auth changes (login/logout)
+    // Fuente única de verdad de la sesión: onAuthStateChange.
+    // Al suscribirnos, Supabase dispara INITIAL_SESSION con la sesión persistida,
+    // así que ya NO llamamos getSession()/fetchStudentProfile por separado (evita fetch duplicado).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Logout: limpiar estado
+        if (event === 'SIGNED_OUT') {
+          fetchedUserIdRef.current = null;
+          setStudent(null);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+
+        // Refresh de token (~cada 1h): si ya tenemos el perfil del mismo usuario,
+        // solo actualizamos sesión/token (arriba) y NO refetcheamos.
+        if (
+          event === 'TOKEN_REFRESHED' &&
+          session?.user?.id &&
+          fetchedUserIdRef.current === session.user.id
+        ) {
+          return;
+        }
+
         if (session?.user?.email) {
-          fetchStudentProfile(session.user.email);
+          // Diferimos el fetch fuera del callback (patrón recomendado por Supabase
+          // para no invocar al cliente dentro del propio callback → evita deadlocks).
+          const email = session.user.email;
+          const uid = session.user.id;
+          fetchedUserIdRef.current = uid;
+          setTimeout(() => {
+            void fetchStudentProfile(email);
+          }, 0);
         } else {
+          fetchedUserIdRef.current = null;
           setStudent(null);
           setError(null);
           setLoading(false);
@@ -122,14 +130,9 @@ export function useStudentAuth() {
       return { error: signInError };
     }
 
-    // Explicitly fetch student profile after successful login
-    // (onAuthStateChange may not fire if a session already existed in localStorage)
-    if (data.user?.email) {
-      setUser(data.user);
-      setSession(data.session);
-      await fetchStudentProfile(data.user.email);
-    }
-
+    // No fetcheamos el perfil acá: signInWithPassword dispara el evento SIGNED_IN,
+    // y el callback de onAuthStateChange se encarga del único fetch (evita duplicado).
+    // loading queda en true hasta que ese fetch resuelva (finally de fetchStudentProfile).
     return { data };
   };
 

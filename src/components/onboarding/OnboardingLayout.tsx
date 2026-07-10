@@ -33,7 +33,8 @@ const OnboardingLayout = ({ currentStep, totalSteps, children, onBack }: Onboard
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar: back + progreso motivacional */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30 px-5 pt-3 pb-3.5">
+      {/* header-safe-lg reemplaza pt-3 sumando env(safe-area-inset-top): el back no queda bajo la isla */}
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30 px-5 header-safe-lg pb-3.5">
         <div className="flex items-center justify-between mb-2.5">
           <motion.button
             onClick={handleBack}

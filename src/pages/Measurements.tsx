@@ -1,13 +1,18 @@
 /**
  * Página de mediciones corporales
- * Muestra historial de anthropometry con grid de última medición
+ * Muestra historial de anthropometry con grid de última medición.
+ * El alumno puede además cargar / editar sus propias mediciones.
  */
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Ruler, Scale } from "lucide-react";
+import { ArrowLeft, Ruler, Scale, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
+import PageHeader from "@/components/layout/PageHeader";
 import BodyMetricChart from "@/components/progress/BodyMetricChart";
+import MeasurementSheet from "@/components/progress/MeasurementSheet";
 import { useAnthropometryData } from "@/hooks/useAnthropometryData";
+import { useSaveMeasurement } from "@/hooks/useSaveMeasurement";
 import PageLoading from "@/components/ui/page-loading";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
@@ -22,7 +27,7 @@ const MeasurementCard = ({ label, value, unit }: MeasurementCardProps) => (
     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
     {value != null ? (
       <div className="flex items-baseline justify-center gap-1">
-        <span className="text-2xl font-bold text-foreground">{value}</span>
+        <span className="text-2xl font-bold tabular-nums text-foreground">{value}</span>
         <span className="text-sm text-muted-foreground">{unit}</span>
       </div>
     ) : (
@@ -34,6 +39,8 @@ const MeasurementCard = ({ label, value, unit }: MeasurementCardProps) => (
 export default function Measurements() {
   const navigate = useNavigate();
   const { entries, latest, weightHistory, waistHistory, loading } = useAnthropometryData();
+  const { saveMeasurement, saving, today } = useSaveMeasurement();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   if (loading) {
     return <PageLoading message="Cargando mediciones..." />;
@@ -41,31 +48,41 @@ export default function Measurements() {
 
   return (
     <AppShell>
+      <PageHeader
+        eyebrow={
+          <>
+            <Ruler className="w-3.5 h-3.5" />
+            Antropometría
+          </>
+        }
+        title="Mediciones"
+        maxWidth="max-w-4xl lg:max-w-6xl"
+        left={
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Volver"
+            className="text-muted-foreground p-1 -ml-1"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+        right={
+          <button
+            onClick={() => setSheetOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar
+          </button>
+        }
+      />
+
       <motion.div
-        className="min-h-screen bg-background pb-28 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <motion.header
-          className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
-          variants={fadeUp}
-        >
-          <div className="max-w-4xl lg:max-w-6xl mx-auto flex items-center gap-3 px-5 lg:px-8 py-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <Ruler className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Antropometría</span>
-              </div>
-              <h1 className="text-xl font-black tracking-tight text-foreground">Mediciones</h1>
-            </div>
-          </div>
-        </motion.header>
-
         <div className="max-w-4xl lg:max-w-6xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
           {/* Latest measurements grid */}
           {latest ? (
@@ -86,8 +103,17 @@ export default function Measurements() {
           ) : (
             <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-6 text-center">
               <Scale className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="font-semibold text-foreground mb-1">Sin mediciones</p>
-              <p className="text-sm text-muted-foreground">Tu coach registrará tus mediciones corporales</p>
+              <p className="font-semibold text-foreground mb-1">Registrá tu primera medición</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Cargá tu peso y medidas para seguir tu evolución. Tu coach también puede verlas.
+              </p>
+              <button
+                onClick={() => setSheetOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+              >
+                <Plus className="w-4 h-4" />
+                Registrar medición
+              </button>
             </motion.div>
           )}
 
@@ -127,7 +153,7 @@ export default function Measurements() {
                     <p className="text-sm text-foreground">
                       {new Date(entry.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
-                    <div className="flex gap-4 text-sm">
+                    <div className="flex gap-4 text-sm tabular-nums">
                       {entry.weight_kg && <span className="text-muted-foreground">{entry.weight_kg} kg</span>}
                       {entry.waist_cm && <span className="text-muted-foreground">{entry.waist_cm} cm</span>}
                       {entry.body_fat && <span className="text-muted-foreground">{entry.body_fat}%</span>}
@@ -140,6 +166,15 @@ export default function Measurements() {
           </div>
         </div>
       </motion.div>
+
+      <MeasurementSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        today={today}
+        saving={saving}
+        latest={latest}
+        onSave={saveMeasurement}
+      />
     </AppShell>
   );
 }

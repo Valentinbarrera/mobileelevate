@@ -26,7 +26,8 @@ const WorkoutHeader = ({
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
     >
-      <div className="flex items-center justify-between px-5 py-4">
+      {/* header-safe-lg suma env(safe-area-inset-top) para no quedar bajo la isla */}
+      <div className="flex items-center justify-between px-5 pb-4 header-safe-lg">
         {/* Back Button */}
         <button
           onClick={onBack}

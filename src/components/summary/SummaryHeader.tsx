@@ -8,7 +8,8 @@ interface SummaryHeaderProps {
 
 const SummaryHeader = ({ workoutName }: SummaryHeaderProps) => {
   return (
-    <div className="relative pt-12 pb-8 px-6 text-center overflow-hidden">
+    // pt = 3rem + env(safe-area-inset-top): el contenido no queda bajo el notch/isla en iOS
+    <div className="relative pt-[calc(3rem+env(safe-area-inset-top,0px))] pb-8 px-6 text-center overflow-hidden">
       {/* Confetti Animation */}
       <Confetti />
 

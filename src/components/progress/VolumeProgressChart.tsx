@@ -41,6 +41,25 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
   const TrendIcon = trend > 5 ? TrendingUp : trend < -5 ? TrendingDown : Minus;
   const trendColor = trend > 5 ? "text-emerald-500" : trend < -5 ? "text-red-500" : "text-muted-foreground";
 
+  // Solo marca el punto final (estilo cockpit Whoop/Oura): el resto queda limpio.
+  const EndpointDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    const { cx, cy, index } = props;
+    if (cx == null || cy == null) return <circle key={index} r={0} />;
+    if (index !== data.length - 1) return <circle key={index} cx={cx} cy={cy} r={0} fill="transparent" />;
+    return (
+      <circle
+        key="endpoint"
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="hsl(var(--primary))"
+        stroke="hsl(var(--card))"
+        strokeWidth={2.5}
+        style={{ filter: "drop-shadow(0 0 5px hsl(var(--primary) / 0.6))" }}
+      />
+    );
+  };
+
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
@@ -85,9 +104,9 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
                 <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="hsl(var(--border))" 
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(var(--border) / 0.5)"
               vertical={false}
             />
             <XAxis 
@@ -100,7 +119,9 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+              tickFormatter={(value) =>
+                value >= 1000 ? `${(value / 1000).toFixed(1)}k` : `${Math.round(value)}`
+              }
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
@@ -114,8 +135,8 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
               dataKey="volume"
               stroke="hsl(var(--primary))"
               strokeWidth={3}
-              dot={{ fill: "hsl(var(--primary))", strokeWidth: 0, r: 4 }}
-              activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "white", strokeWidth: 2 }}
+              dot={EndpointDot}
+              activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
             />
           </ComposedChart>
         </ResponsiveContainer>

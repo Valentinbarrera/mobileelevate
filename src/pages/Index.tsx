@@ -130,29 +130,33 @@ const Index = () => {
     />
   );
 
-  const hero =
-    todayRoutineDay && activeRoutine ? (
-      <>
-        <motion.div variants={fadeUp}>
-          <CoachWorkoutCard
-            routineDay={todayRoutineDay}
-            routineInfo={activeRoutine}
-            inProgress={inProgress}
-          />
-        </motion.div>
-        <motion.div variants={fadeUp}>
-          <ViewAllRoutinesLink />
-        </motion.div>
-      </>
-    ) : (
-      <motion.div variants={fadeUp}>
-        <RestDayCard
-          nextDay={nextRoutineDay}
-          nextDate={nextSessionDate}
-          routineId={activeRoutine?.id}
-        />
-      </motion.div>
-    );
+  const hasWorkoutToday = !!(todayRoutineDay && activeRoutine);
+
+  // Héroe: el entreno de hoy (o el estado de descanso). Es el protagonista.
+  const heroCard = hasWorkoutToday ? (
+    <motion.div variants={fadeUp}>
+      <CoachWorkoutCard
+        routineDay={todayRoutineDay!}
+        routineInfo={activeRoutine!}
+        inProgress={inProgress}
+      />
+    </motion.div>
+  ) : (
+    <motion.div variants={fadeUp}>
+      <RestDayCard
+        nextDay={nextRoutineDay}
+        nextDate={nextSessionDate}
+        routineId={activeRoutine?.id}
+      />
+    </motion.div>
+  );
+
+  // Link secundario, agrupado bajo el héroe (solo si hoy hay entreno)
+  const heroExtras = hasWorkoutToday && (
+    <motion.div variants={fadeUp}>
+      <ViewAllRoutinesLink />
+    </motion.div>
+  );
 
   const rescheduleBtn = activeRoutine && allDays.length > 0 && (
     <motion.button
@@ -204,18 +208,21 @@ const Index = () => {
           >
             <Header userName={displayName} streakDays={currentStreak} />
 
-            <div className="mt-4">{greeting}</div>
+            <div className="mt-5">{greeting}</div>
 
             <div className="mt-6 grid grid-cols-12 gap-6 items-start">
-              {/* Columna principal — el héroe del entreno de hoy */}
-              <div className="col-span-12 xl:col-span-7 space-y-5">
-                {hero}
-                {rescheduleBtn}
+              {/* Columna principal — el héroe del entreno de hoy protagoniza */}
+              <div className="col-span-12 xl:col-span-7 space-y-6">
+                <div className="space-y-3">
+                  {heroCard}
+                  {heroExtras}
+                  {rescheduleBtn}
+                </div>
                 {planDays}
               </div>
 
               {/* Rail derecho — glance: meta, atajos, coach */}
-              <div className="col-span-12 xl:col-span-5 space-y-5">
+              <div className="col-span-12 xl:col-span-5 space-y-6">
                 {weeklyGoalCard}
                 {quickActions}
                 {coachCard}
@@ -232,7 +239,7 @@ const Index = () => {
   // ── Mobile: columna única (sin cambios) ──
   return (
     <AppShell>
-      <div className="relative min-h-screen bg-background pb-32 lg:pb-10">
+      <div className="relative min-h-screen bg-background pb-nav lg:pb-10">
         <motion.div
           className="relative"
           variants={staggerContainer}
@@ -241,30 +248,32 @@ const Index = () => {
         >
           <Header userName={displayName} streakDays={currentStreak} />
 
-        <div className="max-w-2xl mx-auto px-5 mt-3 space-y-5">
-          {/* 1. Saludo contextual + motivador */}
-          {greeting}
+          <div className="max-w-2xl mx-auto px-5 mt-2 space-y-6">
+            {/* 1. Saludo contextual + motivador — actúa como título de la página */}
+            {greeting}
 
-          {/* 2. Objetivo semanal — glance arriba */}
-          {weeklyGoalCard}
+            {/* 2. ENTRENO DE HOY — el HÉROE / acción principal, protagoniza arriba.
+                   Sus links secundarios quedan agrupados debajo, bien pegados. */}
+            <div className="space-y-3">
+              {heroCard}
+              {heroExtras}
+              {rescheduleBtn}
+            </div>
 
-          {/* 3. ENTRENO DE HOY — el HÉROE / acción principal de la pantalla */}
-          {hero}
+            {/* 3. Objetivo semanal — resumen tipo dashboard (glance) */}
+            {weeklyGoalCard}
 
-          {/* Reprogramar / cambiar el día de hoy */}
-          {rescheduleBtn}
+            {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
+            {quickActions}
 
-          {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
-          {quickActions}
+            {/* 5. Carrusel del plan */}
+            {planDays}
 
-          {/* 5. Carrusel del plan */}
-          {planDays}
+            {/* 6. Card del coach — el diferenciador coach→alumno */}
+            {coachCard}
+          </div>
 
-          {/* 6. Card del coach — el diferenciador coach→alumno */}
-          {coachCard}
-        </div>
-
-        {rescheduleSheet}
+          {rescheduleSheet}
         </motion.div>
       </div>
     </AppShell>

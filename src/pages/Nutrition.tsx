@@ -11,12 +11,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
+import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
+import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
@@ -56,12 +58,12 @@ const MacroPill = ({
   target: number | null;
   color: string;
 }) => (
-  <div className="flex flex-col items-center gap-1">
-    <span className={`text-lg font-black ${color}`}>{Math.round(value)}</span>
+  <div className="flex flex-col items-center gap-0.5">
+    <span className={`text-lg font-black tabular-nums ${color}`}>{Math.round(value)}</span>
     {target && (
-      <span className="text-[10px] text-muted-foreground">/ {target}g</span>
+      <span className="text-[10px] text-muted-foreground tabular-nums">/ {target}g</span>
     )}
-    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">
       {label}
     </span>
   </div>
@@ -316,6 +318,11 @@ export default function Nutrition() {
   const foodSheet = (
     <FoodLogSheet open={showFoodSheet} onClose={() => setShowFoodSheet(false)} onAdd={addFood} />
   );
+  const disclaimer = (
+    <motion.div variants={fadeUp}>
+      <NutritionDisclaimer />
+    </motion.div>
+  );
 
   if (isLoading) return <PageLoading message="Cargando plan nutricional..." />;
 
@@ -323,24 +330,21 @@ export default function Nutrition() {
   if (!plan) {
     return (
       <AppShell>
+        <PageHeader
+          eyebrow={
+            <>
+              <Apple className="w-3.5 h-3.5" />
+              Nutrición
+            </>
+          }
+          title="Nutrición"
+        />
         <motion.div
-          className="min-h-screen bg-background pb-32 lg:pb-10"
+          className="min-h-screen bg-background pb-nav lg:pb-10"
           variants={staggerContainer}
           initial="initial"
           animate="animate"
         >
-          <motion.header
-            className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
-            variants={fadeUp}
-          >
-            <div className="max-w-2xl mx-auto flex items-center justify-between px-5 py-3">
-              <div className="flex items-center gap-2">
-                <Apple className="w-4 h-4 text-primary" />
-                <h1 className="text-xl font-black tracking-tight text-foreground">Nutrición</h1>
-              </div>
-            </div>
-          </motion.header>
-
           <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
             <div className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
               <p className="text-sm text-foreground/80">
@@ -350,6 +354,7 @@ export default function Nutrition() {
             {myDietEntry}
             {historyEntry}
             {foodLogSection}
+            {disclaimer}
           </div>
 
           {foodSheet}
@@ -376,32 +381,22 @@ export default function Nutrition() {
 
   return (
     <AppShell>
+      <PageHeader
+        eyebrow={
+          <>
+            <Apple className="w-3.5 h-3.5" />
+            Nutrición
+          </>
+        }
+        title={plan.name}
+        maxWidth="max-w-2xl lg:max-w-6xl"
+      />
       <motion.div
-        className="min-h-screen bg-background pb-32 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <motion.header
-          className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50"
-          variants={fadeUp}
-        >
-          <div className="max-w-2xl lg:max-w-6xl mx-auto flex items-center justify-between px-5 lg:px-8 py-3">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <Apple className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
-                  Nutrición
-                </span>
-              </div>
-              <h1 className="text-xl font-black tracking-tight text-foreground truncate max-w-[220px] lg:max-w-none">
-                {plan.name}
-              </h1>
-            </div>
-          </div>
-        </motion.header>
-
         {(() => {
           const errorBanner = error && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 flex items-center justify-between gap-3">
@@ -418,20 +413,22 @@ export default function Nutrition() {
           const macroSummary = plan.calories_target && (
             <motion.div
               variants={fadeUp}
-              className="card-elevated rounded-2xl p-4"
+              className="card-hero rounded-3xl p-5"
             >
               {/* Calorie ring */}
               <div className="flex items-center gap-4 mb-4">
-                <ProgressRing progress={caloriesPct} size={64} stroke={6} gradientId="kcalRing">
-                  <span className="text-xs font-black text-foreground leading-none tabular-nums">
+                <ProgressRing progress={caloriesPct} size={72} stroke={7} gradientId="kcalRing">
+                  <span className="text-sm font-black text-foreground leading-none tabular-nums">
                     <CountUp value={Math.round(caloriesPct)} />%
                   </span>
                 </ProgressRing>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">Consumido hoy</p>
-                  <p className="text-2xl font-black text-primary tabular-nums">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Consumido hoy
+                  </p>
+                  <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
                     {Math.round(dayTotals.calories)}
-                    <span className="text-sm font-normal text-muted-foreground">
+                    <span className="text-sm font-bold text-muted-foreground">
                       {" "}
                       / {plan.calories_target} kcal
                     </span>
@@ -443,7 +440,7 @@ export default function Nutrition() {
               </div>
 
               {/* Macros row */}
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/[0.06]">
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/[0.06]">
                 <MacroPill
                   label="Proteína"
                   value={dayTotals.protein}
@@ -562,6 +559,7 @@ export default function Nutrition() {
                     {dayNotes}
                     {mealsBlock}
                     {foodLogSection}
+                    {disclaimer}
                   </div>
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {macroSummary}
@@ -588,6 +586,7 @@ export default function Nutrition() {
               {myDietEntry}
               {historyEntry}
               {waterTracker}
+              {disclaimer}
             </div>
           );
         })()}

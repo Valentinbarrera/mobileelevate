@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { User } from "lucide-react";
 
 interface ProfileAvatarProps {
@@ -14,52 +13,46 @@ const ProfileAvatar = ({
   memberSince,
   avatar,
 }: ProfileAvatarProps) => {
+  // ELEVATE ALUMNO = miembro con coach → acento de marca; FREE = neutro.
+  const isPro = memberType.includes("ALUMNO");
+
   return (
-    <motion.div
-      className="flex flex-col items-center pt-4 pb-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-    >
-      <div className="relative mb-4">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/60 p-0.5">
-          <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-            {avatar ? (
-              <img src={avatar} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-10 h-10 text-muted-foreground" />
-            )}
+    <div className="px-5 lg:px-0 pt-5 lg:pt-0 mb-6 lg:mb-0">
+      <div className="card-hero rounded-3xl p-5 flex items-center gap-4">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/50 p-0.5">
+            <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+              {avatar ? (
+                <img src={avatar} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-9 h-9 text-muted-foreground" />
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Identidad */}
+        <div className="min-w-0 flex-1">
+          <h2 className="text-2xl font-black tracking-tight text-foreground truncate leading-tight">
+            {name}
+          </h2>
+
+          <span
+            className={`inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              isPro
+                ? "bg-primary/15 border border-primary/25 text-primary"
+                : "bg-secondary border border-white/[0.06] text-muted-foreground"
+            }`}
+          >
+            {isPro && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            {memberType}
+          </span>
+
+          <p className="text-sm text-muted-foreground mt-2 truncate">{memberSince}</p>
+        </div>
       </div>
-
-      <motion.h2
-        className="text-2xl font-black text-foreground mb-1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        {name}
-      </motion.h2>
-
-      <motion.p
-        className="text-xs font-bold text-primary uppercase tracking-widest mb-1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
-        {memberType}
-      </motion.p>
-
-      <motion.p
-        className="text-sm text-muted-foreground"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        {memberSince}
-      </motion.p>
-    </motion.div>
+    </div>
   );
 };
 

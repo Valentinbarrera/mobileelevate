@@ -18,7 +18,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $func$
+as $$
 begin
   if auth.uid() is null then
     raise exception 'No autenticado';
@@ -27,8 +27,9 @@ begin
   -- ── Datos personales del alumno ──────────────────────────────────────────
   -- Cada borrado en su propio bloque: si una tabla/columna no existe o una FK
   -- bloquea, se ignora y sigue (la función nunca se corta a la mitad).
-  begin delete from public.completed_exercises where session_id in (select id from public.completed_sessions where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
-  begin delete from public.completed_exercises where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  -- completed_exercises se referencia por completed_session_id (NO tiene student_id).
+  -- Hay que borrarlas ANTES que completed_sessions (su padre).
+  begin delete from public.completed_exercises where completed_session_id in (select id from public.completed_sessions where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
   begin delete from public.completed_sessions   where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.planned_sessions     where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.photo_comments where photo_id in (select id from public.progress_photos where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
@@ -49,7 +50,7 @@ begin
   -- ── El usuario de auth (login + identidades + sesiones) ──────────────────
   delete from auth.users where id = auth.uid();
 end;
-$func$;
+$$;
 
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;

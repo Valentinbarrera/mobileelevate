@@ -7,7 +7,7 @@
  *  - "rest":  no hay sesión hoy → mensaje de descanso + próxima sesión
  */
 import { motion } from "framer-motion";
-import { Play, ChevronRight, Clock, Dumbbell, BarChart3, Moon } from "lucide-react";
+import { Play, ChevronRight, Clock, Dumbbell, BarChart3, Moon, Check } from "lucide-react";
 import type { SessionInfo } from "@/lib/routineSession";
 import {
   dayTitle,
@@ -24,6 +24,10 @@ interface TodaySessionHeroProps {
   session: SessionInfo | null;
   onStart: (session: SessionInfo) => void;
   onView: (routineId: string) => void;
+  /** si la sesión ya está marcada como hecha (completado manual) */
+  done?: boolean;
+  /** marcar/desmarcar la sesión como hecha (opcional) */
+  onToggleDone?: () => void;
 }
 
 const MetaItem = ({ icon, value }: { icon: React.ReactNode; value: string }) => (
@@ -39,6 +43,8 @@ const TodaySessionHero = ({
   session,
   onStart,
   onView,
+  done,
+  onToggleDone,
 }: TodaySessionHeroProps) => {
   if (!session) return null;
 
@@ -125,13 +131,35 @@ const TodaySessionHero = ({
               EMPEZAR ENTRENAMIENTO
             </motion.button>
 
-            <button
-              onClick={() => onView(assignment.routine.id)}
-              className="mt-3 w-full text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1"
-            >
-              Ver rutina completa
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <button
+                onClick={() => onView(assignment.routine.id)}
+                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                Ver rutina completa
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {onToggleDone && (
+                <button
+                  onClick={onToggleDone}
+                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+                    done
+                      ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                      : "bg-secondary/60 border-white/[0.06] text-muted-foreground"
+                  }`}
+                >
+                  <span
+                    className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                      done ? "bg-emerald-500 text-white" : "border-2 border-current"
+                    }`}
+                  >
+                    {done && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
+                  </span>
+                  {done ? "Hecho" : "Marcar hecho"}
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>

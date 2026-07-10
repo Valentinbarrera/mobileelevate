@@ -36,8 +36,9 @@ const ActiveWorkoutHeader = ({
 
   return (
     <>
-      <motion.header 
-        className="sticky top-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border"
+      {/* pt-safe empuja la barra de progreso por debajo del notch/isla en iOS */}
+      <motion.header
+        className="sticky top-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border pt-safe"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}

@@ -35,9 +35,13 @@ const ExerciseDetailModal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Top bar */}
-            <div className="sticky top-0 z-10 flex items-center gap-3 px-5 py-3 bg-background/95 backdrop-blur-xl border-b border-border/50">
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground">
+            {/* Top bar — safe-area iOS resuelta (pantalla completa bajo el notch) */}
+            <div className="sticky top-0 z-10 flex items-center gap-3 px-5 header-safe pb-3 bg-background/95 backdrop-blur-xl border-b border-border/50">
+              <button
+                onClick={onClose}
+                aria-label="Cerrar"
+                className="shrink-0 w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
+              >
                 <X className="w-5 h-5" />
               </button>
               <h1 className="text-lg font-black text-foreground truncate">{exercise.name}</h1>

@@ -3,7 +3,7 @@
  * con la tira de 7 días mostrando el número de cada día (✓ si entrenó).
  */
 import { motion } from "framer-motion";
-import { Flame, Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
@@ -28,7 +28,7 @@ const getWeekDates = (): string[] => {
   });
 };
 
-const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) => {
+const WeeklyGoalCard = ({ completedDates, goal }: WeeklyGoalCardProps) => {
   const navigate = useNavigate();
   const weekDates = getWeekDates();
   const todayStr = getLocalDateString();
@@ -52,18 +52,10 @@ const WeeklyGoalCard = ({ completedDates, goal, streak }: WeeklyGoalCardProps) =
         </ProgressRing>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-              Objetivo semanal
-            </p>
-            <div className="flex items-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-1 shrink-0">
-              <Flame className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-black text-foreground tabular-nums">
-                <CountUp value={streak} />
-              </span>
-              <span className="text-[10px] text-muted-foreground uppercase font-semibold">racha</span>
-            </div>
-          </div>
+          {/* La racha vive en el header del Home; acá se omite para no duplicarla. */}
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+            Objetivo semanal
+          </p>
           <p className="text-2xl font-black text-foreground tracking-tight leading-none mt-1">
             <CountUp value={completed} />
             <span className="text-sm font-bold text-muted-foreground"> / {goal} entrenos</span>

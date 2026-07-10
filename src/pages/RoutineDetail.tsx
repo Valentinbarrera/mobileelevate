@@ -1,20 +1,40 @@
 /**
- * Detalle de rutina — vista clara y de un vistazo: cada DÍA muestra sus
- * ejercicios con series × reps, descanso, RIR y biseries, sin tener que entrar
- * al entreno. Cada día se puede empezar o colapsar.
+ * RoutineDetail — "Program Overview" premium. El programa es protagonista:
+ * un héroe compacto (objetivo + nivel + semana + progreso) y tres pestañas
+ * [ Semanas · Días · Hoy ] para navegar el plan a distintos niveles.
+ *
+ * Reutiliza DayExerciseList / ExerciseDetailModal (vía DayExerciseList) tal cual.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Dumbbell, Clock, Calendar, ChevronDown, Play } from "lucide-react";
+import { ArrowLeft, Dumbbell, Clock, Calendar, ChevronDown, Play, Signal } from "lucide-react";
 import BottomNav from "@/components/home/BottomNav";
-import { useAlumnoRoutineDetail } from "@/hooks/useAlumnoRoutines";
+import PageHeader from "@/components/layout/PageHeader";
 import DayExerciseList from "@/components/routines/DayExerciseList";
+import ProgramWeeks from "@/components/routines/ProgramWeeks";
+import TodaySessionHero from "@/components/routines/TodaySessionHero";
 import PageLoading from "@/components/ui/page-loading";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { useAlumnoRoutineDetail, useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
+import { useCompletedDates } from "@/hooks/useCompletedDates";
+import { useManualCompletions } from "@/hooks/useManualCompletions";
+import {
+  localISODate,
+  findSessionByDate,
+  firstDaySession,
+  hasAnyPlannedSession,
+  getCurrentWeekIndex,
+  getProgramWeekCount,
+  programProgress,
+  type SessionInfo,
+} from "@/lib/routineSession";
 import type { RoutineDay, RoutineExercise } from "@/types/coach";
 
-/* ── Card de un día (colapsable) ── */
+type Tab = "semanas" | "dias" | "hoy";
+
+/* ── Card de un día (colapsable) — vista "Días" ── */
 const DayCard = ({
   day,
   index,
@@ -31,10 +51,9 @@ const DayCard = ({
 
   return (
     <motion.div variants={fadeUp} className="card-elevated rounded-2xl overflow-hidden">
-      {/* Cabecera */}
       <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-          <span className="text-sm font-black text-primary">D{day.order_index ?? day.day_number ?? index + 1}</span>
+          <span className="text-sm font-black text-primary">D{day.order_index != null ? day.order_index + 1 : (day.day_number ?? index + 1)}</span>
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-black text-foreground truncate">{day.day_name || day.name}</p>
@@ -79,10 +98,38 @@ const DayCard = ({
   );
 };
 
+const TABS: { id: Tab; label: string }[] = [
+  { id: "semanas", label: "Semanas" },
+  { id: "dias", label: "Días" },
+  { id: "hoy", label: "Hoy" },
+];
+
 const RoutineDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { student } = useAuthContext();
+
   const { data: routine, isLoading, error } = useAlumnoRoutineDetail(id || null);
+  // Traemos las asignaciones para obtener planned_sessions / start_date (no vienen
+  // en el detalle de la rutina, que es routine-centric).
+  const { data: allAssignments } = useAlumnoRoutines({ studentId: student?.id || null, status: "all" });
+
+  const today = localISODate();
+  const [tab, setTab] = useState<Tab>("dias");
+
+  const assignment = useMemo(
+    () => (allAssignments || []).find((a) => a.routine?.id === id) ?? null,
+    [allAssignments, id]
+  );
+
+  // Completados = reales + manuales
+  const completedReal = useCompletedDates();
+  const { manualDates, isDone: isManualDone, toggle } = useManualCompletions();
+  const doneDates = useMemo(() => {
+    const s = new Set<string>(completedReal);
+    for (const d of manualDates) s.add(d);
+    return s;
+  }, [completedReal, manualDates]);
 
   if (isLoading) {
     return <PageLoading message="Cargando rutina..." />;
@@ -106,53 +153,164 @@ const RoutineDetail = () => {
   );
   const totalExercises = days.reduce((a, d) => a + (d.routine_exercises?.length || 0), 0);
 
+  // Métricas del programa (necesitan la asignación con agenda/start_date)
+  const weekCount = assignment ? getProgramWeekCount(assignment) : routine.duration_weeks || 1;
+  const weekIndex = assignment ? getCurrentWeekIndex(assignment, today) : 1;
+  const progress = assignment ? programProgress(assignment, doneDates, today).pct : 0;
+
   const startDay = (day: RoutineDay) =>
     navigate(`/workout/${day.id}`, { state: { routineDayId: day.id, routineId: routine.id } });
+  const startSession = (s: SessionInfo) => startDay(s.day);
+
+  // Sesión de "Hoy" acotada a esta asignación
+  const hasAgenda = assignment ? hasAnyPlannedSession([assignment]) : false;
+  const todaySession = assignment ? findSessionByDate([assignment], today) : null;
+  const fallbackSession = assignment ? firstDaySession([assignment]) : null;
+  const hoySession = todaySession ?? (hasAgenda ? null : fallbackSession);
+  const hoyVariant: "ready" | "rest" = todaySession ? "ready" : "rest";
+  const hoyLabel = todaySession ? "Hoy" : "Sin entreno hoy";
+  const doneKey = hoySession?.date ?? today;
+  const hoyDone = isManualDone(doneKey) || completedReal.has(doneKey);
+
+  // Lista plana de días (Días tab + fallback de Semanas)
+  const daysList = (
+    <div className="space-y-3">
+      {days.map((day, i) => (
+        <DayCard key={day.id} day={day} index={i} defaultOpen={i === 0} onStart={() => startDay(day)} />
+      ))}
+    </div>
+  );
 
   return (
     <motion.div
-      className="min-h-screen bg-background pb-28 lg:pb-10"
+      className="min-h-screen bg-background pb-nav lg:pb-10"
       variants={staggerContainer}
       initial="initial"
       animate="animate"
     >
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 py-3">
-        <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
+      <PageHeader
+        eyebrow="Programa"
+        title={routine.name}
+        subtitle={routine.description || undefined}
+        left={
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="min-w-0">
-            <h1 className="text-lg font-black text-foreground truncate">{routine.name}</h1>
-            {routine.description && <p className="text-xs text-muted-foreground truncate">{routine.description}</p>}
+        }
+      />
+
+      <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 lg:px-8 pt-5">
+        {/* ── Héroe compacto: objetivo + progreso ── */}
+        <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground mb-4">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-primary" /> {weekCount} semanas
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-primary" /> {days.length} días
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Dumbbell className="w-3.5 h-3.5 text-primary" /> {totalExercises} ejercicios
+            </span>
+            {routine.difficulty && (
+              <span className="flex items-center gap-1.5 capitalize">
+                <Signal className="w-3.5 h-3.5 text-primary" /> {routine.difficulty}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-end justify-between mb-2">
+            <span className="text-sm font-bold text-foreground tabular-nums">
+              Semana {weekIndex}
+              <span className="text-muted-foreground font-semibold"> de {weekCount}</span>
+            </span>
+            <span className="text-sm font-black text-primary tabular-nums">{progress}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-secondary/60 overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              transition={{ delay: 0.15, duration: 0.7, ease: "easeOut" }}
+            />
+          </div>
+        </motion.div>
+
+        {/* ── Tabs ── */}
+        <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 py-3 bg-background/80 backdrop-blur-xl mt-5">
+          <div className="flex gap-1 p-1 rounded-2xl bg-secondary/40 border border-border/50">
+            {TABS.map((t) => {
+              const active = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`relative flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                    active ? "text-primary-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="routineDetailTab"
+                      className="absolute inset-0 bg-gradient-primary rounded-xl"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
 
-      <div className="max-w-2xl mx-auto px-5">
-        {/* Meta */}
-        <div className="flex flex-wrap gap-4 py-4">
-          {routine.duration_weeks && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span>{routine.duration_weeks} semanas</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="w-3.5 h-3.5 text-primary" />
-            <span>{days.length} días</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Dumbbell className="w-3.5 h-3.5 text-primary" />
-            <span>{totalExercises} ejercicios</span>
-          </div>
-        </div>
+        {/* ── Contenido de la pestaña ── */}
+        <div className="mt-4">
+          {tab === "dias" && daysList}
 
-        {/* Días con sus ejercicios */}
-        <div className="space-y-3">
-          {days.map((day, i) => (
-            <DayCard key={day.id} day={day} index={i} defaultOpen={i === 0} onStart={() => startDay(day)} />
-          ))}
+          {tab === "semanas" &&
+            (assignment ? (
+              <ProgramWeeks
+                assignment={assignment}
+                doneDates={doneDates}
+                currentWeek={weekIndex}
+                todayISO={today}
+                onStart={startSession}
+                fallback={daysList}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="card-elevated rounded-2xl p-6 text-center">
+                  <p className="font-bold text-foreground">Tu coach todavía no agendó fechas</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Mientras tanto, mirá los días del plan.
+                  </p>
+                </div>
+                {daysList}
+              </div>
+            ))}
+
+          {tab === "hoy" &&
+            (hoySession ? (
+              <TodaySessionHero
+                variant={hoyVariant}
+                label={hoyLabel}
+                session={hoySession}
+                onStart={startSession}
+                onView={() => setTab("dias")}
+                done={hoyDone}
+                onToggleDone={() => toggle(doneKey)}
+              />
+            ) : (
+              <div className="card-elevated rounded-2xl p-8 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="font-bold text-foreground">Sin entreno hoy</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  No tenés una sesión de este programa agendada para hoy.
+                </p>
+              </div>
+            ))}
         </div>
       </div>
 

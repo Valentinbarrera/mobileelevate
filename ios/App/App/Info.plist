@@ -51,5 +51,11 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Elevate usa la cámara para que puedas tomar fotos de tu progreso físico y compartirlas con tu coach.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Elevate accede a tus fotos para que puedas subir imágenes de tu progreso físico y compartirlas con tu coach.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Elevate puede guardar imágenes en tu galería.</string>
 </dict>
 </plist>

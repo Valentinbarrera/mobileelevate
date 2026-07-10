@@ -190,3 +190,95 @@ export function getUpcomingSessions(
   out.sort((x, y) => (x.date! < y.date! ? -1 : 1));
   return out.slice(0, max);
 }
+
+// ─── Programa: semanas y progreso ───────────────────────────────────────────
+// Las "semanas" NO existen en el schema: se derivan de planned_sessions.date
+// relativo a assignment.start_date. Todas estas funciones son PURAS.
+
+/** Días enteros entre dos fechas ISO (toISO − fromISO). */
+function daysBetween(fromISO: string, toISO: string): number {
+  const a = parseISO(fromISO);
+  const b = parseISO(toISO);
+  return Math.floor((b.getTime() - a.getTime()) / 86_400_000);
+}
+
+/** Cantidad total de semanas del programa (duration_weeks o derivada de la agenda). */
+export function getProgramWeekCount(assignment: AlumnoRoutineWithDetails): number {
+  const declared = assignment.routine?.duration_weeks;
+  if (declared && declared > 0) return declared;
+  const start = assignment.start_date;
+  if (start) {
+    let maxWeek = 1;
+    for (const ps of assignment.planned_sessions || []) {
+      const w = Math.floor(daysBetween(start, ps.date) / 7) + 1;
+      if (w > maxWeek) maxWeek = w;
+    }
+    return maxWeek;
+  }
+  return 1;
+}
+
+/** Índice (1-based) de la semana actual del programa según hoy. */
+export function getCurrentWeekIndex(
+  assignment: AlumnoRoutineWithDetails,
+  todayISO: string
+): number {
+  const start = assignment.start_date;
+  if (!start) return 1;
+  const diff = daysBetween(start, todayISO);
+  const total = getProgramWeekCount(assignment);
+  if (diff < 0) return 1;
+  const idx = Math.floor(diff / 7) + 1;
+  return Math.min(Math.max(idx, 1), total);
+}
+
+export interface ProgramWeek {
+  /** número de semana (1-based) */
+  week: number;
+  /** sesiones agendadas de esa semana, ordenadas por fecha */
+  sessions: SessionInfo[];
+}
+
+/** Agrupa las sesiones agendadas por semana (relativa a start_date). */
+export function groupSessionsByWeek(
+  assignment: AlumnoRoutineWithDetails
+): ProgramWeek[] {
+  const start = assignment.start_date;
+  const days = (assignment.routine?.routine_days || []) as AlumnoDay[];
+  const byWeek = new Map<number, SessionInfo[]>();
+
+  for (const ps of assignment.planned_sessions || []) {
+    const day = days.find((d) => d.id === ps.routine_day_id);
+    if (!day) continue;
+    const week = start ? Math.floor(daysBetween(start, ps.date) / 7) + 1 : 1;
+    const arr = byWeek.get(week) || [];
+    arr.push({ assignment, day, date: ps.date });
+    byWeek.set(week, arr);
+  }
+
+  return [...byWeek.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([week, sessions]) => ({
+      week,
+      sessions: sessions.sort((x, y) => (x.date! < y.date! ? -1 : 1)),
+    }));
+}
+
+/** Progreso del programa: % de sesiones agendadas completadas. */
+export function programProgress(
+  assignment: AlumnoRoutineWithDetails,
+  doneDates?: Set<string>,
+  todayISO?: string
+): { done: number; total: number; pct: number } {
+  const sessions = assignment.planned_sessions || [];
+  const total = sessions.length;
+  if (total === 0) return { done: 0, total: 0, pct: 0 };
+
+  let done = 0;
+  for (const ps of sessions) {
+    if (doneDates?.has(ps.date)) done++;
+    // Sin set de completados: aproximamos por fechas pasadas con sesión.
+    else if (!doneDates && todayISO && ps.date < todayISO) done++;
+  }
+  return { done, total, pct: Math.round((done / total) * 100) };
+}

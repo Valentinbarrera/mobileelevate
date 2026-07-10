@@ -57,6 +57,25 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
     value: d.value,
   }));
 
+  // Enfatiza solo el último dato (cockpit Whoop/Oura); intermedios limpios.
+  const EndpointDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    const { cx, cy, index } = props;
+    if (cx == null || cy == null) return <circle key={index} r={0} />;
+    if (index !== chartData.length - 1) return <circle key={index} cx={cx} cy={cy} r={0} fill="transparent" />;
+    return (
+      <circle
+        key="endpoint"
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill={color}
+        stroke="hsl(var(--card))"
+        strokeWidth={2.5}
+        style={{ filter: `drop-shadow(0 0 5px ${color})` }}
+      />
+    );
+  };
+
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
@@ -104,7 +123,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
                 <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
             <XAxis
               dataKey="label"
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -124,8 +143,8 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
               dataKey="value"
               stroke={color}
               strokeWidth={3}
-              dot={{ fill: color, strokeWidth: 0, r: 4 }}
-              activeDot={{ r: 6, fill: color, stroke: "white", strokeWidth: 2 }}
+              dot={EndpointDot}
+              activeDot={{ r: 6, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }}
             />
           </ComposedChart>
         </ResponsiveContainer>

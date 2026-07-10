@@ -155,15 +155,6 @@
     }
   }
 
-  /* Safe area para móviles con notch */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0.5rem);
-  }
-
-  .pt-safe {
-    padding-top: env(safe-area-inset-top, 0);
-  }
-
   /* Hide scrollbar */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -195,6 +186,25 @@
 }
 
 @layer utilities {
+  /* ================================
+     SAFE AREAS (iOS notch / Dynamic Island / home indicator)
+     En @layer utilities para que ganen a los paddings de Tailwind.
+     Fallback 0px → inocuas en desktop/navegador.
+     ================================ */
+
+  /* Solo el inset — para un wrapper cuyo contenido interno tiene su propio padding */
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  /* Headers: padding vertical propio + el inset del notch, en una sola clase */
+  .header-safe { padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)); }
+  .header-safe-lg { padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)); }
+  .header-safe-xl { padding-top: calc(1.25rem + env(safe-area-inset-top, 0px)); }
+
+  /* Padding inferior de páginas bajo el BottomNav fijo (unifica pb-28/pb-32) */
+  .pb-nav { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
+  .pb-nav-lg { padding-bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px)); }
+
   /* ================================
      GRADIENTES DE TEXTO Y FONDO
      ================================ */

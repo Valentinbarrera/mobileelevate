@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, Dumbbell, Calendar, Mail, ClipboardList, ChevronRight, Check } from "lucide-react";
-import ProfileHeader from "@/components/profile/ProfileHeader";
+import { Target, Dumbbell, Calendar, Mail, ClipboardList, ChevronRight, Check, UserCircle } from "lucide-react";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfileSettings from "@/components/profile/ProfileSettings";
 import AppShell from "@/components/layout/AppShell";
+import PageHeader from "@/components/layout/PageHeader";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
@@ -35,16 +35,24 @@ const Profile = () => {
 
   return (
     <AppShell>
+      {/* Perfil es pestaña raíz del bottom-nav: sin botón atrás y sin ⚙️ decorativo.
+          La safe-area de iOS la resuelve PageHeader. */}
+      <PageHeader
+        eyebrow={
+          <>
+            <UserCircle className="w-3.5 h-3.5" />
+            Cuenta
+          </>
+        }
+        title="Perfil"
+      />
+
       <motion.div
-        className="min-h-screen bg-background pb-28 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        <motion.div variants={fadeUp}>
-          <ProfileHeader onBack={() => navigate(-1)} />
-        </motion.div>
-
         {(() => {
           const avatar = (
             <motion.div variants={fadeUp}>
@@ -117,7 +125,7 @@ const Profile = () => {
           // Desktop: avatar + datos a la izquierda, ajustes a la derecha.
           if (isDesktop) {
             return (
-              <div className="max-w-5xl mx-auto px-8 grid grid-cols-12 gap-8 items-start">
+              <div className="max-w-5xl mx-auto px-8 pt-6 grid grid-cols-12 gap-8 items-start">
                 <div className="col-span-5 space-y-6">
                   {avatar}
                   {intakeCard}

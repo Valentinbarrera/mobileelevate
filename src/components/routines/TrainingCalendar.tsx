@@ -16,6 +16,10 @@ interface TrainingCalendarProps {
   selectedDate: string;
   today: string;
   onSelect: (date: string) => void;
+  /** Mostrar siempre el almanaque del mes (sin el strip compacto interno). */
+  monthOnly?: boolean;
+  /** Si se provee, el botón de cerrar/contraer lo llama (lo controla el padre). */
+  onCollapse?: () => void;
 }
 
 const WEEK_LABELS = ["L", "M", "M", "J", "V", "S", "D"];
@@ -38,9 +42,10 @@ const parseISO = (iso: string) => {
   return new Date(y, m - 1, d);
 };
 
-const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSelect }: TrainingCalendarProps) => {
+const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSelect, monthOnly, onCollapse }: TrainingCalendarProps) => {
   const isDesktop = useIsDesktop();
   const [expanded, setExpanded] = useState(isDesktop);
+  const showMonth = monthOnly || expanded;
   // Mes en vista (almanaque), anclado al día seleccionado
   const [cursor, setCursor] = useState(() => parseISO(selectedDate));
 
@@ -99,7 +104,7 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
 
   return (
     <div className="card-elevated rounded-2xl p-3">
-      {!expanded ? (
+      {!showMonth ? (
         /* ───────── Vista COMPACTA (strip de la semana) ───────── */
         <>
           <div className="flex items-center justify-between mb-2 px-1">
@@ -165,13 +170,16 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
               >
                 Hoy
               </button>
-              {!isDesktop && (
+              {(onCollapse || !isDesktop) && (
                 <button
-                  onClick={() => setExpanded(false)}
+                  onClick={() => {
+                    if (!monthOnly) setExpanded(false);
+                    onCollapse?.();
+                  }}
                   aria-label="Contraer calendario"
                   className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground px-2 py-1 rounded-lg hover:bg-secondary"
                 >
-                  <ChevronUp className="w-3.5 h-3.5" /> Cerrar
+                  <ChevronUp className="w-3.5 h-3.5" /> {monthOnly ? "Ver semana" : "Cerrar"}
                 </button>
               )}
             </div>

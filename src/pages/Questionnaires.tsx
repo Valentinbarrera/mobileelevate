@@ -19,14 +19,15 @@ const Questionnaires = () => {
   return (
     <AppShell>
       <motion.div
-        className="min-h-screen bg-background pb-28 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
         {/* Header */}
         <motion.header variants={fadeUp} className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 py-3">
+          {/* header-safe-lg suma el env(safe-area-inset-top) (antes py-3 quedaba bajo la isla) */}
+          <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 pb-3 header-safe-lg">
             <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-card/60 border border-border/40 flex items-center justify-center">
               <ArrowLeft className="w-4.5 h-4.5 text-foreground" />
             </button>

@@ -24,6 +24,11 @@ export function usePRData() {
 
       // Two-step query to avoid RLS issues with nested joins
       // Step 1: Get completed sessions for this student
+      // NOTA: sin .limit() ni filtro por fecha a propósito. Un PR es el máximo
+      // histórico (all-time) por ejercicio; recortar filas o acotar por fecha
+      // podría descartar una sesión antigua que contiene el récord y cambiar el
+      // resultado visible. Se prioriza correctitud sobre el ahorro de fetch.
+      // Columnas ya mínimas (solo id/date).
       const { data: sessions, error: sessError } = await supabase
         .from("completed_sessions")
         .select("id, date")
@@ -35,6 +40,9 @@ export function usePRData() {
       const sessionDateMap = new Map(sessions.map(s => [s.id, s.date]));
 
       // Step 2: Get completed exercises with routine_exercise name
+      // Igual que arriba: sin .limit() porque el máximo por ejercicio necesita
+      // el histórico completo; un tope podría recortar el set que es el PR y
+      // alterar el dato mostrado. Columnas ya acotadas a lo que usa el cálculo.
       const { data: exercises, error: exError } = await supabase
         .from("completed_exercises")
         .select("weight, reps, completed_session_id, routine_exercises(name)")

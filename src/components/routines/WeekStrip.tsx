@@ -8,18 +8,24 @@ import type { WeekDay } from "@/lib/routineSession";
 
 interface WeekStripProps {
   days: WeekDay[];
+  /** Al tocar un día con entreno → navega a la rutina de ese día. */
+  onSelectDay?: (date: string) => void;
 }
 
-const WeekStrip = ({ days }: WeekStripProps) => {
+const WeekStrip = ({ days, onSelectDay }: WeekStripProps) => {
   return (
     <div className="card-elevated rounded-2xl px-2 py-3">
       <div className="grid grid-cols-7">
         {days.map((d, i) => {
           const isToday = d.status === "today";
+          const tappable = !!onSelectDay && d.hasSession;
           return (
-            <motion.div
+            <motion.button
+              type="button"
               key={d.date}
-              className="flex flex-col items-center gap-1.5"
+              onClick={tappable ? () => onSelectDay!(d.date) : undefined}
+              disabled={!tappable}
+              className={`flex flex-col items-center gap-1.5 ${tappable ? "active:scale-95 transition-transform" : ""}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
@@ -55,7 +61,7 @@ const WeekStrip = ({ days }: WeekStripProps) => {
                   d.dayNum
                 )}
               </div>
-            </motion.div>
+            </motion.button>
           );
         })}
       </div>

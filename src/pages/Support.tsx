@@ -9,7 +9,8 @@ const Support = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 bg-background/90 backdrop-blur border-b border-border">
-        <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 py-4">
+        {/* header-safe-lg suma el env(safe-area-inset-top) para respetar el notch/isla */}
+        <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 pb-4 header-safe-lg">
           <button
             onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-xl card-elevated flex items-center justify-center active:opacity-80"

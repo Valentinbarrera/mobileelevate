@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Utensils, Flame, Beef, CalendarCheck } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
+import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
 import MacroTrendChart from "@/components/nutrition/MacroTrendChart";
 import NutritionHistoryList from "@/components/nutrition/NutritionHistoryList";
@@ -89,28 +90,27 @@ export default function NutritionHistory() {
 
   return (
     <AppShell>
+      <PageHeader
+        eyebrow={
+          <>
+            <Utensils className="w-3.5 h-3.5" />
+            Nutrición
+          </>
+        }
+        title="Historial"
+        maxWidth="max-w-4xl lg:max-w-6xl"
+        left={
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+      />
       <motion.div
-        className="min-h-screen bg-background pb-28 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-4xl mx-auto flex items-center gap-3 px-5 lg:px-8 py-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <Utensils className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Nutrición</span>
-              </div>
-              <h1 className="text-xl font-black tracking-tight text-foreground">Historial de comidas</h1>
-            </div>
-          </div>
-        </header>
-
         {isDesktop ? (
           <div className="max-w-6xl mx-auto px-8 pt-5">
             <div className="grid grid-cols-12 gap-5 items-start">

@@ -9,9 +9,11 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
+import PageHeader from "@/components/layout/PageHeader";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
 import DietFoodSheet from "@/components/nutrition/DietFoodSheet";
+import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useCustomDiet, sumFoods, type DietFood } from "@/hooks/useCustomDiet";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -94,28 +96,27 @@ export default function MyDiet() {
 
   return (
     <AppShell>
+      <PageHeader
+        eyebrow={
+          <>
+            <Soup className="w-3.5 h-3.5" />
+            Nutrición
+          </>
+        }
+        title="Mi dieta"
+        maxWidth="max-w-4xl"
+        left={
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+      />
       <motion.div
-        className="min-h-screen bg-background pb-32 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-4xl mx-auto flex items-center gap-3 px-5 lg:px-8 py-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <Soup className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Nutrición</span>
-              </div>
-              <h1 className="text-xl font-black tracking-tight text-foreground">Mi dieta</h1>
-            </div>
-          </div>
-        </header>
-
         <div className="max-w-4xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
           {/* Resumen del día */}
           {hasDiet && (
@@ -349,6 +350,10 @@ export default function MyDiet() {
               )}
             </AnimatePresence>
           )}
+
+          <motion.div variants={fadeUp}>
+            <NutritionDisclaimer />
+          </motion.div>
         </div>
 
         <DietFoodSheet

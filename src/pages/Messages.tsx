@@ -35,16 +35,22 @@ export default function Messages() {
     queryKey: ['student-messages', student?.id],
     queryFn: async () => {
       if (!student?.id) return [];
+      // Traemos solo los últimos ~50 mensajes (desc + limit) y los revertimos
+      // en cliente para mostrarlos en orden cronológico. Seleccionamos únicamente
+      // las columnas que usa la UI/lógica (nada de select('*')).
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, student_id, coach_id, sender, content, created_at, seen_at')
         .eq('student_id', student.id)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
-      return (data || []) as Message[];
+      // Revertimos: el fetch viene del más nuevo al más viejo; la UI espera asc.
+      return ((data || []) as Message[]).slice().reverse();
     },
     enabled: !!student?.id,
-    refetchOnWindowFocus: true,
+    // El Realtime ya mantiene el chat fresco; evitamos refetch al enfocar la ventana.
+    refetchOnWindowFocus: false,
   });
 
   // Supabase Realtime: listen for new messages and updates (seen_at)
@@ -59,7 +65,8 @@ export default function Messages() {
         table: 'messages',
         filter: `student_id=eq.${student.id}`,
       }, () => {
-        queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+        // Mensaje nuevo (insert): refrescamos la lista de este alumno.
+        queryClient.invalidateQueries({ queryKey: ['student-messages', student.id] });
       })
       .on('postgres_changes', {
         event: 'UPDATE',
@@ -67,7 +74,8 @@ export default function Messages() {
         table: 'messages',
         filter: `student_id=eq.${student.id}`,
       }, () => {
-        queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+        // UPDATE (ej: seen_at del coach): refrescamos la lista de este alumno.
+        queryClient.invalidateQueries({ queryKey: ['student-messages', student.id] });
       })
       .subscribe();
 
@@ -95,7 +103,17 @@ export default function Messages() {
       .in('id', ids);
 
     if (!error) {
-      queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+      // Parcheamos la caché en vez de invalidar: marcamos seen_at localmente.
+      // Así evitamos el loop de doble-refetch (invalidate <-> canal Realtime que
+      // escucha estos mismos UPDATE). El Realtime sigue trayendo mensajes nuevos.
+      const idSet = new Set(ids);
+      queryClient.setQueryData<Message[]>(
+        ['student-messages', student.id],
+        (old) =>
+          old?.map((msg) =>
+            idSet.has(msg.id) ? { ...msg, seen_at: now } : msg
+          ) ?? old
+      );
     }
   }, [student?.id, messages, queryClient]);
 
@@ -116,7 +134,8 @@ export default function Messages() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['student-messages'] });
+      // Refrescamos solo la conversación de este alumno.
+      queryClient.invalidateQueries({ queryKey: ['student-messages', student?.id] });
     },
   });
 
@@ -152,8 +171,8 @@ export default function Messages() {
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50 px-5 py-4">
+        {/* Header — header-safe-lg suma el env(safe-area-inset-top) para que no quede bajo la isla */}
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50 px-5 pb-4 header-safe-lg">
           <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground">
               <ArrowLeft className="w-5 h-5" />

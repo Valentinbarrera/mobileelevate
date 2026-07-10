@@ -1,37 +1,111 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Plus } from "lucide-react";
+import { Dumbbell, Plus, Flame, CalendarDays } from "lucide-react";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
-import RoutinesHeaderSlim from "@/components/routines/RoutinesHeaderSlim";
-import WeekProgram from "@/components/routines/WeekProgram";
+import PageHeader from "@/components/layout/PageHeader";
+import ActiveProgram from "@/components/routines/ActiveProgram";
+import TodaySessionHero from "@/components/routines/TodaySessionHero";
+import WeekStrip from "@/components/routines/WeekStrip";
+import TrainingCalendar from "@/components/routines/TrainingCalendar";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
-import { localISODate, getWeekDays, type SessionInfo } from "@/lib/routineSession";
+import { useCompletedDates } from "@/hooks/useCompletedDates";
+import { useManualCompletions } from "@/hooks/useManualCompletions";
+import {
+  localISODate,
+  getWeekDays,
+  findSessionByDate,
+  findNextSession,
+  firstDaySession,
+  hasAnyPlannedSession,
+  getCurrentWeekIndex,
+  getProgramWeekCount,
+  programProgress,
+  type SessionInfo,
+} from "@/lib/routineSession";
 
-type View = "today" | "completed";
+type ProgramsFilter = "active" | "completed";
 
 const Routines = () => {
   const navigate = useNavigate();
-  const [view, setView] = useState<View>("today");
   const { student } = useAuthContext();
 
+  // Una sola consulta con status='all': derivamos activas/completadas en cliente.
   const { data: routines, isLoading, error } = useAlumnoRoutines({
     studentId: student?.id || null,
-    status: view === "completed" ? "completed" : "active",
+    status: "all",
   });
 
   const today = localISODate();
   const assignments = useMemo(() => routines || [], [routines]);
-
-  const weekDays = useMemo(
-    () => (view === "today" ? getWeekDays(assignments, today) : []),
-    [assignments, today, view]
+  const activeAssignments = useMemo(
+    () => assignments.filter((a) => a.status === "active"),
+    [assignments]
   );
+  const completedAssignments = useMemo(
+    () => assignments.filter((a) => a.status === "completed"),
+    [assignments]
+  );
+
+  // Completados = reales (completed_sessions) + manuales (tilde del alumno).
+  const completedReal = useCompletedDates();
+  const { manualDates, isDone: isManualDone, toggle } = useManualCompletions();
+  const doneDates = useMemo(() => {
+    const s = new Set<string>(completedReal);
+    for (const d of manualDates) s.add(d);
+    return s;
+  }, [completedReal, manualDates]);
+
+  // ── Programa activo (héroe) ──
+  const primary = activeAssignments[0] ?? null;
+
+  // ── Sesión de hoy ──
+  const hasAgenda = hasAnyPlannedSession(activeAssignments);
+  const todaySession = useMemo(
+    () => findSessionByDate(activeAssignments, today),
+    [activeAssignments, today]
+  );
+  const nextSession = useMemo(
+    () => (hasAgenda ? findNextSession(activeAssignments, today) : null),
+    [hasAgenda, activeAssignments, today]
+  );
+  const fallbackSession = useMemo(
+    () => firstDaySession(activeAssignments),
+    [activeAssignments]
+  );
+
+  const heroVariant: "ready" | "rest" = todaySession ? "ready" : hasAgenda ? "rest" : "ready";
+  const heroSession = todaySession ?? (hasAgenda ? nextSession : fallbackSession);
+  const heroLabel = todaySession ? "Hoy" : hasAgenda ? "Próximo entreno" : "Tu rutina";
+
+  // clave de completado manual para la sesión mostrada
+  const doneKey = heroSession?.date ?? today;
+  const sessionDone = isManualDone(doneKey) || completedReal.has(doneKey);
+
+  // ── Semana / calendario ──
+  const weekDays = useMemo(() => getWeekDays(activeAssignments, today), [activeAssignments, today]);
   const weeklyCount = weekDays.filter((d) => d.hasSession).length;
+  const [showCalendar, setShowCalendar] = useState(false);
+  const plannedDates = useMemo(() => {
+    const s = new Set<string>();
+    for (const a of activeAssignments) for (const p of a.planned_sessions || []) s.add(p.date);
+    return s;
+  }, [activeAssignments]);
+
+  // Tocar un día (semana o calendario) → abrir la rutina de ese día.
+  const goToDay = (iso: string) => {
+    const sess = findSessionByDate(activeAssignments, iso);
+    if (sess) startSession(sess);
+  };
+
+  // ── Mis programas (filtro discreto) ──
+  const [programsFilter, setProgramsFilter] = useState<ProgramsFilter>("active");
+  const programsList =
+    programsFilter === "completed" ? completedAssignments : activeAssignments;
 
   const startSession = (session: SessionInfo) => {
     navigate(`/workout/${session.day.id}`, {
@@ -44,7 +118,7 @@ const Routines = () => {
   if (!student) {
     return (
       <AppShell>
-        <div className="min-h-screen bg-background pb-28 flex flex-col items-center justify-center px-6 text-center">
+        <div className="min-h-screen bg-background pb-nav flex flex-col items-center justify-center px-6 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Dumbbell className="w-8 h-8 text-primary" />
           </div>
@@ -58,58 +132,31 @@ const Routines = () => {
     );
   }
 
+  const firstName = student.full_name?.trim().split(" ")[0] || "Atleta";
+
   return (
     <AppShell>
-      <RoutinesHeaderSlim fullName={student.full_name} weeklyCount={weeklyCount} />
+      <PageHeader
+        eyebrow={`Hola, ${firstName}`}
+        title="Entrenar"
+        maxWidth="max-w-2xl lg:max-w-6xl"
+        right={
+          weeklyCount > 0 ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+              <Flame className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-primary tabular-nums">{weeklyCount}</span>
+            </div>
+          ) : undefined
+        }
+      />
 
       <motion.div
-        className="min-h-screen bg-background pb-32 lg:pb-10"
+        className="min-h-screen bg-background pb-nav lg:pb-10"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
         <div className="max-w-2xl lg:max-w-6xl mx-auto px-5 lg:px-8 pt-5 space-y-6">
-          {/* Fila superior: toggle + entreno libre (en desktop conviven en una línea) */}
-          <div className="lg:flex lg:items-center lg:gap-3 space-y-3 lg:space-y-0">
-            {/* Toggle Hoy / Completadas */}
-            <div className="flex gap-2 p-1 rounded-2xl bg-secondary/40 border border-border/50 lg:flex-1 lg:max-w-md">
-              {(["today", "completed"] as View[]).map((v) => {
-                const active = view === v;
-                return (
-                  <button
-                    key={v}
-                    onClick={() => setView(v)}
-                    className={`relative flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                      active ? "text-primary-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {active && (
-                      <motion.div
-                        layoutId="routinesViewToggle"
-                        className="absolute inset-0 bg-gradient-primary rounded-xl"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative z-10">
-                      {v === "today" ? "Hoy" : "Completadas"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Entreno libre — armar tu propio entrenamiento fuera del plan */}
-            <motion.button
-              variants={fadeUp}
-              onClick={() => navigate("/free-workout")}
-              whileTap={{ scale: 0.99 }}
-              className="w-full lg:w-auto flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3 lg:px-6 text-primary font-bold text-sm active:scale-[0.99] hover:bg-primary/15 transition-all whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" />
-              Entreno libre
-            </motion.button>
-          </div>
-
           {isLoading && <PageLoading message="Cargando rutinas..." />}
 
           {error && (
@@ -122,65 +169,146 @@ const Routines = () => {
             </div>
           )}
 
-          {/* ─── Vista HOY ───────────────────────────────────────────────── */}
-          {!isLoading && !error && view === "today" && (() => {
-            if (assignments.length === 0) {
-              return (
-                <div className="rounded-3xl card-elevated p-8 text-center">
-                  <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="font-semibold text-foreground">Sin rutinas todavía</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Tu coach aún no te asignó una rutina.
-                  </p>
-                </div>
-              );
-            }
+          {!isLoading && !error && assignments.length === 0 && (
+            <div className="rounded-3xl card-elevated p-8 text-center">
+              <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="font-semibold text-foreground">Sin rutinas todavía</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tu coach aún no te asignó una rutina.
+              </p>
+            </div>
+          )}
 
-            const program = (
-              <WeekProgram assignments={assignments} onStart={startSession} onView={viewRoutine} />
-            );
-
-            const programasSection = (
-              <motion.div variants={fadeUp} className="space-y-2.5">
-                <div className="flex items-center gap-2 px-0.5">
-                  <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {assignments.map((assignment, index) => (
-                    <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
-                  ))}
-                </div>
-              </motion.div>
-            );
-
-            // WeekProgram ya arma sus 2 columnas (calendario + día) en desktop,
-            // así que sólo apilamos el programa y "Mis programas" debajo.
-            return (
-              <div className="space-y-6">
-                {program}
-                {programasSection}
-              </div>
-            );
-          })()}
-
-          {/* ─── Vista COMPLETADAS ───────────────────────────────────────── */}
-          {!isLoading && !error && view === "completed" && (
+          {!isLoading && !error && assignments.length > 0 && (
             <>
-              {assignments.length === 0 ? (
-                <div className="rounded-3xl card-elevated p-8 text-center">
-                  <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="font-semibold text-foreground">Sin rutinas completadas</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Cuando termines una rutina, va a aparecer acá.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {assignments.map((assignment, index) => (
-                    <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
-                  ))}
-                </div>
+              {/* ── HÉROE: programa activo ── */}
+              {primary && (
+                <motion.div variants={fadeUp}>
+                  <ActiveProgram
+                    assignment={primary}
+                    weekIndex={getCurrentWeekIndex(primary, today)}
+                    weekCount={getProgramWeekCount(primary)}
+                    progress={programProgress(primary, doneDates, today).pct}
+                    onView={viewRoutine}
+                  />
+                </motion.div>
+              )}
+
+              {/* ── Sesión de HOY ── */}
+              {heroSession && (
+                <motion.div variants={fadeUp}>
+                  <TodaySessionHero
+                    variant={heroVariant}
+                    label={heroLabel}
+                    session={heroSession}
+                    onStart={startSession}
+                    onView={viewRoutine}
+                    done={sessionDone}
+                    onToggleDone={() => toggle(doneKey)}
+                  />
+                </motion.div>
+              )}
+
+              {/* ── Esta semana / Calendario ── */}
+              {activeAssignments.length > 0 && (
+                <motion.div variants={fadeUp} className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-3 px-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="accent-bar" />
+                      <h3 className="text-sm font-black text-foreground tracking-tight">
+                        {showCalendar ? "Calendario" : "Esta semana"}
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setShowCalendar((v) => !v)}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      {showCalendar ? "Ver semana" : "Ver mes"}
+                    </button>
+                  </div>
+
+                  {showCalendar ? (
+                    <TrainingCalendar
+                      monthOnly
+                      plannedDates={plannedDates}
+                      doneDates={doneDates}
+                      selectedDate={today}
+                      today={today}
+                      onSelect={goToDay}
+                      onCollapse={() => setShowCalendar(false)}
+                    />
+                  ) : (
+                    <WeekStrip days={weekDays} onSelectDay={goToDay} />
+                  )}
+                </motion.div>
+              )}
+
+              {/* ── Entreno libre ── */}
+              <motion.button
+                variants={fadeUp}
+                onClick={() => navigate("/free-workout")}
+                whileTap={{ scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Entreno libre
+              </motion.button>
+
+              {/* ── Mis programas ── */}
+              {(activeAssignments.length > 0 || completedAssignments.length > 0) && (
+                <motion.div variants={fadeUp} className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 px-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="accent-bar" />
+                      <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                    </div>
+
+                    {completedAssignments.length > 0 && (
+                      <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-border/50">
+                        {(["active", "completed"] as ProgramsFilter[]).map((f) => {
+                          const active = programsFilter === f;
+                          return (
+                            <button
+                              key={f}
+                              onClick={() => setProgramsFilter(f)}
+                              className={`relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                                active ? "text-primary-foreground" : "text-muted-foreground"
+                              }`}
+                            >
+                              {active && (
+                                <motion.div
+                                  layoutId="programsFilter"
+                                  className="absolute inset-0 bg-gradient-primary rounded-lg"
+                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
+                              )}
+                              <span className="relative z-10">
+                                {f === "active" ? "Activas" : "Completadas"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {programsList.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {programsList.map((assignment, index) => (
+                        <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl card-elevated p-6 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        {programsFilter === "completed"
+                          ? "Todavía no completaste ningún programa."
+                          : "No tenés programas activos."}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
               )}
             </>
           )}

@@ -20,10 +20,23 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
       }
 
       // Build the query
+      // Columnas explícitas (no `*`) para no traer texto pesado ni columnas
+      // que la UI del alumno nunca usa. Se listan SOLO columnas reales del
+      // esquema (ej. routines usa `id/name/description`; los alias
+      // duration_weeks/difficulty/image_url no existen en la DB y el código
+      // ya los lee como undefined, así que se omiten sin cambiar el render).
+      // exercises: se incluyen description/instructions porque el flujo de
+      // entreno (CoachExerciseCard/CoachExerciseListItem → TechniqueBlock,
+      // vía useCoachHomeData) sí los muestra.
       let query = supabase
         .from('routine_assignments')
         .select(`
-          *,
+          id,
+          routine_id,
+          student_id,
+          status,
+          start_date,
+          created_at,
           planned_sessions (
             id,
             date,
@@ -32,12 +45,41 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
             assignment_id
           ),
           routine:routines (
-            *,
+            id,
+            name,
+            description,
             routine_days (
-              *,
+              id,
+              routine_id,
+              order_index,
+              day_name,
+              notes,
               routine_exercises (
-                *,
-                exercise:exercises (*)
+                id,
+                routine_day_id,
+                exercise_id,
+                name,
+                series,
+                reps,
+                weight,
+                rest,
+                rir,
+                tempo,
+                type,
+                training_method,
+                intensity_modifier,
+                notes,
+                order_index,
+                exercise:exercises (
+                  id,
+                  name,
+                  video_url,
+                  thumbnail_url,
+                  muscle,
+                  equipment,
+                  description,
+                  instructions
+                )
               )
             )
           )
@@ -93,15 +135,46 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
     queryFn: async () => {
       if (!routineId) return null;
 
+      // Mismas columnas explícitas que el listado (misma forma anidada) para
+      // no traer columnas que la UI no usa. Un solo routine, a demanda.
       const { data, error } = await supabase
         .from('routines')
         .select(`
-          *,
+          id,
+          name,
+          description,
           routine_days (
-            *,
+            id,
+            routine_id,
+            order_index,
+            day_name,
+            notes,
             routine_exercises (
-              *,
-              exercise:exercises (*)
+              id,
+              routine_day_id,
+              exercise_id,
+              name,
+              series,
+              reps,
+              weight,
+              rest,
+              rir,
+              tempo,
+              type,
+              training_method,
+              intensity_modifier,
+              notes,
+              order_index,
+              exercise:exercises (
+                id,
+                name,
+                video_url,
+                thumbnail_url,
+                muscle,
+                equipment,
+                description,
+                instructions
+              )
             )
           )
         `)

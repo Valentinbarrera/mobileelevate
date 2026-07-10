@@ -252,7 +252,8 @@ const FreeWorkout = () => {
     <motion.div className="min-h-screen bg-background pb-44" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-white/[0.06]">
-        <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 py-3">
+        {/* header-safe-lg suma env(safe-area-inset-top) para no quedar bajo la isla */}
+        <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 pb-3 header-safe-lg">
           <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
             <ArrowLeft className="w-5 h-5" />
           </button>

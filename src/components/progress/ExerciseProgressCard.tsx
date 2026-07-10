@@ -45,6 +45,25 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
   const latest = current.points[current.points.length - 1]?.topWeight ?? 0;
   const gain = latest - first;
 
+  // Enfatiza solo el último punto (cockpit Whoop/Oura); intermedios limpios.
+  const EndpointDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    const { cx, cy, index } = props;
+    if (cx == null || cy == null) return <circle key={index} r={0} />;
+    if (index !== chartData.length - 1) return <circle key={index} cx={cx} cy={cy} r={0} fill="transparent" />;
+    return (
+      <circle
+        key="endpoint"
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="hsl(var(--primary))"
+        stroke="hsl(var(--card))"
+        strokeWidth={2.5}
+        style={{ filter: "drop-shadow(0 0 5px hsl(var(--primary) / 0.6))" }}
+      />
+    );
+  };
+
   const CustomTooltip = ({
     active,
     payload,
@@ -128,7 +147,7 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
                   <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -149,8 +168,8 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
                 dataKey="value"
                 stroke="hsl(var(--primary))"
                 strokeWidth={3}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "white", strokeWidth: 2 }}
+                dot={EndpointDot}
+                activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
