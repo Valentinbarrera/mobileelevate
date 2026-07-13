@@ -4,6 +4,7 @@
  * secciones. Los datos se leen local (loadOnboarding). La edición se hace en
  * "/onboarding".
  */
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,11 +16,14 @@ import {
   Dumbbell,
   Soup,
   HeartPulse,
+  Download,
 } from "lucide-react";
+import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { exportQuestionnairePdf } from "@/lib/exportQuestionnaire";
 import {
   loadOnboarding,
   SEX_OPTIONS,
@@ -91,6 +95,18 @@ export default function QuestionnaireSummary() {
   const { student, isAdminMode } = useAuthContext();
   const studentId = student?.id || (isAdminMode ? "admin" : "anon");
   const data: OnboardingData = loadOnboarding(studentId);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportQuestionnairePdf(data, student?.full_name || "Alumno");
+    } catch {
+      toast.error("No se pudo generar el PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const header = (
     <PageHeader
@@ -212,13 +228,24 @@ export default function QuestionnaireSummary() {
             )}
           </Section>
 
-          {/* Editar */}
-          <motion.div variants={fadeUp} className="pt-1 pb-2">
+          {/* Acciones */}
+          <motion.div variants={fadeUp} className="pt-1 pb-2 space-y-2.5">
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform disabled:opacity-60"
+            >
+              <Download className="w-4 h-4" />
+              {exporting ? "Generando PDF…" : "Descargar / Enviar al coach"}
+            </button>
+            <p className="text-[11px] text-muted-foreground text-center px-4">
+              Genera un PDF con tus respuestas para compartirlo con tu coach.
+            </p>
             <button
               onClick={() => navigate("/onboarding")}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-secondary/60 border border-white/[0.06] text-foreground font-bold active:scale-95 transition-transform"
             >
-              <Pencil className="w-4 h-4" /> Editar cuestionario
+              <Pencil className="w-4 h-4 text-primary" /> Editar cuestionario
             </button>
           </motion.div>
         </div>
