@@ -9,7 +9,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, UserPlus } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -300,6 +300,51 @@ export default function Nutrition() {
     </motion.button>
   );
 
+  // CTA cuando faltan datos del perfil para el cálculo automático.
+  const missingProfileCta = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => navigate("/onboarding")}
+      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+        <UserPlus className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Calorías</p>
+        <p className="text-sm font-semibold text-foreground">Completá tu perfil para calcularlas solas</p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </motion.button>
+  );
+
+  // Estimación automática (Harris-Benedict) — se muestra SIEMPRE (con o sin plan
+  // del coach). Si faltan datos del perfil, cae al CTA de completar el onboarding.
+  const caloriesEstimate =
+    autoGoal != null && autoResult ? (
+      <motion.button
+        variants={fadeUp}
+        onClick={() => navigate("/nutrition/my-diet")}
+        className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+      >
+        <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+          <Sparkles className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+            Tu estimación · Harris-Benedict
+          </p>
+          <p className="text-sm font-semibold text-foreground tabular-nums">
+            {autoGoal} kcal{" "}
+            <span className="text-muted-foreground font-normal">· mantenimiento {autoResult.tdee}</span>
+          </p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+      </motion.button>
+    ) : (
+      missingProfileCta
+    );
+
   const historyEntry = (
     <motion.button
       variants={fadeUp}
@@ -412,6 +457,7 @@ export default function Nutrition() {
               </motion.button>
             )}
 
+            {autoGoal == null && missingProfileCta}
             {myDietEntry}
             {historyEntry}
             {foodLogSection}
@@ -625,6 +671,7 @@ export default function Nutrition() {
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {macroSummary}
                     {daySelector}
+                    {caloriesEstimate}
                     {myDietEntry}
                     {historyEntry}
                     {waterTracker}
@@ -644,6 +691,7 @@ export default function Nutrition() {
               {dayNotes}
               {mealsBlock}
               {foodLogSection}
+              {caloriesEstimate}
               {myDietEntry}
               {historyEntry}
               {waterTracker}
