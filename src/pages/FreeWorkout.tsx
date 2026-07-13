@@ -18,11 +18,13 @@ import ExerciseDetailModal from "@/components/workout/ExerciseDetailModal";
 import { useExerciseLibrary, type LibraryExercise } from "@/hooks/useExerciseLibrary";
 import { saveMyProgram, newId, type MyProgram } from "@/lib/myPrograms";
 import { getLocalDateString } from "@/lib/date";
+import { saveSetRir } from "@/lib/setRir";
 
 interface SetEntry {
   setNumber: number;
   weight: number;
   reps: number;
+  rir?: number | null;
 }
 interface FreeExercise {
   id: string;
@@ -47,7 +49,7 @@ const FreeExerciseCard = ({
 }: {
   ex: FreeExercise;
   studentId: string;
-  onAddSet: (weight: number, reps: number) => void;
+  onAddSet: (weight: number, reps: number, rir: number | null) => void;
   onRemove: () => void;
   onInfo?: () => void;
 }) => {
@@ -55,6 +57,7 @@ const FreeExerciseCard = ({
   const last = getLastPerformance(studentId, ex.id, today);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
+  const [rir, setRir] = useState("");
   const weightRef = useRef<HTMLInputElement>(null);
   const repsRef = useRef<HTMLInputElement>(null);
 
@@ -81,7 +84,9 @@ const FreeExerciseCard = ({
       toast.error("Ingresá las repeticiones");
       return;
     }
-    onAddSet(w, r);
+    const rr = rir.trim() === "" ? null : parseInt(rir, 10);
+    onAddSet(w, r, Number.isNaN(rr as number) ? null : rr);
+    setRir("");
   };
 
   return (
@@ -125,7 +130,12 @@ const FreeExerciseCard = ({
             >
               <span className="text-center text-xs font-bold text-emerald-500">{s.setNumber}</span>
               <span className="text-center text-base font-bold text-foreground tabular-nums">{s.weight} kg</span>
-              <span className="text-center text-base font-bold text-foreground tabular-nums">{s.reps} reps</span>
+              <span className="text-center text-base font-bold text-foreground tabular-nums">
+                {s.reps} reps
+                {s.rir != null && (
+                  <span className="text-xs font-semibold text-muted-foreground"> · RIR {s.rir}</span>
+                )}
+              </span>
               <Check className="w-4 h-4 text-emerald-500 mx-auto" strokeWidth={3} />
             </div>
           ))}
@@ -133,7 +143,7 @@ const FreeExerciseCard = ({
       )}
 
       {/* Fila de carga */}
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 items-end">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3rem_2.75rem] gap-2 items-end">
         <label className="flex flex-col gap-1 min-w-0">
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Peso (kg)</span>
           <input
@@ -164,8 +174,22 @@ const FreeExerciseCard = ({
             onChange={(e) => setReps(e.target.value)}
             onFocus={focusScroll}
             onKeyDown={(e) => e.key === "Enter" && add()}
-            enterKeyHint="done"
+            enterKeyHint="next"
             placeholder="0"
+            className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+          />
+        </label>
+        <label className="flex flex-col gap-1 min-w-0">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">RIR</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={rir}
+            onChange={(e) => setRir(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onKeyDown={(e) => e.key === "Enter" && add()}
+            enterKeyHint="done"
+            placeholder="–"
             className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
           />
         </label>
@@ -322,13 +346,16 @@ const FreeWorkout = () => {
     addByName(newName);
   };
 
-  const addSet = (exIndex: number, weight: number, reps: number) => {
+  const addSet = (exIndex: number, weight: number, reps: number, rir: number | null) => {
     setExercises((prev) =>
       prev.map((ex, i) => {
         if (i !== exIndex) return ex;
         const setNumber = ex.sets.length + 1;
-        logSet(studentId, { exerciseId: ex.id, date: getLocalDateString(), setNumber, weight, reps });
-        return { ...ex, sets: [...ex.sets, { setNumber, weight, reps }] };
+        const date = getLocalDateString();
+        logSet(studentId, { exerciseId: ex.id, date, setNumber, weight, reps });
+        // RIR propio del alumno (opcional), local por serie
+        saveSetRir(studentId, ex.id, date, setNumber, rir);
+        return { ...ex, sets: [...ex.sets, { setNumber, weight, reps, rir }] };
       })
     );
   };
@@ -593,7 +620,7 @@ const FreeWorkout = () => {
               key={ex.id}
               ex={ex}
               studentId={studentId}
-              onAddSet={(w, r) => addSet(i, w, r)}
+              onAddSet={(w, r, rr) => addSet(i, w, r, rr)}
               onRemove={() => removeExercise(i)}
               onInfo={ex.library ? () => setDetail(ex.library!) : undefined}
             />

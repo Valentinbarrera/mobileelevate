@@ -12,6 +12,7 @@ import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import ExerciseNoteSheet from "./ExerciseNoteSheet";
 import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
 import { getExerciseNote, saveExerciseNote, type ExerciseNote } from "@/lib/exerciseNotes";
+import { getSetRir, saveSetRir } from "@/lib/setRir";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 import { calcPlates } from "@/lib/plates";
 import { playSetLoggedSound, playPRSound } from "@/lib/sound";
@@ -117,6 +118,7 @@ const CoachExerciseCard = ({
   // Inputs de la serie actual
   const [editWeight, setEditWeight] = useState("");
   const [editReps, setEditReps] = useState("");
+  const [editRir, setEditRir] = useState("");
   const [logging, setLogging] = useState(false);
   const [showPlates, setShowPlates] = useState(false);
 
@@ -217,6 +219,8 @@ const CoachExerciseCard = ({
     const r = previousSetInSession?.reps ?? lastPerformance?.reps ?? parseFirstRep(exercise.reps);
     setEditWeight(w != null ? String(w) : "");
     setEditReps(r != null ? String(r) : "");
+    // Sugerimos el RIR que prescribió el coach (si lo hay); el alumno lo puede cambiar
+    setEditRir(exercise.rir != null ? String(exercise.rir) : "");
     setShowPlates(false);
   }, [doneCount, lastPerformance, exercise.reps, previousSetInSession?.weight, previousSetInSession?.reps]);
 
@@ -234,6 +238,10 @@ const CoachExerciseCard = ({
     const ok = await onCompleteSet(exercise.id, loggedSetNum, w, r, "moderate");
     setLogging(false);
     if (!ok) return;
+
+    // Guardá el RIR que anotó el alumno para esta serie (opcional, local)
+    const rirNum = editRir.trim() === "" ? null : parseInt(editRir, 10);
+    saveSetRir(sid, exercise.id, today, loggedSetNum, Number.isNaN(rirNum as number) ? null : rirNum);
 
     const isPR = !!personalRecord?.maxWeight && w > personalRecord.maxWeight;
     if (isPR) {
@@ -296,6 +304,10 @@ const CoachExerciseCard = ({
     const isExtra = i >= exercise.sets;
     return { setNum, logged, isCurrent, isExtra };
   });
+
+  // Identidad local del alumno y fecha de hoy (para leer/guardar el RIR por serie)
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  const today = getLocalDateString();
 
 
   return (
@@ -440,18 +452,19 @@ const CoachExerciseCard = ({
                 {!isDesktop && (
                 <div className="space-y-1.5">
                   {/* Header de columnas */}
-                  <div className="grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 px-1 items-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <div className="grid grid-cols-[1.75rem_3rem_1fr_1fr_2.4rem_2.75rem] gap-2 px-1 items-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     <span className="text-center">Set</span>
                     <span className="text-center">Antes</span>
                     <span className="text-center">Kg</span>
                     <span className="text-center">Reps</span>
+                    <span className="text-center">RIR</span>
                     <span />
                   </div>
 
                   {rows.map(({ setNum, logged, isCurrent }) => (
                     <div
                       key={setNum}
-                      className={`relative grid grid-cols-[1.75rem_3.5rem_1fr_1fr_2.75rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
+                      className={`relative grid grid-cols-[1.75rem_3rem_1fr_1fr_2.4rem_2.75rem] gap-2 items-center rounded-xl px-1 py-1.5 transition-colors ${
                         logged
                           ? "bg-emerald-500/10"
                           : isCurrent
@@ -538,6 +551,13 @@ const CoachExerciseCard = ({
                               placeholder="0"
                               className="w-full h-11 rounded-lg bg-secondary border border-primary/50 text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
                             />
+                            <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                              {getSetRir(sid, exercise.id, today, setNum) != null ? (
+                                getSetRir(sid, exercise.id, today, setNum)
+                              ) : (
+                                <span className="text-muted-foreground/40">–</span>
+                              )}
+                            </span>
                             <div className="flex justify-center">
                               <motion.button
                                 onClick={saveEditSet}
@@ -566,6 +586,13 @@ const CoachExerciseCard = ({
                             >
                               {logged.reps}
                             </button>
+                            <span className="text-center text-sm font-bold text-foreground tabular-nums">
+                              {getSetRir(sid, exercise.id, today, setNum) != null ? (
+                                getSetRir(sid, exercise.id, today, setNum)
+                              ) : (
+                                <span className="text-muted-foreground/40">–</span>
+                              )}
+                            </span>
                             <button
                               type="button"
                               onClick={() => startEditSet(logged)}
@@ -603,6 +630,15 @@ const CoachExerciseCard = ({
                             placeholder="0"
                             className="w-full h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
                           />
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={editRir}
+                            onChange={(e) => setEditRir(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            placeholder={exercise.rir != null ? String(exercise.rir) : "–"}
+                            className="w-full h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
+                          />
                           <div className="flex justify-center">
                             <motion.button
                               onClick={handleLogCurrent}
@@ -619,6 +655,7 @@ const CoachExerciseCard = ({
                         <>
                           <span className="text-center text-sm text-muted-foreground/40">–</span>
                           <span className="text-center text-sm text-muted-foreground/40">–</span>
+                          <span className="text-center text-sm text-muted-foreground/40">–</span>
                           <span />
                         </>
                       )}
@@ -631,19 +668,20 @@ const CoachExerciseCard = ({
                 {isDesktop && (
                   <div className="rounded-xl border border-border overflow-hidden">
                     {/* Header */}
-                    <div className="grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border bg-secondary/60 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <div className="grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem_2.6rem] divide-x divide-border bg-secondary/60 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                       <span className="py-2 text-center">Set</span>
                       <span className="py-2 text-center">Obj</span>
                       <span className="py-2 text-center">Antes</span>
                       <span className="py-2 text-center">Kg</span>
                       <span className="py-2 text-center">Reps</span>
+                      <span className="py-2 text-center">RIR</span>
                       <span className="py-2 text-center">✓</span>
                     </div>
 
                     {rows.map(({ setNum, logged, isCurrent }) => (
                       <div
                         key={setNum}
-                        className={`relative grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem] divide-x divide-border border-t border-border transition-colors ${
+                        className={`relative grid grid-cols-[2rem_2.6rem_3.4rem_minmax(0,1fr)_minmax(0,1fr)_2.6rem_2.6rem] divide-x divide-border border-t border-border transition-colors ${
                           logged ? "bg-emerald-500/10" : isCurrent ? "bg-primary/10" : "opacity-60"
                         }`}
                       >
@@ -718,6 +756,13 @@ const CoachExerciseCard = ({
                                 placeholder="0"
                                 className="w-full min-w-0 h-11 bg-primary/5 text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
                               />
+                              <span className="flex items-center justify-center text-sm font-bold text-foreground tabular-nums">
+                                {getSetRir(sid, exercise.id, today, setNum) != null ? (
+                                  getSetRir(sid, exercise.id, today, setNum)
+                                ) : (
+                                  <span className="text-muted-foreground/40">–</span>
+                                )}
+                              </span>
                               <motion.button
                                 onClick={saveEditSet}
                                 disabled={savingEdit}
@@ -744,6 +789,13 @@ const CoachExerciseCard = ({
                               >
                                 {logged.reps}
                               </button>
+                              <span className="flex items-center justify-center text-sm font-bold text-foreground tabular-nums">
+                                {getSetRir(sid, exercise.id, today, setNum) != null ? (
+                                  getSetRir(sid, exercise.id, today, setNum)
+                                ) : (
+                                  <span className="text-muted-foreground/40">–</span>
+                                )}
+                              </span>
                               <motion.button
                                 type="button"
                                 onClick={() => startEditSet(logged)}
@@ -778,6 +830,16 @@ const CoachExerciseCard = ({
                               placeholder="0"
                               className="w-full min-w-0 h-11 bg-transparent text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
                             />
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={editRir}
+                              onChange={(e) => setEditRir(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              onKeyDown={(e) => e.key === "Enter" && handleLogCurrent()}
+                              placeholder={exercise.rir != null ? String(exercise.rir) : "–"}
+                              className="w-full min-w-0 h-11 bg-transparent text-center text-base font-bold text-foreground focus:outline-none focus:bg-primary/10"
+                            />
                             <motion.button
                               onClick={handleLogCurrent}
                               disabled={logging}
@@ -791,6 +853,7 @@ const CoachExerciseCard = ({
                         ) : (
                           <>
                             <span className="flex items-center justify-center py-2.5 text-sm text-muted-foreground/40">–</span>
+                            <span className="flex items-center justify-center text-sm text-muted-foreground/40">–</span>
                             <span className="flex items-center justify-center text-sm text-muted-foreground/40">–</span>
                             <span />
                           </>
