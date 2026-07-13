@@ -6,13 +6,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import ProgressRing from "@/components/ui/progress-ring";
 import CountUp from "@/components/ui/count-up";
 import DietFoodSheet from "@/components/nutrition/DietFoodSheet";
+import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useCustomDiet, sumFoods, type DietFood } from "@/hooks/useCustomDiet";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
@@ -61,6 +62,7 @@ export default function MyDiet() {
   const [newMeal, setNewMeal] = useState("");
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(calorieGoal ? String(calorieGoal) : "");
+  const [calcOpen, setCalcOpen] = useState(false);
 
   const hasDiet = meals.length > 0;
   const goalPct = calorieGoal ? Math.min(100, Math.round((totals.calories / calorieGoal) * 100)) : 0;
@@ -161,16 +163,26 @@ export default function MyDiet() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setGoalInput(calorieGoal ? String(calorieGoal) : "");
-                        setEditingGoal(true);
-                      }}
-                      className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-primary"
-                    >
-                      <Target className="w-3.5 h-3.5" />
-                      {calorieGoal ? "Editar meta" : "Definí tu meta de calorías"}
-                    </button>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <button
+                        onClick={() => {
+                          setGoalInput(calorieGoal ? String(calorieGoal) : "");
+                          setEditingGoal(true);
+                        }}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                      >
+                        <Target className="w-3.5 h-3.5" />
+                        {calorieGoal ? "Editar meta" : "Definí tu meta"}
+                      </button>
+                      <span className="w-px h-3.5 bg-white/10" />
+                      <button
+                        onClick={() => setCalcOpen(true)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                      >
+                        <Calculator className="w-3.5 h-3.5" />
+                        Calcular
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -206,12 +218,20 @@ export default function MyDiet() {
               <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
                 Armá tus comidas con sus alimentos y macros. Vos tenés el control.
               </p>
-              <button
-                onClick={seedDefault}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
-              >
-                <Plus className="w-4 h-4" /> Empezar con 4 comidas
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button
+                  onClick={seedDefault}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
+                >
+                  <Plus className="w-4 h-4" /> Empezar con 4 comidas
+                </button>
+                <button
+                  onClick={() => setCalcOpen(true)}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-secondary/60 border border-white/[0.06] text-foreground font-bold active:scale-95 transition-transform"
+                >
+                  <Calculator className="w-4 h-4 text-primary" /> Calcular mis calorías
+                </button>
+              </div>
             </motion.div>
           )}
 
@@ -361,6 +381,15 @@ export default function MyDiet() {
           mealName={foodSheetMeal?.name ?? ""}
           onClose={() => setFoodSheetMeal(null)}
           onAdd={(food) => foodSheetMeal && addFood(foodSheetMeal.id, food)}
+        />
+
+        <CalorieCalculatorSheet
+          open={calcOpen}
+          onClose={() => setCalcOpen(false)}
+          onApply={(target) => {
+            setCalorieGoal(target);
+            toast.success(`Meta fijada en ${target} kcal 🎯`);
+          }}
         />
       </motion.div>
     </AppShell>
