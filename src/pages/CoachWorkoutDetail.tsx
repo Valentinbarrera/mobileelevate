@@ -151,6 +151,7 @@ const CoachWorkoutDetail = () => {
   // Arranque real de la sesión (tras responder u omitir el readiness).
   const beginWorkout = async () => {
     setShowReadiness(false);
+    if (workoutStarted) return; // ya está en curso, no re-iniciar
 
     // Sonido + vibración de arranque (dentro del gesto del usuario)
     playStartSound();
@@ -505,6 +506,7 @@ const CoachWorkoutDetail = () => {
             totalExercises={exercises.length}
             completedSets={completedSets}
             totalSets={totalSets}
+            onFinish={handleFinishWorkout}
           />
         )}
       </AnimatePresence>

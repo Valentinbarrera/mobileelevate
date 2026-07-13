@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pause, Play, X } from "lucide-react";
+import { Pause, Play, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -11,6 +11,7 @@ interface ActiveWorkoutHeaderProps {
   totalExercises: number;
   completedSets: number;
   totalSets: number;
+  onFinish?: () => void;
 }
 
 const ActiveWorkoutHeader = ({
@@ -21,6 +22,7 @@ const ActiveWorkoutHeader = ({
   totalExercises,
   completedSets,
   totalSets,
+  onFinish,
 }: ActiveWorkoutHeaderProps) => {
   const navigate = useNavigate();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -97,8 +99,8 @@ const ActiveWorkoutHeader = ({
               <motion.button
                 onClick={onPauseToggle}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors touch-target ${
-                  isPaused 
-                    ? "bg-primary text-primary-foreground" 
+                  isPaused
+                    ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-foreground hover:bg-secondary/80"
                 }`}
                 whileTap={{ scale: 0.95 }}
@@ -109,6 +111,18 @@ const ActiveWorkoutHeader = ({
                   <Pause className="w-5 h-5" />
                 )}
               </motion.button>
+
+              {/* Finalizar — cerrar el entreno cuando quieras, sin completar todo */}
+              {onFinish && (
+                <motion.button
+                  onClick={onFinish}
+                  className="h-11 px-3.5 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-1.5 touch-target"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                  Finalizar
+                </motion.button>
+              )}
             </div>
           </div>
         </div>

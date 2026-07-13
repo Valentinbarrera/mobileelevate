@@ -134,13 +134,9 @@ const AccordionItem = ({
         />
       </button>
       {open && (
-        <motion.p
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="px-3.5 pb-3.5 text-[13px] leading-relaxed text-muted-foreground"
-        >
+        <p className="px-3.5 pb-3.5 text-[13px] leading-relaxed text-muted-foreground">
           {body}
-        </motion.p>
+        </p>
       )}
     </div>
   );

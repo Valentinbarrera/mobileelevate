@@ -50,12 +50,19 @@ const ReadinessCheck = ({ open, onComplete, onSkip }: Props) => {
   const [answers, setAnswers] = useState<Partial<ReadinessData>>({});
 
   const set = (k: Key, n: number) => setAnswers((a) => ({ ...a, [k]: n }));
-  const allAnswered = QUESTIONS.every((q) => answers[q.key] != null);
+  const answeredCount = QUESTIONS.filter((q) => answers[q.key] != null).length;
 
   const confirm = () => {
-    if (!allAnswered) return;
-    onComplete(answers as ReadinessData);
+    // Rellena lo no respondido con neutral (3) → el entreno SIEMPRE puede arrancar.
+    const data: ReadinessData = {
+      sleep: answers.sleep ?? 3,
+      energy: answers.energy ?? 3,
+      recovery: answers.recovery ?? 3,
+      stress: answers.stress ?? 3,
+      motivation: answers.motivation ?? 3,
+    };
     setAnswers({});
+    onComplete(data);
   };
 
   const skip = () => {
@@ -115,10 +122,12 @@ const ReadinessCheck = ({ open, onComplete, onSkip }: Props) => {
             <div className="max-w-md mx-auto space-y-2">
               <button
                 onClick={confirm}
-                disabled={!allAnswered}
-                className="w-full h-13 py-3.5 rounded-2xl bg-gradient-primary text-primary-foreground font-bold disabled:opacity-40 disabled:grayscale active:scale-[0.99] transition-all"
+                className="w-full py-3.5 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-all"
               >
-                {allAnswered ? "Comenzar entrenamiento" : "Respondé las 5 preguntas"}
+                Comenzar entrenamiento
+                {answeredCount > 0 && answeredCount < 5 && (
+                  <span className="font-semibold opacity-80"> ({answeredCount}/5)</span>
+                )}
               </button>
               <button
                 onClick={skip}
