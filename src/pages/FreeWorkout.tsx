@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef, useMemo, type FocusEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play } from "lucide-react";
+import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play, Save, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { logSet, getLastPerformance } from "@/lib/workoutLog";
@@ -16,6 +16,7 @@ import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import ExerciseDetailModal from "@/components/workout/ExerciseDetailModal";
 import { useExerciseLibrary, type LibraryExercise } from "@/hooks/useExerciseLibrary";
+import { saveMyProgram, newId, type MyProgram } from "@/lib/myPrograms";
 import { getLocalDateString } from "@/lib/date";
 
 interface SetEntry {
@@ -238,6 +239,12 @@ const FreeWorkout = () => {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [detail, setDetail] = useState<LibraryExercise | null>(null);
   const [recent] = useState<string[]>(() => getRecentFreeExercises(studentId));
+  // Filtros del buscador (para explorar cuando no te acordás el nombre)
+  const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
+  const [equipFilter, setEquipFilter] = useState<string | null>(null);
+  // Guardar el entreno actual como programa propio
+  const [savingProgram, setSavingProgram] = useState(false);
+  const [programName, setProgramName] = useState("");
 
   // Cronómetro
   useEffect(() => {
@@ -245,16 +252,31 @@ const FreeWorkout = () => {
     return () => clearInterval(id);
   }, []);
 
-  // Resultados de la biblioteca filtrados por lo que escribe el alumno
+  // Opciones de filtro derivadas de los datos reales de la biblioteca
+  const muscles = useMemo(
+    () => [...new Set(library.map((e) => e.muscle).filter(Boolean))].sort() as string[],
+    [library]
+  );
+  const equipments = useMemo(
+    () => [...new Set(library.map((e) => e.equipment).filter(Boolean))].sort() as string[],
+    [library]
+  );
+
+  // Resultados de la biblioteca filtrados por texto y/o chips de músculo/equipamiento
   const query = newName.trim().toLowerCase();
+  const hasFilter = !!(muscleFilter || equipFilter);
   const results = useMemo(() => {
-    if (!query) return [];
+    if (!query && !hasFilter) return [];
     return library
-      .filter(
-        (e) => e.name.toLowerCase().includes(query) || (e.muscle || "").toLowerCase().includes(query)
-      )
-      .slice(0, 8);
-  }, [library, query]);
+      .filter((e) => {
+        if (muscleFilter && (e.muscle || "").toLowerCase() !== muscleFilter.toLowerCase()) return false;
+        if (equipFilter && (e.equipment || "").toLowerCase() !== equipFilter.toLowerCase()) return false;
+        if (!query) return true;
+        return e.name.toLowerCase().includes(query) || (e.muscle || "").toLowerCase().includes(query);
+      })
+      // Al explorar por chip (sin texto) mostramos más resultados
+      .slice(0, hasFilter ? 40 : 8);
+  }, [library, query, muscleFilter, equipFilter, hasFilter]);
   // ¿El texto coincide EXACTO con un ejercicio de la biblioteca? (define si ofrecemos el custom)
   const hasExact = query.length > 0 && library.some((e) => e.name.toLowerCase() === query);
 
@@ -315,6 +337,40 @@ const FreeWorkout = () => {
     setExercises((prev) => prev.filter((_, i) => i !== exIndex));
 
   const totalSets = exercises.reduce((a, e) => a + e.sets.length, 0);
+
+  // Guardar el entreno actual como un programa propio (1 día con los ejercicios cargados)
+  const saveAsProgram = () => {
+    const name = programName.trim();
+    if (!name) {
+      toast.error("Ponele un nombre al programa");
+      return;
+    }
+    const program: MyProgram = {
+      id: newId(),
+      name,
+      days: [
+        {
+          id: newId(),
+          name: "Día 1",
+          exercises: exercises.map((ex) => ({
+            name: ex.name,
+            sets: ex.sets.length || 3,
+            reps: "8-12",
+            restSeconds: 90,
+            // sólo enlazamos el id real si viene de la biblioteca (el custom es "free:...")
+            exerciseId: ex.id.startsWith("free:") ? null : ex.id,
+            muscleGroup: ex.muscle ?? null,
+          })),
+        },
+      ],
+      origin: "propio",
+      createdAt: new Date().toISOString(),
+    };
+    saveMyProgram(studentId, program);
+    setSavingProgram(false);
+    toast.success("Programa guardado");
+    navigate(`/programa/${program.id}`);
+  };
 
   const finish = () => {
     if (totalSets === 0) {
@@ -407,8 +463,56 @@ const FreeWorkout = () => {
             )}
           </div>
 
+          {/* Chips de filtro por grupo muscular (explorar sin saber el nombre) */}
+          {muscles.length > 0 && (
+            <div className="-mx-1 px-1 mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              <button
+                onClick={() => setMuscleFilter(null)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                  !muscleFilter
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+                }`}
+              >
+                Todos
+              </button>
+              {muscles.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMuscleFilter((cur) => (cur === m ? null : m))}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap capitalize border transition-colors ${
+                    muscleFilter === m
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Chips de filtro por equipamiento (si el dato existe) */}
+          {equipments.length > 0 && (
+            <div className="-mx-1 px-1 mt-1.5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {equipments.map((eq) => (
+                <button
+                  key={eq}
+                  onClick={() => setEquipFilter((cur) => (cur === eq ? null : eq))}
+                  className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap capitalize border transition-colors ${
+                    equipFilter === eq
+                      ? "bg-primary/20 text-primary border-primary/40"
+                      : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
+                  }`}
+                >
+                  {eq}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Resultados de la biblioteca */}
-          {query && (
+          {(query || hasFilter) && (
             <div className="mt-3 space-y-1.5">
               {results.map((ex) => (
                 <div
@@ -449,7 +553,7 @@ const FreeWorkout = () => {
               )}
 
               {/* Fallback texto libre: agregar como custom lo que no está en la biblioteca */}
-              {!hasExact && (
+              {query && !hasExact && (
                 <button
                   onClick={() => addByName(newName)}
                   className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-border p-2 text-left active:opacity-70"
@@ -466,8 +570,8 @@ const FreeWorkout = () => {
             </div>
           )}
 
-          {/* Recientes — solo cuando no estás buscando */}
-          {!query && recentToShow.length > 0 && (
+          {/* Recientes — solo cuando no estás buscando ni filtrando */}
+          {!query && !hasFilter && recentToShow.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {recentToShow.map((n) => (
                 <button
@@ -500,6 +604,54 @@ const FreeWorkout = () => {
           <div className="rounded-2xl border border-dashed border-border p-8 text-center">
             <Dumbbell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">Agregá tu primer ejercicio para empezar</p>
+          </div>
+        )}
+
+        {/* Guardar el entreno como programa propio (con al menos 1 ejercicio, aunque no tenga series) */}
+        {exercises.length > 0 && (
+          <div className="card-elevated rounded-2xl p-4">
+            {!savingProgram ? (
+              <button
+                onClick={() => {
+                  setProgramName(preset?.name && workoutName !== "Entreno libre" ? workoutName : "");
+                  setSavingProgram(true);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-black text-foreground active:opacity-70"
+              >
+                <Bookmark className="w-4 h-4 text-primary" />
+                Guardar como programa
+              </button>
+            ) : (
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Save className="w-4 h-4 text-primary shrink-0" />
+                  <h3 className="text-sm font-black text-foreground">Guardar como programa</h3>
+                </div>
+                <input
+                  value={programName}
+                  onChange={(e) => setProgramName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveAsProgram()}
+                  enterKeyHint="done"
+                  autoFocus
+                  placeholder="Nombre del programa"
+                  className="w-full min-w-0 h-11 px-3.5 rounded-xl bg-secondary border border-border text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSavingProgram(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-muted-foreground active:text-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveAsProgram}
+                    className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-black active:scale-[0.98] transition-transform"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Dumbbell, LayoutGrid, Check } from "lucide-react";
+import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -86,6 +86,8 @@ const CoachWorkoutDetail = () => {
     reps: string;
   } | null>(null);
   const [workoutStarted, setWorkoutStarted] = useState(false);
+  const [orderIds, setOrderIds] = useState<string[]>([]); // orden (reordenable) de los ejercicios
+  const [reorderMode, setReorderMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
@@ -114,8 +116,21 @@ const CoachWorkoutDetail = () => {
         });
       });
       setExerciseStates(states);
+      setOrderIds(routineDay.exercises.map((e) => e.id));
     }
   }, [routineDay]);
+
+  // Reordenar ejercicios (preferencia del alumno para esta sesión)
+  const moveExercise = (id: string, dir: -1 | 1) => {
+    setOrderIds((prev) => {
+      const i = prev.indexOf(id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
 
   // Workout timer — keeps running during rest (the rest bar no longer blocks)
   useEffect(() => {
@@ -480,7 +495,12 @@ const CoachWorkoutDetail = () => {
     );
   }
 
-  const exercises = routineDay.exercises;
+  // Aplica el orden elegido por el alumno (si está completo); si no, el del coach.
+  const orderedExercises = orderIds.length
+    ? (orderIds.map((id) => routineDay.exercises.find((e) => e.id === id)).filter(Boolean) as typeof routineDay.exercises)
+    : routineDay.exercises;
+  const exercises =
+    orderedExercises.length === routineDay.exercises.length ? orderedExercises : routineDay.exercises;
   const exerciseGroups = computeExerciseGroups(exercises);
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
   const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
@@ -615,34 +635,87 @@ const CoachWorkoutDetail = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {exercises.map((exercise, index) => {
-              const state = exerciseStates.get(exercise.id);
+          <>
+            {/* Reordenar ejercicios (solo antes de empezar) */}
+            {!workoutStarted && exercises.length > 1 && (
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setReorderMode((v) => !v)}
+                  className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                    reorderMode ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  {reorderMode ? "Listo" : "Reordenar"}
+                </button>
+              </div>
+            )}
 
-              return workoutStarted ? (
-                <CoachExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
-                  index={index}
-                  isActive={activeExerciseId === exercise.id}
-                  group={exerciseGroups.get(exercise.id)}
-                  onSelect={() => setActiveExerciseId(exercise.id)}
-                  onCompleteSet={handleCompleteSet}
-                  onUpdateSet={handleUpdateSet}
-                  onDeleteSet={handleDeleteSet}
-                  onAddSet={() => handleAddSet(exercise.id)}
-                />
-              ) : (
-                <CoachExerciseListItem
-                  key={exercise.id}
-                  exercise={exercise}
-                  index={index + 1}
-                  group={exerciseGroups.get(exercise.id)}
-                />
-              );
-            })}
-          </div>
+            <div className={reorderMode ? "grid grid-cols-1 gap-3" : "grid grid-cols-1 lg:grid-cols-2 gap-3"}>
+              {exercises.map((exercise, index) => {
+                const state = exerciseStates.get(exercise.id);
+
+                if (workoutStarted) {
+                  return (
+                    <CoachExerciseCard
+                      key={exercise.id}
+                      exercise={exercise}
+                      state={state || { id: exercise.id, completed: false, currentSet: 0, completedSets: [] }}
+                      index={index}
+                      isActive={activeExerciseId === exercise.id}
+                      group={exerciseGroups.get(exercise.id)}
+                      onSelect={() => setActiveExerciseId(exercise.id)}
+                      onCompleteSet={handleCompleteSet}
+                      onUpdateSet={handleUpdateSet}
+                      onDeleteSet={handleDeleteSet}
+                      onAddSet={() => handleAddSet(exercise.id)}
+                    />
+                  );
+                }
+
+                if (reorderMode) {
+                  return (
+                    <div key={exercise.id} className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0 pointer-events-none">
+                        <CoachExerciseListItem
+                          exercise={exercise}
+                          index={index + 1}
+                          group={exerciseGroups.get(exercise.id)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <button
+                          onClick={() => moveExercise(exercise.id, -1)}
+                          disabled={index === 0}
+                          aria-label="Subir ejercicio"
+                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                        >
+                          <ChevronUp className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => moveExercise(exercise.id, 1)}
+                          disabled={index === exercises.length - 1}
+                          aria-label="Bajar ejercicio"
+                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                        >
+                          <ChevronDown className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <CoachExerciseListItem
+                    key={exercise.id}
+                    exercise={exercise}
+                    index={index + 1}
+                    group={exerciseGroups.get(exercise.id)}
+                  />
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

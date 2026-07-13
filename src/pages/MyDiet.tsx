@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator, Sparkles, SlidersHorizontal, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -17,6 +17,9 @@ import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorShee
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useCustomDiet, sumFoods, type DietFood } from "@/hooks/useCustomDiet";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { loadOnboarding } from "@/lib/onboarding";
+import { inputsFromOnboarding, defaultModeForGoal, computeTarget, suggestMacros } from "@/lib/nutritionCalc";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const toMealType = (name: string): MealType => {
@@ -56,6 +59,22 @@ export default function MyDiet() {
     seedDefault,
   } = useCustomDiet();
   const { addFood: logFood } = useDailyNutritionTracking();
+  const { student, isAdminMode } = useAuthContext();
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+
+  // Meta automática calculada SOLA desde el onboarding (Harris-Benedict, sin IA).
+  // No se persiste: se recalcula en cada render a partir del perfil del alumno.
+  const ob = loadOnboarding(sid);
+  const autoInputs = inputsFromOnboarding(ob);
+  const autoPreset = defaultModeForGoal(ob.goal);
+  const autoResult = autoInputs ? computeTarget(autoInputs, autoPreset.mode, autoPreset.adjust) : null;
+  const autoGoal = autoResult?.target ?? null;
+  const autoMacros = autoResult && autoInputs ? suggestMacros(autoResult.target, autoInputs.weightKg) : null;
+
+  // La meta MANUAL (useCustomDiet) sigue ganando; sólo si es null se usa la automática.
+  const effectiveGoal = calorieGoal ?? autoGoal;
+  const usingAuto = calorieGoal == null && autoGoal != null;
+  const missingProfile = autoInputs == null && calorieGoal == null;
 
   const [foodSheetMeal, setFoodSheetMeal] = useState<{ id: string; name: string } | null>(null);
   const [addingMeal, setAddingMeal] = useState(false);
@@ -65,7 +84,7 @@ export default function MyDiet() {
   const [calcOpen, setCalcOpen] = useState(false);
 
   const hasDiet = meals.length > 0;
-  const goalPct = calorieGoal ? Math.min(100, Math.round((totals.calories / calorieGoal) * 100)) : 0;
+  const goalPct = effectiveGoal ? Math.min(100, Math.round((totals.calories / effectiveGoal) * 100)) : 0;
 
   const saveGoal = () => {
     setCalorieGoal(parseFloat(goalInput) || null);
@@ -126,7 +145,7 @@ export default function MyDiet() {
               <div className="flex items-center gap-4">
                 <ProgressRing progress={goalPct} size={68} stroke={7} gradientId="dietRing">
                   <span className="text-sm font-black text-foreground tabular-nums leading-none">
-                    {calorieGoal ? (
+                    {effectiveGoal ? (
                       <>
                         <CountUp value={goalPct} />%
                       </>
@@ -141,7 +160,7 @@ export default function MyDiet() {
                   <p className="text-2xl font-black text-foreground tabular-nums leading-tight">
                     <CountUp value={Math.round(totals.calories)} />
                     <span className="text-sm font-bold text-muted-foreground">
-                      {calorieGoal ? ` / ${calorieGoal}` : ""} kcal
+                      {effectiveGoal ? ` / ${effectiveGoal}` : ""} kcal
                     </span>
                   </p>
 
@@ -206,6 +225,68 @@ export default function MyDiet() {
                 </div>
               )}
             </motion.div>
+          )}
+
+          {/* Meta automática desde el onboarding (Harris-Benedict, sin IA) */}
+          {usingAuto && autoResult && (
+            <motion.div
+              variants={fadeUp}
+              className="card-elevated rounded-2xl p-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-foreground leading-tight">
+                    Meta calculada según tu perfil
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Harris-Benedict · mantenimiento{" "}
+                    <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                    {" → "}
+                    <span className="font-bold text-primary tabular-nums">{autoResult.target} kcal</span>
+                  </p>
+                  {autoMacros && (
+                    <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
+                      <span className="text-blue-400 font-bold">P {autoMacros.protein}g</span>
+                      {" · "}
+                      <span className="text-amber-400 font-bold">C {autoMacros.carbs}g</span>
+                      {" · "}
+                      <span className="text-rose-400 font-bold">G {autoMacros.fats}g</span>
+                    </p>
+                  )}
+                  <button
+                    onClick={() => setCalcOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary mt-2.5"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    Ajustar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Faltan datos del perfil: CTA suave para completar el onboarding */}
+          {missingProfile && (
+            <motion.button
+              variants={fadeUp}
+              onClick={() => navigate("/onboarding")}
+              className="w-full text-left card-elevated rounded-2xl p-4 flex items-center gap-3 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                <UserPlus className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-black text-foreground leading-tight">
+                  Completá tu perfil para calcular tus calorías
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Con tu sexo, edad, altura, peso y actividad estimamos tu meta sola.
+                </p>
+              </div>
+            </motion.button>
           )}
 
           {/* Empty state */}

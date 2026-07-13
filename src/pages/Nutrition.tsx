@@ -9,7 +9,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -20,6 +20,9 @@ import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { loadOnboarding } from "@/lib/onboarding";
+import { inputsFromOnboarding, defaultModeForGoal, computeTarget, suggestMacros } from "@/lib/nutritionCalc";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
   useStudentNutrition,
@@ -267,6 +270,18 @@ export default function Nutrition() {
   const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
     useDailyNutritionTracking();
   const [showFoodSheet, setShowFoodSheet] = useState(false);
+  const { student, isAdminMode } = useAuthContext();
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+
+  // Meta automática desde el onboarding (Harris-Benedict, sin IA). Sólo se usa en
+  // el layout "sin plan del coach"; si hay plan, la meta la pone el coach.
+  const ob = loadOnboarding(sid);
+  const autoInputs = inputsFromOnboarding(ob);
+  const autoResult = autoInputs
+    ? computeTarget(autoInputs, defaultModeForGoal(ob.goal).mode, defaultModeForGoal(ob.goal).adjust)
+    : null;
+  const autoGoal = autoResult?.target ?? null;
+  const autoMacros = autoResult && autoInputs ? suggestMacros(autoResult.target, autoInputs.weightKg) : null;
 
   const myDietEntry = (
     <motion.button
@@ -351,6 +366,52 @@ export default function Nutrition() {
                 Tu coach todavía no te asignó un plan, pero podés diseñar tu dieta y registrar lo que comés. 🍽️
               </p>
             </div>
+
+            {/* Meta de calorías calculada SOLA desde el onboarding (Harris-Benedict) */}
+            {autoGoal != null && autoResult && (
+              <motion.button
+                variants={fadeUp}
+                onClick={() => navigate("/nutrition/my-diet")}
+                className="w-full text-left card-hero rounded-3xl p-5 active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
+                    <Sparkles className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                      Tus calorías objetivo
+                    </p>
+                    <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
+                      <CountUp value={autoGoal} />
+                      <span className="text-sm font-bold text-muted-foreground"> kcal</span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Según tu perfil · mantenimiento{" "}
+                      <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </div>
+                {autoMacros && (
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06]">
+                    {[
+                      { l: "Proteína", v: autoMacros.protein, c: "text-blue-400" },
+                      { l: "Carbos", v: autoMacros.carbs, c: "text-amber-400" },
+                      { l: "Grasas", v: autoMacros.fats, c: "text-rose-400" },
+                    ].map((m) => (
+                      <div key={m.l} className="text-center">
+                        <p className={`text-base font-black tabular-nums ${m.c}`}>{m.v}g</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                          {m.l}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.button>
+            )}
+
             {myDietEntry}
             {historyEntry}
             {foodLogSection}

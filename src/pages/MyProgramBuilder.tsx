@@ -51,18 +51,29 @@ const ExercisePicker = ({
   onPick: (ex: ProgramExercise) => void;
 }) => {
   const [term, setTerm] = useState("");
+  const [muscle, setMuscle] = useState<string | null>(null);
   const query = term.trim().toLowerCase();
 
+  // Grupos musculares presentes en la biblioteca (para explorar sin saber el nombre).
+  const muscles = useMemo(() => {
+    const set = new Set<string>();
+    library.forEach((e) => e.muscle && set.add(e.muscle.toLowerCase()));
+    return [...set].sort();
+  }, [library]);
+
   const results = useMemo(() => {
-    if (!query) return [];
+    if (!query && !muscle) return [];
     return library
-      .filter(
-        (e) =>
+      .filter((e) => {
+        const matchQ =
+          !query ||
           e.name.toLowerCase().includes(query) ||
-          (e.muscle || "").toLowerCase().includes(query)
-      )
+          (e.muscle || "").toLowerCase().includes(query);
+        const matchM = !muscle || (e.muscle || "").toLowerCase() === muscle;
+        return matchQ && matchM;
+      })
       .slice(0, 8);
-  }, [library, query]);
+  }, [library, query, muscle]);
 
   const hasExact = query.length > 0 && library.some((e) => e.name.toLowerCase() === query);
 
@@ -122,7 +133,36 @@ const ExercisePicker = ({
         )}
       </div>
 
-      {query && (
+      {/* Filtro por músculo — chips scrolleables (activo en naranja) */}
+      {muscles.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 mt-2.5">
+          <button
+            onClick={() => setMuscle(null)}
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+              !muscle
+                ? "bg-primary/15 text-primary border-primary/40"
+                : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+            }`}
+          >
+            Todos
+          </button>
+          {muscles.map((m) => (
+            <button
+              key={m}
+              onClick={() => setMuscle(m === muscle ? null : m)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold capitalize border transition-colors ${
+                muscle === m
+                  ? "bg-primary/15 text-primary border-primary/40"
+                  : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(query || muscle) && (
         <div className="mt-3 space-y-1.5">
           {results.map((ex) => (
             <button
@@ -152,8 +192,15 @@ const ExercisePicker = ({
             <p className="text-xs text-muted-foreground px-1 py-1">Buscando en la biblioteca…</p>
           )}
 
+          {/* Sin resultados al explorar solo por músculo */}
+          {!query && muscle && !libraryLoading && results.length === 0 && (
+            <p className="text-xs text-muted-foreground px-1 py-1">
+              Sin ejercicios de {muscle} en la biblioteca.
+            </p>
+          )}
+
           {/* Fallback texto libre */}
-          {!hasExact && (
+          {query && !hasExact && (
             <button
               onClick={() => pickFreeText(term)}
               className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-border p-2 text-left active:opacity-70"
