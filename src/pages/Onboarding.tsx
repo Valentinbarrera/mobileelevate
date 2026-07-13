@@ -34,6 +34,7 @@ import {
   TRAINING_MODE_OPTIONS,
   SPLIT_OPTIONS,
   PROGRAM_WEEKS_OPTIONS,
+  WEEKDAYS,
 } from "@/lib/onboarding";
 
 const TOTAL = 11;
@@ -128,6 +129,17 @@ const Onboarding = () => {
   };
   const has = (key: keyof OnboardingData, val: string) => ((data[key] as string[]) || []).includes(val);
 
+  // Días concretos (0=Lun…6=Dom). daysPerWeek se deriva = cantidad seleccionada.
+  const toggleTrainingDay = (idx: number) => {
+    buzz();
+    setData((d) => {
+      const days = d.trainingDays.includes(idx)
+        ? d.trainingDays.filter((x) => x !== idx)
+        : [...d.trainingDays, idx].sort((a, b) => a - b);
+      return { ...d, trainingDays: days, daysPerWeek: days.length || null };
+    });
+  };
+
   // ── Reglas: cuándo se puede avanzar ──
   const isStepValid = (s: number): boolean => {
     switch (s) {
@@ -136,7 +148,7 @@ const Onboarding = () => {
       case 5: return !!data.goal;
       case 7: return data.equipment.length > 0;
       case 8: return !!data.activityLevel;
-      case 10: return !!data.trainingMode && !!data.daysPerWeek && !!data.split && !!data.programWeeks;
+      case 10: return !!data.trainingMode && data.trainingDays.length > 0 && !!data.split && !!data.programWeeks;
       default: return true; // 3,4,6,9 opcionales · 11 resumen
     }
   };
@@ -342,8 +354,13 @@ const Onboarding = () => {
                 <ChoiceCard key={o.value} label={o.label} desc={o.desc} icon={MODE_ICONS[o.value]} selected={data.trainingMode === o.value} onClick={() => choose({ trainingMode: o.value })} />
               ))}
             </motion.div>
-            <motion.div variants={fadeUp}>
-              <Stepper label="Días que entrenás por semana" value={data.daysPerWeek} onChange={(v) => update({ daysPerWeek: v })} min={1} max={7} />
+            <motion.p variants={fadeUp} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pt-1">
+              ¿Qué días entrenás?{data.trainingDays.length > 0 && <span className="text-primary"> · {data.trainingDays.length}/sem</span>}
+            </motion.p>
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-2">
+              {WEEKDAYS.map((label, idx) => (
+                <Chip key={label} label={label} selected={data.trainingDays.includes(idx)} onClick={() => toggleTrainingDay(idx)} />
+              ))}
             </motion.div>
             <motion.p variants={fadeUp} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pt-1">Split de entrenamiento</motion.p>
             <motion.div variants={fadeUp} className="flex flex-wrap gap-2">
@@ -374,7 +391,7 @@ const Onboarding = () => {
           { k: "Actividad", v: labelOf(ACTIVITY_OPTIONS, data.activityLevel), step: 8 },
           { k: "Comidas/día", v: data.mealsPerDay ? String(data.mealsPerDay) : "—", step: 9 },
           { k: "Restricciones", v: [data.dietaryRestrictions.join(", "), data.nutritionNotes].filter(Boolean).join(" · ") || "—", step: 9 },
-          { k: "Programa", v: [labelOf(TRAINING_MODE_OPTIONS, data.trainingMode), data.daysPerWeek ? `${data.daysPerWeek} días/sem` : null, data.split, data.programWeeks ? `${data.programWeeks} sem` : null].filter(Boolean).join(" · ") || "—", step: 10 },
+          { k: "Programa", v: [labelOf(TRAINING_MODE_OPTIONS, data.trainingMode), data.trainingDays.length ? data.trainingDays.map((i) => WEEKDAYS[i]).join(", ") : null, data.daysPerWeek ? `${data.daysPerWeek} días/sem` : null, data.split, data.programWeeks ? `${data.programWeeks} sem` : null].filter(Boolean).join(" · ") || "—", step: 10 },
         ];
         return (
           <>

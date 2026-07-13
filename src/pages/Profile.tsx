@@ -91,12 +91,20 @@ const Profile = () => {
                 )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
               </button>
-              <button
-                onClick={() => navigate("/cuestionarios")}
-                className="mt-2 text-xs font-bold text-primary px-1 active:opacity-70"
-              >
-                Ver todos los cuestionarios →
-              </button>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
+                <button
+                  onClick={() => navigate("/perfil/resumen")}
+                  className="text-xs font-bold text-primary active:opacity-70"
+                >
+                  Ver resumen de mi perfil →
+                </button>
+                <button
+                  onClick={() => navigate("/cuestionarios")}
+                  className="text-xs font-bold text-primary active:opacity-70"
+                >
+                  Ver todos los cuestionarios →
+                </button>
+              </div>
             </motion.div>
           );
 

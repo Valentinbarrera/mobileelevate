@@ -195,6 +195,7 @@ const Progress = () => {
                 month={currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1)}
                 year={currentYear}
                 activeDays={activeDaysThisMonth ?? []}
+                onOpenHistory={() => navigate("/progress/activity")}
               />
             </motion.div>
           );
@@ -225,7 +226,7 @@ const Progress = () => {
 
           const weightStats = mergedWeight.length > 0 && (
             <motion.div variants={fadeUp}>
-              <WeightStats history={mergedWeight} />
+              <WeightStats history={mergedWeight} onLog={logWeight} />
             </motion.div>
           );
 

@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Flame, ChevronRight } from "lucide-react";
 import CountUp from "@/components/ui/count-up";
 
 interface ActivityStreakProps {
@@ -7,6 +8,8 @@ interface ActivityStreakProps {
   month: string;
   year: number;
   activeDays: number[];
+  /** Si viene, la racha es tocable y navega al historial de actividad. */
+  onOpenHistory?: () => void;
 }
 
 const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
@@ -22,12 +25,21 @@ const motivationalCopy = (s: number) => {
 
 const DOW = ["D", "L", "M", "M", "J", "V", "S"];
 
-const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStreakProps) => {
+const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory }: ActivityStreakProps) => {
+  const [expanded, setExpanded] = useState(false);
   const now = new Date();
   const monthIndex = now.getMonth();
   const yearNum = now.getFullYear();
   const todayDate = now.getDate();
   const active = currentStreak > 0;
+
+  // Grilla del mes completo (para la vista "Ver todo"): huecos iniciales + días 1..N
+  const daysInMonth = new Date(yearNum, monthIndex + 1, 0).getDate();
+  const firstDow = new Date(yearNum, monthIndex, 1).getDay();
+  const monthCells: (number | null)[] = [
+    ...Array.from({ length: firstDow }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
 
   // Próxima meta + progreso hacia ella
   const nextMilestone = MILESTONES.find((m) => m > currentStreak) ?? currentStreak;
@@ -56,8 +68,15 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStre
         <span className="text-primary text-sm font-semibold">{month} {year}</span>
       </div>
 
-      {/* Hero: llama animada + número */}
-      <div className="flex items-center gap-4 mb-4">
+      {/* Hero: llama animada + número (tocable → historial si viene onOpenHistory) */}
+      <button
+        type="button"
+        onClick={onOpenHistory}
+        disabled={!onOpenHistory}
+        className={`flex items-center gap-4 mb-4 w-full text-left ${
+          onOpenHistory ? "active:scale-[0.99] transition-transform" : "cursor-default"
+        }`}
+      >
         <motion.div
           className="relative w-16 h-16 shrink-0 flex items-center justify-center"
           animate={active ? { scale: [1, 1.07, 1] } : {}}
@@ -103,7 +122,14 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStre
             {motivationalCopy(currentStreak)}
           </motion.p>
         </div>
-      </div>
+
+        {onOpenHistory && (
+          <div className="ml-auto flex items-center gap-1 text-muted-foreground shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Historial</span>
+            <ChevronRight className="w-5 h-5" />
+          </div>
+        )}
+      </button>
 
       {/* Progreso hacia la próxima meta */}
       <div className="mb-4">
@@ -123,43 +149,113 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays }: ActivityStre
         </div>
       </div>
 
-      {/* Últimos 7 días */}
-      <div className="grid grid-cols-7 gap-1">
-        {last7.map((d, i) => {
-          const inMonth = d.getMonth() === monthIndex && d.getFullYear() === yearNum;
-          const isActive = inMonth && activeDays.includes(d.getDate());
-          const isToday = inMonth && d.getDate() === todayDate;
-          return (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <span
-                className={`text-[10px] font-bold uppercase ${
-                  isToday ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                {DOW[d.getDay()]}
-              </span>
-              <motion.div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : isToday
-                      ? "border-2 border-primary/50 text-foreground"
-                      : "bg-secondary/50 text-muted-foreground/60"
-                }`}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.35 + i * 0.04, type: "spring", stiffness: 400, damping: 18 }}
-              >
-                {isActive ? (
-                  <Flame className="w-4 h-4 fill-current" />
-                ) : (
-                  <span className="text-xs font-semibold">{d.getDate()}</span>
-                )}
-              </motion.div>
-            </div>
-          );
-        })}
+      {/* Encabezado de la grilla + toggle Ver todo / Ver menos */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          {expanded ? `${month} ${year}` : "Últimos 7 días"}
+        </span>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[11px] font-bold text-primary active:scale-95 transition-transform"
+        >
+          {expanded ? "Ver menos" : "Ver todo"}
+        </button>
       </div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        {expanded ? (
+          /* Vista mensual: calendario del mes con la llamita en los días activos */
+          <motion.div
+            key="month"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-7 gap-1 mb-1.5">
+              {DOW.map((d, i) => (
+                <span
+                  key={i}
+                  className="text-center text-[10px] font-bold uppercase text-muted-foreground"
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {monthCells.map((day, i) => {
+                if (day === null) return <div key={`e-${i}`} />;
+                const isActive = activeDays.includes(day);
+                const isToday = day === todayDate;
+                return (
+                  <div
+                    key={day}
+                    className={`aspect-square rounded-lg flex items-center justify-center ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : isToday
+                          ? "border-2 border-primary/50 text-foreground"
+                          : "bg-secondary/40 text-muted-foreground/60"
+                    }`}
+                  >
+                    {isActive ? (
+                      <Flame className="w-3.5 h-3.5 fill-current" />
+                    ) : (
+                      <span className="text-[11px] font-semibold tabular-nums">{day}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ) : (
+          /* Últimos 7 días */
+          <motion.div
+            key="week"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="grid grid-cols-7 gap-1"
+          >
+            {last7.map((d, i) => {
+              const inMonth = d.getMonth() === monthIndex && d.getFullYear() === yearNum;
+              const isActive = inMonth && activeDays.includes(d.getDate());
+              const isToday = inMonth && d.getDate() === todayDate;
+              return (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <span
+                    className={`text-[10px] font-bold uppercase ${
+                      isToday ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {DOW[d.getDay()]}
+                  </span>
+                  <motion.div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : isToday
+                          ? "border-2 border-primary/50 text-foreground"
+                          : "bg-secondary/50 text-muted-foreground/60"
+                    }`}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.35 + i * 0.04, type: "spring", stiffness: 400, damping: 18 }}
+                  >
+                    {isActive ? (
+                      <Flame className="w-4 h-4 fill-current" />
+                    ) : (
+                      <span className="text-xs font-semibold">{d.getDate()}</span>
+                    )}
+                  </motion.div>
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

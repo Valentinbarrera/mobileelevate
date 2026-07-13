@@ -40,6 +40,7 @@ interface ExerciseState {
   completed: boolean;
   currentSet: number;
   completedSets: CompletedSet[];
+  extraSets?: number; // series que el alumno sumó sobre la marcha, además de las prescritas
 }
 
 const CoachWorkoutDetail = () => {
@@ -192,7 +193,8 @@ const CoachWorkoutDetail = () => {
       };
 
       const newCompletedSets = [...state.completedSets, newCompletedSet];
-      const isCompleted = newCompletedSets.length >= exercise.sets;
+      const targetSets = exercise.sets + (state.extraSets || 0);
+      const isCompleted = newCompletedSets.length >= targetSets;
 
       newStates.set(exerciseId, {
         ...state,
@@ -289,13 +291,29 @@ const CoachWorkoutDetail = () => {
         ...state,
         completedSets,
         currentSet: completedSets.length,
-        completed: completedSets.length >= exercise.sets,
+        completed: completedSets.length >= exercise.sets + (state.extraSets || 0),
       });
       return newStates;
     });
 
     return ok;
   }, [routineDay, session, persistDeleteSet]);
+
+  // Sumar una serie extra (más allá de las prescritas). Si el ejercicio ya estaba
+  // completado, lo reabre para que aparezca la nueva fila activa.
+  const handleAddSet = useCallback((exerciseId: string) => {
+    setExerciseStates(prev => {
+      const newStates = new Map(prev);
+      const state = newStates.get(exerciseId);
+      if (!state) return prev;
+      newStates.set(exerciseId, {
+        ...state,
+        extraSets: (state.extraSets || 0) + 1,
+        completed: false,
+      });
+      return newStates;
+    });
+  }, []);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
@@ -555,6 +573,7 @@ const CoachWorkoutDetail = () => {
                     onCompleteSet={handleCompleteSet}
                     onUpdateSet={handleUpdateSet}
                     onDeleteSet={handleDeleteSet}
+                    onAddSet={() => handleAddSet(exercise.id)}
                   />
                 );
               })()}
@@ -577,6 +596,7 @@ const CoachWorkoutDetail = () => {
                   onCompleteSet={handleCompleteSet}
                   onUpdateSet={handleUpdateSet}
                   onDeleteSet={handleDeleteSet}
+                  onAddSet={() => handleAddSet(exercise.id)}
                 />
               ) : (
                 <CoachExerciseListItem

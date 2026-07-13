@@ -27,7 +27,9 @@ const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const Questionnaires = React.lazy(() => import("./pages/Questionnaires"));
 const Progress = React.lazy(() => import("./pages/Progress"));
 const ProgressPhotos = React.lazy(() => import("./pages/ProgressPhotos"));
+const ActivityHistory = React.lazy(() => import("./pages/ActivityHistory"));
 const Profile = React.lazy(() => import("./pages/Profile"));
+const QuestionnaireSummary = React.lazy(() => import("./pages/QuestionnaireSummary"));
 const Messages = React.lazy(() => import("./pages/Messages"));
 const Measurements = React.lazy(() => import("./pages/Measurements"));
 const Nutrition = React.lazy(() => import("./pages/Nutrition"));
@@ -94,9 +96,11 @@ const App = () => (
               <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/progress/photos" element={<ProtectedRoute><ProgressPhotos /></ProtectedRoute>} />
+              <Route path="/progress/activity" element={<ProtectedRoute><ActivityHistory /></ProtectedRoute>} />
               <Route path="/measurements" element={<ProtectedRoute><Measurements /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/perfil/resumen" element={<ProtectedRoute><QuestionnaireSummary /></ProtectedRoute>} />
               <Route path="/cuestionarios" element={<ProtectedRoute><Questionnaires /></ProtectedRoute>} />
               <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
               <Route path="/nutrition/my-diet" element={<ProtectedRoute><MyDiet /></ProtectedRoute>} />

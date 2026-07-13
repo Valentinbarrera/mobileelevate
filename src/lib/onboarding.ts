@@ -41,6 +41,12 @@ export interface OnboardingData {
   // Programa
   trainingMode: TrainingMode | null;
   daysPerWeek: number | null;
+  /**
+   * Días concretos que entrena el alumno. Índices 0=Lun … 6=Dom (ver WEEKDAYS).
+   * Es la fuente de verdad del calendario semanal; `daysPerWeek` se deriva de
+   * su longitud (daysPerWeek === trainingDays.length).
+   */
+  trainingDays: number[];
   split: string | null;
   programWeeks: number | null;
   // Meta
@@ -65,6 +71,7 @@ export const emptyOnboarding = (): OnboardingData => ({
   nutritionNotes: "",
   trainingMode: null,
   daysPerWeek: null,
+  trainingDays: [],
   split: null,
   programWeeks: null,
   completedAt: null,
@@ -142,6 +149,9 @@ export const SPLIT_OPTIONS = [
 ];
 
 export const PROGRAM_WEEKS_OPTIONS = [4, 6, 8, 12];
+
+/** Labels de los días de la semana. Índice 0=Lun … 6=Dom (ver trainingDays). */
+export const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 // ───────── Persistencia local ─────────
 const keyFor = (studentId: string) => `elevate_onboarding_${studentId}`;

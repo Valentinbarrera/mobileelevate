@@ -5,7 +5,8 @@
  * Convención de color: bajar = verde (emerald), subir = ámbar — coherente con
  * WeightLogCard. Es neutral respecto del objetivo; solo marca la dirección.
  */
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { useState } from "react";
+import { TrendingDown, TrendingUp, Minus, Plus, Check } from "lucide-react";
 import CountUp from "@/components/ui/count-up";
 
 export interface WeightPoint {
@@ -30,7 +31,17 @@ const Delta = ({ value }: { value: number | null }) => {
   );
 };
 
-const WeightStats = ({ history }: { history: WeightPoint[] }) => {
+const WeightStats = ({
+  history,
+  onLog,
+}: {
+  history: WeightPoint[];
+  /** Si viene, muestra un acceso "+ Registrar" que carga el peso de hoy (reusa useLocalBodyLog). */
+  onLog?: (value: number) => void;
+}) => {
+  const [logging, setLogging] = useState(false);
+  const [val, setVal] = useState("");
+
   if (!history || history.length === 0) return null;
 
   const sorted = [...history].sort((a, b) => (a.date < b.date ? -1 : 1));
@@ -50,16 +61,62 @@ const WeightStats = ({ history }: { history: WeightPoint[] }) => {
   const min = Math.min(...values);
   const max = Math.max(...values);
 
+  const save = () => {
+    const n = parseFloat(val);
+    if (n > 0 && onLog) {
+      onLog(n);
+      setVal("");
+      setLogging(false);
+    }
+  };
+
   return (
     <div className="card-elevated rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <span className="accent-bar" />
         <h3 className="text-sm font-black text-foreground tracking-tight">Peso corporal</h3>
-        <span className="ml-auto text-2xl font-black text-foreground tabular-nums leading-none">
-          <CountUp value={current.value} />
-          <span className="text-sm font-bold text-muted-foreground"> kg</span>
-        </span>
+        <div className="ml-auto flex items-center gap-2.5">
+          <span className="text-2xl font-black text-foreground tabular-nums leading-none">
+            <CountUp value={current.value} />
+            <span className="text-sm font-bold text-muted-foreground"> kg</span>
+          </span>
+          {onLog && !logging && (
+            <button
+              onClick={() => {
+                setVal(String(current.value));
+                setLogging(true);
+              }}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/12 border border-primary/25 text-primary text-xs font-bold active:scale-95 transition-transform shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Registrar
+            </button>
+          )}
+        </div>
       </div>
+
+      {onLog && logging && (
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="number"
+            inputMode="decimal"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+            placeholder="kg"
+            autoFocus
+            className="flex-1 h-11 rounded-xl bg-secondary border border-border text-center text-lg font-bold text-foreground focus:border-primary focus:outline-none"
+          />
+          <button
+            onClick={save}
+            className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <Check className="w-4 h-4" />
+            Guardar
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">

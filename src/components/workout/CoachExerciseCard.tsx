@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
@@ -51,6 +51,7 @@ interface ExerciseState {
   completed: boolean;
   currentSet: number;
   completedSets: CompletedSet[];
+  extraSets?: number;
 }
 
 interface CoachExerciseCardProps {
@@ -74,6 +75,7 @@ interface CoachExerciseCardProps {
     reps: number
   ) => Promise<boolean>;
   onDeleteSet?: (exerciseId: string, setNumber: number) => Promise<boolean>;
+  onAddSet?: () => void;
 }
 
 interface PerformanceRecord {
@@ -98,10 +100,12 @@ const CoachExerciseCard = ({
   onCompleteSet,
   onUpdateSet,
   onDeleteSet,
+  onAddSet,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
   const [showVideo, setShowVideo] = useState(false);
+  const [showTechnique, setShowTechnique] = useState(false);
   const [expanded, setExpanded] = useState(isActive);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
   const [personalRecord, setPersonalRecord] = useState<PerformanceRecord | null>(null);
@@ -254,13 +258,21 @@ const CoachExerciseCard = ({
     }
   };
 
-  // Filas de la tabla (una por serie planificada)
-  const rows = Array.from({ length: exercise.sets }, (_, i) => {
+  // Filas de la tabla: series planificadas + las que sumó el alumno sobre la marcha
+  const totalSets = exercise.sets + (state.extraSets || 0);
+  const rows = Array.from({ length: totalSets }, (_, i) => {
     const setNum = i + 1;
     const logged = state.completedSets[i];
     const isCurrent = i === doneCount && !isCompleted;
-    return { setNum, logged, isCurrent };
+    const isExtra = i >= exercise.sets;
+    return { setNum, logged, isCurrent, isExtra };
   });
+
+  // ¿Hay técnica/ejecución para mostrar? (video real o texto del coach)
+  const hasTechnique =
+    !!exercise.videoUrl ||
+    !!exercise.description?.trim() ||
+    (exercise.instructions || []).some((s) => s?.trim());
 
   return (
     <>
@@ -370,43 +382,7 @@ const CoachExerciseCard = ({
                   }}
                 />
 
-                {/* Video de técnica */}
-                {exercise.videoUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowVideo(true)}
-                    className="relative w-full h-40 rounded-xl overflow-hidden bg-secondary active:scale-[0.99] transition-transform"
-                  >
-                    {exercise.thumbnail ? (
-                      <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
-                      <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-                        <Play className="w-6 h-6 text-primary fill-current ml-1" />
-                      </div>
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">Ver técnica</span>
-                    </div>
-                  </button>
-                ) : (
-                  <div className="w-full flex items-center gap-3 rounded-xl border border-dashed border-border bg-secondary/30 px-3.5 py-3">
-                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                      <Video className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">Video de técnica</p>
-                      <p className="text-xs text-muted-foreground">Pronto vas a poder ver la ejecución</p>
-                    </div>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
-                      Próximamente
-                    </span>
-                  </div>
-                )}
-
-                {/* Coach notes */}
+                {/* Nota del coach: cue corto, se mantiene arriba */}
                 {exercise.notes && (
                   <div className="p-3 bg-primary/5 border border-primary/10 rounded-xl">
                     <p className="text-xs text-foreground">
@@ -415,10 +391,7 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
-                {/* Técnica / ejecución + paso a paso */}
-                <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
-
-                {/* ─── Series — MOBILE (sin cambios) ─── */}
+                {/* ─── Series — MOBILE ─── */}
                 {!isDesktop && (
                 <div className="space-y-1.5">
                   {/* Header de columnas */}
@@ -782,6 +755,17 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
+                {/* Sumar una serie más allá de las prescritas por el coach */}
+                {onAddSet && editingSetNum === null && (
+                  <button
+                    type="button"
+                    onClick={onAddSet}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-primary" /> Agregar serie
+                  </button>
+                )}
+
                 {/* Calculadora de discos (solo mientras hay serie activa) */}
                 {!isCompleted && (parseFloat(editWeight) || 0) > 0 && (
                   <div className="rounded-xl bg-secondary/40 border border-border overflow-hidden">
@@ -834,6 +818,60 @@ const CoachExerciseCard = ({
                   <div className="py-3 bg-emerald-500/10 rounded-xl text-emerald-500 font-semibold text-sm text-center flex items-center justify-center gap-2">
                     <Check className="w-4 h-4" />
                     Ejercicio Completado
+                  </div>
+                )}
+
+                {/* Técnica y ejecución — colapsable, abajo. Al entrenar primero cargás; la lectura queda a mano si la necesitás. */}
+                {hasTechnique && (
+                  <div className="rounded-xl bg-secondary/30 border border-white/[0.06] overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowTechnique((v) => !v)}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-muted-foreground"
+                    >
+                      <Video className="w-3.5 h-3.5 text-primary" />
+                      Técnica y ejecución
+                      {showTechnique ? (
+                        <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+                      )}
+                    </button>
+                    <AnimatePresence>
+                      {showTechnique && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 space-y-3">
+                            {exercise.videoUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setShowVideo(true)}
+                                className="relative w-full h-40 rounded-xl overflow-hidden bg-secondary active:scale-[0.99] transition-transform"
+                              >
+                                {exercise.thumbnail ? (
+                                  <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+                                  <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
+                                    <Play className="w-6 h-6 text-primary fill-current ml-1" />
+                                  </div>
+                                  <span className="text-xs font-bold text-white uppercase tracking-wider">Ver técnica</span>
+                                </div>
+                              </button>
+                            )}
+                            <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
