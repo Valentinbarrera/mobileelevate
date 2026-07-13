@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useRef, useMemo, type FocusEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -186,15 +186,53 @@ const FreeExerciseCard = ({
   );
 };
 
+interface PresetWorkout {
+  name?: string;
+  exercises: { name: string; sets: number; reps: string; exerciseId?: string | null }[];
+}
+
 const FreeWorkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { student, isAdminMode } = useAuthContext();
   const studentId = student?.id || (isAdminMode ? "admin" : "anon");
+
+  // Preset: cuando venís a entrenar un DÍA de un programa propio, se precargan sus ejercicios
+  const preset = (location.state as { preset?: PresetWorkout } | null)?.preset;
+  const workoutName = preset?.name || "Entreno libre";
+  const seededRef = useRef(false);
 
   // Biblioteca real de ejercicios (degrada suave: si no hay datos, sigue el texto libre)
   const { exercises: library, loading: libraryLoading } = useExerciseLibrary();
 
   const [exercises, setExercises] = useState<FreeExercise[]>([]);
+
+  // Precarga desde el programa propio (una sola vez)
+  useEffect(() => {
+    if (seededRef.current || !preset?.exercises?.length) return;
+    seededRef.current = true;
+    setExercises(
+      preset.exercises.map((e) => ({
+        id: e.exerciseId || slugify(e.name),
+        name: e.name,
+        sets: [],
+      }))
+    );
+  }, [preset]);
+
+  // Enriquece los ejercicios precargados con datos de la biblioteca (músculo/video) al cargar
+  useEffect(() => {
+    if (!library.length) return;
+    setExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.library) return ex;
+        const lib = library.find(
+          (l) => l.id === ex.id || l.name.toLowerCase() === ex.name.toLowerCase()
+        );
+        return lib ? { ...ex, muscle: lib.muscle, library: lib } : ex;
+      })
+    );
+  }, [library]);
   const [newName, setNewName] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [showCheckIn, setShowCheckIn] = useState(false);
@@ -289,7 +327,7 @@ const FreeWorkout = () => {
   const completeWorkout = (checkIn: CheckInData | null) => {
     setShowCheckIn(false);
     if (checkIn) {
-      saveCheckIn(studentId, { date: getLocalDateString(), workoutName: "Entreno libre", ...checkIn });
+      saveCheckIn(studentId, { date: getLocalDateString(), workoutName, ...checkIn });
     }
     const volume = exercises.reduce(
       (a, e) => a + e.sets.reduce((s, x) => s + x.weight * x.reps, 0),
@@ -324,9 +362,13 @@ const FreeWorkout = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex-1">
-            <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Entreno libre</p>
-            <h1 className="text-lg font-black text-foreground leading-tight">Tu sesión</h1>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+              {preset ? "Mi programa" : "Entreno libre"}
+            </p>
+            <h1 className="text-lg font-black text-foreground leading-tight truncate">
+              {preset ? workoutName : "Tu sesión"}
+            </h1>
           </div>
           <div className="flex items-center gap-1.5 text-foreground font-black tabular-nums">
             <Clock className="w-4 h-4 text-primary" />

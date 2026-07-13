@@ -20,6 +20,9 @@ const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = React.lazy(() => import("./pages/UpdatePassword"));
 const Routines = React.lazy(() => import("./pages/Routines"));
 const RoutineDetail = React.lazy(() => import("./pages/RoutineDetail"));
+const ProgramTemplates = React.lazy(() => import("./pages/ProgramTemplates"));
+const MyProgramBuilder = React.lazy(() => import("./pages/MyProgramBuilder"));
+const MyProgramDetail = React.lazy(() => import("./pages/MyProgramDetail"));
 const CoachWorkoutDetail = React.lazy(() => import("./pages/CoachWorkoutDetail"));
 const FreeWorkout = React.lazy(() => import("./pages/FreeWorkout"));
 const WorkoutSummary = React.lazy(() => import("./pages/WorkoutSummary"));
@@ -94,6 +97,10 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
+              <Route path="/programas/templates" element={<ProtectedRoute><ProgramTemplates /></ProtectedRoute>} />
+              <Route path="/programas/nuevo" element={<ProtectedRoute><MyProgramBuilder /></ProtectedRoute>} />
+              <Route path="/programa/:id" element={<ProtectedRoute><MyProgramDetail /></ProtectedRoute>} />
+              <Route path="/programa/:id/editar" element={<ProtectedRoute><MyProgramBuilder /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
               <Route path="/aprender" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />

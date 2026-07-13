@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Plus, Flame, CalendarDays } from "lucide-react";
+import { Dumbbell, Plus, Flame, CalendarDays, PencilRuler, Library, ChevronRight } from "lucide-react";
+import { loadMyPrograms, type MyProgram } from "@/lib/myPrograms";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -33,6 +34,12 @@ type ProgramsFilter = "active" | "completed";
 const Routines = () => {
   const navigate = useNavigate();
   const { student } = useAuthContext();
+
+  // Programas PROPIOS del alumno (locales), separados de los del coach.
+  const [myPrograms, setMyPrograms] = useState<MyProgram[]>([]);
+  useEffect(() => {
+    if (student) setMyPrograms(loadMyPrograms(student.id));
+  }, [student]);
 
   // Una sola consulta con status='all': derivamos activas/completadas en cliente.
   const { data: routines, isLoading, error } = useAlumnoRoutines({
@@ -244,24 +251,13 @@ const Routines = () => {
                 </motion.div>
               )}
 
-              {/* ── Entreno libre ── */}
-              <motion.button
-                variants={fadeUp}
-                onClick={() => navigate("/free-workout")}
-                whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Entreno libre
-              </motion.button>
-
-              {/* ── Mis programas ── */}
+              {/* ── De tu coach ── */}
               {(activeAssignments.length > 0 || completedAssignments.length > 0) && (
                 <motion.div variants={fadeUp} className="space-y-3">
                   <div className="flex items-center justify-between gap-3 px-0.5">
                     <div className="flex items-center gap-2">
                       <span className="accent-bar" />
-                      <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                      <h3 className="text-sm font-black text-foreground tracking-tight">De tu coach</h3>
                     </div>
 
                     {completedAssignments.length > 0 && (
@@ -310,6 +306,96 @@ const Routines = () => {
                   )}
                 </motion.div>
               )}
+            </>
+          )}
+
+          {/* ── Entreno propio: SIEMPRE disponible (con o sin coach) ── */}
+          {!isLoading && !error && (
+            <>
+              {/* Entreno libre */}
+              <motion.button
+                variants={fadeUp}
+                onClick={() => navigate("/free-workout")}
+                whileTap={{ scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Entreno libre
+              </motion.button>
+
+              {/* Mis programas (propios) */}
+              <motion.div variants={fadeUp} className="space-y-3">
+                <div className="flex items-center justify-between gap-3 px-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="accent-bar" />
+                    <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                  </div>
+                  <button
+                    onClick={() => navigate("/programas/nuevo")}
+                    className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Crear
+                  </button>
+                </div>
+
+                {myPrograms.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {myPrograms.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => navigate(`/programa/${p.id}`)}
+                        className="text-left rounded-2xl card-elevated p-4 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                            <PencilRuler className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-black text-foreground truncate">
+                              {p.name || "Programa sin nombre"}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {p.days.length} {p.days.length === 1 ? "día" : "días"}
+                              {p.origin === "template" ? " · de template" : " · propio"}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl card-elevated p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Todavía no armaste ningún programa propio.
+                    </p>
+                    <button
+                      onClick={() => navigate("/programas/nuevo")}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Crear mi programa
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Templates / biblioteca de programas */}
+              <motion.button
+                variants={fadeUp}
+                onClick={() => navigate("/programas/templates")}
+                whileTap={{ scale: 0.99 }}
+                className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <Library className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Templates</p>
+                  <p className="text-sm font-semibold text-foreground">Biblioteca de programas listos</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+              </motion.button>
             </>
           )}
         </div>
