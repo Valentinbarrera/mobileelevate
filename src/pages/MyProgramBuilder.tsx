@@ -602,8 +602,7 @@ export default function MyProgramBuilder() {
           <motion.button
             onClick={save}
             whileTap={{ scale: 0.98 }}
-            className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide shadow-lg glow-primary flex items-center justify-center gap-2 disabled:opacity-50"
-            disabled={!program.name.trim() || totalExercises === 0}
+            className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide shadow-lg glow-primary flex items-center justify-center gap-2"
           >
             <Save className="w-5 h-5" />
             Guardar programa

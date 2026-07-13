@@ -89,6 +89,8 @@ const App = () => (
             <Route path="/free-workout" element={<ProtectedRoute><Lazy><FreeWorkout /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Lazy><Onboarding /></Lazy></ProtectedRoute>} />
+            <Route path="/programas/nuevo" element={<ProtectedRoute><Lazy><MyProgramBuilder /></Lazy></ProtectedRoute>} />
+            <Route path="/programa/:id/editar" element={<ProtectedRoute><Lazy><MyProgramBuilder /></Lazy></ProtectedRoute>} />
 
             {/* Pantallas con nav persistente + transición de contenido.
                 El Suspense vive en AppLayout (fuera del AnimatePresence), así que
@@ -98,9 +100,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
               <Route path="/programas/templates" element={<ProtectedRoute><ProgramTemplates /></ProtectedRoute>} />
-              <Route path="/programas/nuevo" element={<ProtectedRoute><MyProgramBuilder /></ProtectedRoute>} />
               <Route path="/programa/:id" element={<ProtectedRoute><MyProgramDetail /></ProtectedRoute>} />
-              <Route path="/programa/:id/editar" element={<ProtectedRoute><MyProgramBuilder /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
               <Route path="/aprender" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
