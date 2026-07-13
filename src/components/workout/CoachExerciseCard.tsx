@@ -6,10 +6,12 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, StickyNote, Pin, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
+import ExerciseNoteSheet from "./ExerciseNoteSheet";
 import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
+import { getExerciseNote, saveExerciseNote, type ExerciseNote } from "@/lib/exerciseNotes";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 import { calcPlates } from "@/lib/plates";
 import { playSetLoggedSound, playPRSound } from "@/lib/sound";
@@ -106,6 +108,8 @@ const CoachExerciseCard = ({
   const isDesktop = useIsDesktop();
   const [showVideo, setShowVideo] = useState(false);
   const [showTechnique, setShowTechnique] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [athleteNote, setAthleteNote] = useState<ExerciseNote | null>(null);
   const [expanded, setExpanded] = useState(isActive);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
   const [personalRecord, setPersonalRecord] = useState<PerformanceRecord | null>(null);
@@ -166,6 +170,31 @@ const CoachExerciseCard = ({
         }
       });
   }, [student, isAdminMode, exercise.id]);
+
+  // Nota propia del alumno para este ejercicio
+  useEffect(() => {
+    const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    setAthleteNote(getExerciseNote(sid, exercise.id, getLocalDateString()));
+  }, [student, isAdminMode, exercise.id]);
+
+  const saveNote = (text: string, pinned: boolean) => {
+    const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    const note: ExerciseNote = { text, pinned, date: getLocalDateString() };
+    saveExerciseNote(sid, exercise.id, note);
+    setAthleteNote(text.trim() ? note : null);
+    setNoteOpen(false);
+  };
+
+  // Abre el tutorial: el video del coach si es de YouTube, o una búsqueda por el nombre
+  const openYouTube = () => {
+    const url =
+      exercise.videoUrl && /youtu\.?be/i.test(exercise.videoUrl)
+        ? exercise.videoUrl
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(
+            exercise.name + " técnica ejercicio"
+          )}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   const isCompleted = state.completed;
   const doneCount = state.completedSets.length;
@@ -268,11 +297,6 @@ const CoachExerciseCard = ({
     return { setNum, logged, isCurrent, isExtra };
   });
 
-  // ¿Hay técnica/ejecución para mostrar? (video real o texto del coach)
-  const hasTechnique =
-    !!exercise.videoUrl ||
-    !!exercise.description?.trim() ||
-    (exercise.instructions || []).some((s) => s?.trim());
 
   return (
     <>
@@ -390,6 +414,27 @@ const CoachExerciseCard = ({
                     </p>
                   </div>
                 )}
+
+                {/* Nota propia del alumno (técnica / ajustes / sensaciones) */}
+                <button
+                  type="button"
+                  onClick={() => setNoteOpen(true)}
+                  className="w-full flex items-start gap-2 rounded-xl border border-white/[0.06] bg-secondary/40 px-3 py-2.5 text-left active:scale-[0.99] transition-transform"
+                >
+                  <StickyNote className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  {athleteNote?.text ? (
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-xs text-foreground line-clamp-2">{athleteNote.text}</span>
+                      {athleteNote.pinned && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wider mt-1">
+                          <Pin className="w-3 h-3" /> Fijada
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="flex-1 text-xs font-semibold text-muted-foreground">Agregar mi nota</span>
+                  )}
+                </button>
 
                 {/* ─── Series — MOBILE ─── */}
                 {!isDesktop && (
@@ -821,59 +866,68 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
-                {/* Técnica y ejecución — colapsable, abajo. Al entrenar primero cargás; la lectura queda a mano si la necesitás. */}
-                {hasTechnique && (
-                  <div className="rounded-xl bg-secondary/30 border border-white/[0.06] overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setShowTechnique((v) => !v)}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-muted-foreground"
-                    >
-                      <Video className="w-3.5 h-3.5 text-primary" />
-                      Técnica y ejecución
-                      {showTechnique ? (
-                        <ChevronUp className="w-3.5 h-3.5 ml-auto" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5 ml-auto" />
-                      )}
-                    </button>
-                    <AnimatePresence>
-                      {showTechnique && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-3 pb-3 space-y-3">
-                            {exercise.videoUrl && (
-                              <button
-                                type="button"
-                                onClick={() => setShowVideo(true)}
-                                className="relative w-full h-40 rounded-xl overflow-hidden bg-secondary active:scale-[0.99] transition-transform"
-                              >
-                                {exercise.thumbnail ? (
-                                  <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
-                                  <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-                                    <Play className="w-6 h-6 text-primary fill-current ml-1" />
-                                  </div>
-                                  <span className="text-xs font-bold text-white uppercase tracking-wider">Ver técnica</span>
+                {/* Técnica y tutorial — colapsable, abajo. Al entrenar primero cargás; la lectura queda a mano. */}
+                <div className="rounded-xl bg-secondary/30 border border-white/[0.06] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowTechnique((v) => !v)}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-muted-foreground"
+                  >
+                    <Video className="w-3.5 h-3.5 text-primary" />
+                    Técnica y tutorial
+                    {showTechnique ? (
+                      <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {showTechnique && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-3 pb-3 space-y-3">
+                          {exercise.videoUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setShowVideo(true)}
+                              className="relative w-full h-40 rounded-xl overflow-hidden bg-secondary active:scale-[0.99] transition-transform"
+                            >
+                              {exercise.thumbnail ? (
+                                <img src={exercise.thumbnail} alt={exercise.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Dumbbell className="w-12 h-12 text-muted-foreground/30" />
                                 </div>
-                              </button>
-                            )}
-                            <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                              )}
+                              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+                                <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
+                                  <Play className="w-6 h-6 text-primary fill-current ml-1" />
+                                </div>
+                                <span className="text-xs font-bold text-white uppercase tracking-wider">Ver técnica</span>
+                              </div>
+                            </button>
+                          )}
+
+                          {/* Tutorial en YouTube — siempre disponible (video del coach o búsqueda por nombre) */}
+                          <button
+                            type="button"
+                            onClick={openYouTube}
+                            className="w-full flex items-center gap-2 rounded-xl bg-secondary/60 border border-white/[0.06] px-3 py-2.5 text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                          >
+                            <Youtube className="w-4 h-4 text-red-500 shrink-0" />
+                            Ver tutorial en YouTube
+                          </button>
+
+                          <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </motion.div>
           )}
@@ -888,6 +942,16 @@ const CoachExerciseCard = ({
           onClose={() => setShowVideo(false)}
         />
       )}
+
+      {/* Nota del ejercicio (propia del alumno) */}
+      <ExerciseNoteSheet
+        open={noteOpen}
+        exerciseName={exercise.name}
+        initialText={athleteNote?.text ?? ""}
+        initialPinned={athleteNote?.pinned ?? false}
+        onClose={() => setNoteOpen(false)}
+        onSave={saveNote}
+      />
     </>
   );
 };
