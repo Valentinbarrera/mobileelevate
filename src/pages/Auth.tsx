@@ -14,7 +14,7 @@ const passwordSchema = z.string().min(6, "Mínimo 6 caracteres");
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { error: authError, isAuthenticated, signIn, signInAsAdmin } = useAuthContext();
+  const { error: authError, isAuthenticated, signIn } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -156,22 +156,6 @@ const Auth = () => {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>ENTRAR AL HUB</span><ArrowRight className="w-5 h-5 ml-2" /></>}
             </Button>
           </form>
-        </motion.div>
-
-        {/* Admin access */}
-        <motion.div
-          className="pt-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <button
-            type="button"
-            onClick={() => signInAsAdmin()}
-            className="w-full h-12 rounded-2xl border border-border/50 bg-card/50 text-muted-foreground font-semibold text-sm hover:border-primary/50 hover:text-foreground transition-all"
-          >
-            Entrar sin cuenta (Admin)
-          </button>
         </motion.div>
 
         {/* Security Badge */}
