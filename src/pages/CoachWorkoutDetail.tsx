@@ -20,8 +20,12 @@ import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
+import ReadinessCheck from "@/components/workout/ReadinessCheck";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
+import { saveReadiness, type ReadinessData } from "@/lib/readiness";
+import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
+import { getLocalDateString } from "@/lib/date";
 import { playStartSound } from "@/lib/sound";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
@@ -86,10 +90,12 @@ const CoachWorkoutDetail = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showReadiness, setShowReadiness] = useState(false);
 
   // Exercise completed modal state
   const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
   const [completedExerciseInfo, setCompletedExerciseInfo] = useState<{
+    id: string;
     name: string;
     nextExercise: { id: string; name: string; sets: number; reps: string } | null;
     isLastExercise: boolean;
@@ -128,7 +134,8 @@ const CoachWorkoutDetail = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStartWorkout = async () => {
+  // Tocar "Empezar" abre primero el readiness (¿cómo te sentís hoy?), omitible.
+  const handleStartWorkout = () => {
     if (!isAuthenticated) {
       toast.error("Debés iniciar sesión para entrenar", {
         action: {
@@ -138,6 +145,12 @@ const CoachWorkoutDetail = () => {
       });
       return;
     }
+    setShowReadiness(true);
+  };
+
+  // Arranque real de la sesión (tras responder u omitir el readiness).
+  const beginWorkout = async () => {
+    setShowReadiness(false);
 
     // Sonido + vibración de arranque (dentro del gesto del usuario)
     playStartSound();
@@ -151,6 +164,25 @@ const CoachWorkoutDetail = () => {
       }
       toast.success("¡Entrenamiento iniciado!");
     }
+  };
+
+  const handleReadinessComplete = (data: ReadinessData) => {
+    const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    saveReadiness(sid, getLocalDateString(), data);
+    beginWorkout();
+  };
+
+  // Guarda el feedback (estímulo/dolor) del ejercicio recién completado.
+  const handleExerciseFeedback = (stimulus: number, jointPain: number) => {
+    if (!completedExerciseInfo) return;
+    const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    saveExerciseFeedback(sid, {
+      date: getLocalDateString(),
+      exerciseId: completedExerciseInfo.id,
+      exerciseName: completedExerciseInfo.name,
+      stimulus,
+      jointPain,
+    });
   };
 
   const handleCompleteSet = useCallback(async (
@@ -223,6 +255,7 @@ const CoachWorkoutDetail = () => {
         const isLastExercise = currentIndex === routineDay.exercises.length - 1;
         
         setCompletedExerciseInfo({
+          id: exercise.id,
           name: exercise.name,
           nextExercise: nextExercise ? {
             id: nextExercise.id,
@@ -648,6 +681,13 @@ const CoachWorkoutDetail = () => {
         )}
       </AnimatePresence>
 
+      {/* Readiness pre-sesión (omitible) */}
+      <ReadinessCheck
+        open={showReadiness}
+        onComplete={handleReadinessComplete}
+        onSkip={beginWorkout}
+      />
+
       {/* Exercise Completed Modal */}
       <ExerciseCompletedModal
         isOpen={showExerciseCompleted}
@@ -658,6 +698,7 @@ const CoachWorkoutDetail = () => {
         isLastExercise={completedExerciseInfo?.isLastExercise}
         totalCompleted={completedExercises}
         totalExercises={exercises.length}
+        onSubmitFeedback={handleExerciseFeedback}
       />
 
       {/* Check-in post-entreno */}

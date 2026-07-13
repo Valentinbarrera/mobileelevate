@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, GraduationCap, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
@@ -171,6 +171,26 @@ const Index = () => {
 
   const quickActions = <QuickActions />;
 
+  // Acceso a la sección educativa "Aprendé" (guía de la app + recursos)
+  const learnCard = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => navigate("/aprender")}
+      className="w-full card-elevated rounded-2xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.99] transition-transform text-left"
+    >
+      <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+        <GraduationCap className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-black text-foreground tracking-tight">Aprendé a usar la app</p>
+        <p className="text-[12px] text-muted-foreground truncate">
+          Guía, calentamiento, RPE/RIR, calculadora de RM y material del coach
+        </p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </motion.button>
+  );
+
   const planDays = activeRoutine && allDays.length > 0 && (
     <PlanDaysCarousel
       days={allDays}
@@ -225,6 +245,7 @@ const Index = () => {
               <div className="col-span-12 xl:col-span-5 space-y-6">
                 {weeklyGoalCard}
                 {quickActions}
+                {learnCard}
                 {coachCard}
               </div>
             </div>
@@ -265,6 +286,9 @@ const Index = () => {
 
             {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
             {quickActions}
+
+            {/* 4b. Acceso a la sección educativa "Aprendé" */}
+            {learnCard}
 
             {/* 5. Carrusel del plan */}
             {planDays}

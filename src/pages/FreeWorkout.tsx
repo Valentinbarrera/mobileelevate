@@ -4,16 +4,18 @@
  * series con peso × reps y se guarda LOCAL (alimenta historial, PRs y "la vez
  * pasada"). Estilo "empty workout" de Hevy.
  */
-import { useState, useEffect, useRef, type FocusEvent } from "react";
+import { useState, useEffect, useRef, useMemo, type FocusEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Check, X, Dumbbell, Clock } from "lucide-react";
+import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { logSet, getLastPerformance } from "@/lib/workoutLog";
 import { getRecentFreeExercises, recordFreeExercise } from "@/lib/freeExercises";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
+import ExerciseDetailModal from "@/components/workout/ExerciseDetailModal";
+import { useExerciseLibrary, type LibraryExercise } from "@/hooks/useExerciseLibrary";
 import { getLocalDateString } from "@/lib/date";
 
 interface SetEntry {
@@ -25,6 +27,10 @@ interface FreeExercise {
   id: string;
   name: string;
   sets: SetEntry[];
+  /** Grupo muscular, si vino de la biblioteca real. */
+  muscle?: string | null;
+  /** Ejercicio de la biblioteca (para ver su detalle/video). Ausente si es texto libre. */
+  library?: LibraryExercise;
 }
 
 const slugify = (name: string) => "free:" + name.trim().toLowerCase().replace(/\s+/g, "-");
@@ -36,11 +42,13 @@ const FreeExerciseCard = ({
   studentId,
   onAddSet,
   onRemove,
+  onInfo,
 }: {
   ex: FreeExercise;
   studentId: string;
   onAddSet: (weight: number, reps: number) => void;
   onRemove: () => void;
+  onInfo?: () => void;
 }) => {
   const today = getLocalDateString();
   const last = getLastPerformance(studentId, ex.id, today);
@@ -87,11 +95,23 @@ const FreeExerciseCard = ({
           <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
             <Dumbbell className="w-4 h-4 text-primary" />
           </div>
-          <h3 className="text-sm font-black text-foreground truncate">{ex.name}</h3>
+          <div className="min-w-0">
+            <h3 className="text-sm font-black text-foreground truncate">{ex.name}</h3>
+            {ex.muscle && (
+              <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscle}</p>
+            )}
+          </div>
         </div>
-        <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground p-1 active:text-foreground">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          {onInfo && (
+            <button onClick={onInfo} aria-label="Ver detalle del ejercicio" className="text-muted-foreground p-1 active:text-foreground">
+              <Info className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground p-1 active:text-foreground">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Series cargadas */}
@@ -171,10 +191,14 @@ const FreeWorkout = () => {
   const { student, isAdminMode } = useAuthContext();
   const studentId = student?.id || (isAdminMode ? "admin" : "anon");
 
+  // Biblioteca real de ejercicios (degrada suave: si no hay datos, sigue el texto libre)
+  const { exercises: library, loading: libraryLoading } = useExerciseLibrary();
+
   const [exercises, setExercises] = useState<FreeExercise[]>([]);
   const [newName, setNewName] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [detail, setDetail] = useState<LibraryExercise | null>(null);
   const [recent] = useState<string[]>(() => getRecentFreeExercises(studentId));
 
   // Cronómetro
@@ -183,7 +207,33 @@ const FreeWorkout = () => {
     return () => clearInterval(id);
   }, []);
 
-  const addExercise = (rawName: string) => {
+  // Resultados de la biblioteca filtrados por lo que escribe el alumno
+  const query = newName.trim().toLowerCase();
+  const results = useMemo(() => {
+    if (!query) return [];
+    return library
+      .filter(
+        (e) => e.name.toLowerCase().includes(query) || (e.muscle || "").toLowerCase().includes(query)
+      )
+      .slice(0, 8);
+  }, [library, query]);
+  // ¿El texto coincide EXACTO con un ejercicio de la biblioteca? (define si ofrecemos el custom)
+  const hasExact = query.length > 0 && library.some((e) => e.name.toLowerCase() === query);
+
+  // Agrega un ejercicio de la biblioteca real (con su músculo/detalle)
+  const addFromLibrary = (lib: LibraryExercise) => {
+    if (exercises.some((e) => e.id === lib.id)) {
+      toast.info("Ese ejercicio ya está en el entreno");
+      setNewName("");
+      return;
+    }
+    recordFreeExercise(studentId, lib.name);
+    setExercises((prev) => [...prev, { id: lib.id, name: lib.name, sets: [], muscle: lib.muscle, library: lib }]);
+    setNewName("");
+  };
+
+  // Fallback texto libre: agrega un ejercicio custom que no está en la biblioteca
+  const addFreeText = (rawName: string) => {
     const name = rawName.trim();
     if (!name) return;
     const id = slugify(name);
@@ -195,6 +245,21 @@ const FreeWorkout = () => {
     recordFreeExercise(studentId, name);
     setExercises((prev) => [...prev, { id, name, sets: [] }]);
     setNewName("");
+  };
+
+  // Agrega por nombre (recientes / Enter): prioriza la biblioteca si hay match exacto
+  const addByName = (rawName: string) => {
+    const name = rawName.trim();
+    if (!name) return;
+    const lib = library.find((e) => e.name.toLowerCase() === name.toLowerCase());
+    if (lib) return addFromLibrary(lib);
+    addFreeText(name);
+  };
+
+  // Enter en el buscador: primer resultado de biblioteca, o texto libre
+  const submitSearch = () => {
+    if (results.length > 0) return addFromLibrary(results[0]);
+    addByName(newName);
   };
 
   const addSet = (exIndex: number, weight: number, reps: number) => {
@@ -246,7 +311,9 @@ const FreeWorkout = () => {
     });
   };
 
-  const recentToShow = recent.filter((n) => !exercises.some((e) => e.id === slugify(n))).slice(0, 6);
+  const recentToShow = recent
+    .filter((n) => !exercises.some((e) => e.id === slugify(n) || e.name.toLowerCase() === n.toLowerCase()))
+    .slice(0, 6);
 
   return (
     <motion.div className="min-h-screen bg-background pb-44" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -269,37 +336,101 @@ const FreeWorkout = () => {
       </div>
 
       <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
-        {/* Agregar ejercicio */}
+        {/* Agregar ejercicio — buscá en la biblioteca real o cargá uno custom */}
         <div className="card-elevated rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="accent-bar" />
             <h2 className="text-sm font-black text-foreground tracking-tight">Agregar ejercicio</h2>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Buscador de la biblioteca */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addExercise(newName)}
+              onKeyDown={(e) => e.key === "Enter" && submitSearch()}
               enterKeyHint="done"
-              placeholder="Ej: Press banca"
-              className="flex-1 min-w-0 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
+              placeholder="Buscá en la biblioteca…"
+              className="w-full min-w-0 h-11 pl-11 pr-10 rounded-xl bg-secondary border border-border text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
             />
-            <button
-              onClick={() => addExercise(newName)}
-              aria-label="Agregar ejercicio"
-              className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            {newName && (
+              <button
+                onClick={() => setNewName("")}
+                aria-label="Limpiar"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Recientes */}
-          {recentToShow.length > 0 && (
+          {/* Resultados de la biblioteca */}
+          {query && (
+            <div className="mt-3 space-y-1.5">
+              {results.map((ex) => (
+                <div
+                  key={ex.id}
+                  className="flex items-center gap-2 rounded-xl bg-secondary/60 border border-white/[0.06] pr-1.5"
+                >
+                  <button
+                    onClick={() => addFromLibrary(ex)}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 p-2 text-left active:opacity-70"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-secondary overflow-hidden shrink-0 flex items-center justify-center">
+                      {ex.thumbnailUrl ? (
+                        <img src={ex.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <Dumbbell className="w-4 h-4 text-muted-foreground/40" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
+                      {ex.muscle && (
+                        <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscle}</p>
+                      )}
+                    </div>
+                    {ex.videoUrl && <Play className="w-3.5 h-3.5 text-muted-foreground fill-current shrink-0 ml-auto" />}
+                  </button>
+                  <button
+                    onClick={() => setDetail(ex)}
+                    aria-label="Ver detalle"
+                    className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground active:text-foreground"
+                  >
+                    <Info className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {libraryLoading && results.length === 0 && (
+                <p className="text-xs text-muted-foreground px-1 py-1">Buscando en la biblioteca…</p>
+              )}
+
+              {/* Fallback texto libre: agregar como custom lo que no está en la biblioteca */}
+              {!hasExact && (
+                <button
+                  onClick={() => addByName(newName)}
+                  className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-border p-2 text-left active:opacity-70"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                    <Plus className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">Agregar “{newName.trim()}”</p>
+                    <p className="text-[11px] font-semibold text-muted-foreground">Ejercicio custom</p>
+                  </div>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Recientes — solo cuando no estás buscando */}
+          {!query && recentToShow.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {recentToShow.map((n) => (
                 <button
                   key={n}
-                  onClick={() => addExercise(n)}
+                  onClick={() => addByName(n)}
                   className="px-2.5 py-1.5 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-semibold text-muted-foreground active:text-foreground"
                 >
                   + {n}
@@ -318,6 +449,7 @@ const FreeWorkout = () => {
               studentId={studentId}
               onAddSet={(w, r) => addSet(i, w, r)}
               onRemove={() => removeExercise(i)}
+              onInfo={ex.library ? () => setDetail(ex.library!) : undefined}
             />
           ))}
         </AnimatePresence>
@@ -347,6 +479,9 @@ const FreeWorkout = () => {
           </motion.button>
         </div>
       </div>
+
+      {/* Detalle del ejercicio de la biblioteca (video / técnica) */}
+      <ExerciseDetailModal exercise={detail} onClose={() => setDetail(null)} />
 
       {/* Check-in post-entreno */}
       <WorkoutCheckIn

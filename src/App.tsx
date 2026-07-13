@@ -36,6 +36,7 @@ const Nutrition = React.lazy(() => import("./pages/Nutrition"));
 const MyDiet = React.lazy(() => import("./pages/MyDiet"));
 const NutritionHistory = React.lazy(() => import("./pages/NutritionHistory"));
 const ExerciseLibraryPage = React.lazy(() => import("./pages/ExerciseLibraryPage"));
+const Learn = React.lazy(() => import("./pages/Learn"));
 const Privacy = React.lazy(() => import("./pages/Privacy"));
 const Support = React.lazy(() => import("./pages/Support"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
+              <Route path="/aprender" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/progress/photos" element={<ProtectedRoute><ProgressPhotos /></ProtectedRoute>} />
               <Route path="/progress/activity" element={<ProtectedRoute><ActivityHistory /></ProtectedRoute>} />

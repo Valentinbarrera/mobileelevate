@@ -2,8 +2,9 @@
  * Modal that appears when an exercise is completed
  * Shows success message and suggests next exercise
  */
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ArrowRight, Trophy, Sparkles } from "lucide-react";
+import { Check, ArrowRight, Trophy, Sparkles, Activity, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Confetti from "@/components/summary/Confetti";
 
@@ -20,7 +21,38 @@ interface ExerciseCompletedModalProps {
   isLastExercise?: boolean;
   totalCompleted: number;
   totalExercises: number;
+  onSubmitFeedback?: (stimulus: number, jointPain: number) => void;
 }
+
+/** Escala compacta 1-5 para el feedback del ejercicio. */
+const MiniScale = ({
+  value,
+  onChange,
+  tone,
+}: {
+  value: number | null;
+  onChange: (n: number) => void;
+  tone: "primary" | "amber";
+}) => (
+  <div className="grid grid-cols-5 gap-1">
+    {[1, 2, 3, 4, 5].map((n) => {
+      const active = value === n;
+      const activeCls = tone === "amber" ? "bg-amber-500 border-amber-500 text-white" : "bg-primary border-primary text-primary-foreground";
+      return (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          className={`h-9 rounded-lg text-xs font-black tabular-nums border transition-all active:scale-95 ${
+            active ? activeCls : "bg-secondary/60 border-white/[0.06] text-muted-foreground"
+          }`}
+        >
+          {n}
+        </button>
+      );
+    })}
+  </div>
+);
 
 const ExerciseCompletedModal = ({
   isOpen,
@@ -31,7 +63,27 @@ const ExerciseCompletedModal = ({
   isLastExercise,
   totalCompleted,
   totalExercises,
+  onSubmitFeedback,
 }: ExerciseCompletedModalProps) => {
+  const [stimulus, setStimulus] = useState<number | null>(null);
+  const [jointPain, setJointPain] = useState<number | null>(null);
+
+  // Reinicia el feedback cada vez que se abre para un ejercicio nuevo
+  useEffect(() => {
+    if (isOpen) {
+      setStimulus(null);
+      setJointPain(null);
+    }
+  }, [isOpen, completedExerciseName]);
+
+  // Guarda el feedback (si el usuario tocó algo) antes de seguir
+  const withFeedback = (next: () => void) => () => {
+    if (onSubmitFeedback && (stimulus != null || jointPain != null)) {
+      onSubmitFeedback(stimulus ?? 0, jointPain ?? 0);
+    }
+    next();
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -40,7 +92,7 @@ const ExerciseCompletedModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6"
-          onClick={onClose}
+          onClick={withFeedback(onClose)}
         >
           {/* Mini confetti for celebration */}
           {isLastExercise && <Confetti />}
@@ -131,6 +183,34 @@ const ExerciseCompletedModal = ({
               </motion.div>
             ) : null}
 
+            {/* Feedback rápido del ejercicio (opcional) */}
+            {onSubmitFeedback && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32 }}
+                className="mb-6 space-y-3"
+              >
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">
+                  ¿Cómo sentiste el ejercicio? <span className="normal-case font-medium">· opcional</span>
+                </p>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Activity className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-bold text-foreground">Estímulo muscular</span>
+                  </div>
+                  <MiniScale value={stimulus} onChange={setStimulus} tone="primary" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-xs font-bold text-foreground">Dolor articular</span>
+                  </div>
+                  <MiniScale value={jointPain} onChange={setJointPain} tone="amber" />
+                </div>
+              </motion.div>
+            )}
+
             {/* Action buttons */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -140,7 +220,7 @@ const ExerciseCompletedModal = ({
             >
               {nextExercise && !isLastExercise ? (
                 <Button
-                  onClick={onGoToNext}
+                  onClick={withFeedback(onGoToNext)}
                   className="w-full h-14 rounded-2xl bg-gradient-primary text-primary-foreground font-bold text-base glow-primary flex items-center justify-center gap-2"
                 >
                   Ir al siguiente
@@ -148,16 +228,16 @@ const ExerciseCompletedModal = ({
                 </Button>
               ) : (
                 <Button
-                  onClick={onClose}
+                  onClick={withFeedback(onClose)}
                   className="w-full h-14 rounded-2xl bg-gradient-primary text-primary-foreground font-bold text-base glow-primary"
                 >
                   Continuar
                 </Button>
               )}
-              
+
               {nextExercise && !isLastExercise && (
                 <button
-                  onClick={onClose}
+                  onClick={withFeedback(onClose)}
                   className="w-full py-3 text-sm text-muted-foreground font-medium hover:text-foreground transition-colors"
                 >
                   Quedarme aquí

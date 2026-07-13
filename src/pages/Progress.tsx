@@ -30,6 +30,7 @@ import { useLocalBodyLog } from "@/hooks/useLocalBodyLog";
 import { usePRData } from "@/hooks/usePRData";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLatestCheckIn } from "@/lib/checkins";
+import { getLatestReadiness } from "@/lib/readiness";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useIsDesktop } from "@/hooks/use-media-query";
 
@@ -48,7 +49,9 @@ const Progress = () => {
   const { sessions: workoutSessions, exerciseProgress } = useWorkoutDetails();
   const { entries: localWeights, logWeight } = useLocalBodyLog();
   const { student, isAdminMode } = useAuthContext();
-  const latestCheckIn = getLatestCheckIn(student?.id || (isAdminMode ? "admin" : "anon"));
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  const latestCheckIn = getLatestCheckIn(sid);
+  const latestReadiness = getLatestReadiness(sid);
   const [range, setRange] = useState(0); // 0 = todo · 30 = 1M · 90 = 3M
 
   // Peso = datos del coach + los que carga el alumno (local pisa por fecha)
@@ -300,6 +303,39 @@ const Progress = () => {
             </motion.div>
           );
 
+          const energyDaily = latestReadiness && (
+            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Energía diaria</h3>
+                <span className="ml-auto text-xs text-muted-foreground">último readiness</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center shrink-0">
+                  <p className="text-3xl font-black text-primary tabular-nums leading-none">
+                    <CountUp value={latestReadiness.vitality} />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">Vitalidad</p>
+                </div>
+                <div className="flex-1 grid grid-cols-5 gap-1.5">
+                  {[
+                    { l: "Sueño", v: latestReadiness.sleep },
+                    { l: "Energía", v: latestReadiness.energy },
+                    { l: "Recup.", v: latestReadiness.recovery },
+                    { l: "Estrés", v: latestReadiness.stress },
+                    { l: "Motiv.", v: latestReadiness.motivation },
+                  ].map((m) => (
+                    <div key={m.l} className="text-center">
+                      <p className="text-base font-black text-foreground tabular-nums leading-none">{m.v}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wide mt-1">{m.l}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          );
+
           const prs = (
             <motion.div variants={fadeUp}>
               <PersonalRecords records={records} />
@@ -341,6 +377,7 @@ const Progress = () => {
                     {photosEntry}
                     {weightLog}
                     {prs}
+                    {energyDaily}
                     {wellbeing}
                   </div>
                 </div>
@@ -361,6 +398,7 @@ const Progress = () => {
               {volumeChart}
               {prs}
               {historyList}
+              {energyDaily}
               {wellbeing}
             </div>
           );
