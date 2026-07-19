@@ -1,26 +1,29 @@
 /**
- * Diseñador de programas PROPIOS del alumno — arma su propio plan de
- * entrenamiento: nombre + días, y dentro de cada día ejercicios buscados en la
- * biblioteca real (o texto libre como fallback) con sets, reps y descanso.
- * Guardado LOCAL (src/lib/myPrograms). Sin IA.
+ * Wizard de programas PROPIOS del alumno — 3 pasos:
+ *   1. Configurar  → nombre + semanas + días/semana
+ *   2. Elegir split → plantilla que arma el esqueleto de días (o "desde cero")
+ *   3. Ejercicios   → por cada día: grupo muscular → ejercicio → series/reps/RIR
  *
- * Se monta en dos rutas: "/programas/nuevo" (crear) y "/programa/:id/editar"
- * (editar un programa existente).
+ * Guardado LOCAL (src/lib/myPrograms). Sin IA. Se monta en "/programas/nuevo"
+ * (crear) y "/programa/:id/editar" (editar → arranca en el paso de ejercicios).
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  ArrowRight,
   Plus,
   Trash2,
   X,
-  Check,
   Search,
   Dumbbell,
   Save,
   Calendar,
-  ChevronDown,
+  Check,
+  LayoutGrid,
+  BookMarked,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
@@ -36,193 +39,217 @@ import {
   type ProgramDay,
   type ProgramExercise,
 } from "@/lib/myPrograms";
+import {
+  presetsForDays,
+  daysFromPreset,
+  blankDays,
+  type SplitPreset,
+} from "@/lib/splitPresets";
+import { MUSCLE_GROUPS, exerciseMatchesGroup, type MuscleGroup } from "@/lib/muscleGroups";
+import {
+  loadDayTemplates,
+  saveDayTemplate,
+  deleteDayTemplate,
+  type DayTemplate,
+} from "@/lib/dayTemplates";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
-const LEVELS = ["principiante", "intermedio", "avanzado"] as const;
+type Step = "config" | "split" | "exercises";
 
-/* ── Buscador de ejercicios (biblioteca real + fallback texto libre) ── */
-const ExercisePicker = ({
+const WEEK_OPTIONS = [4, 6, 8, 12];
+const DAY_OPTIONS = [1, 2, 3, 4, 5, 6];
+
+/* ── Tile de opción (chip grande tipo la referencia) ── */
+const OptionTile = ({
+  label,
+  sub,
+  active,
+  onClick,
+}: {
+  label: string;
+  sub?: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex-1 min-w-0 rounded-2xl border py-4 px-2 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-[0.97] ${
+      active
+        ? "bg-primary/15 border-primary text-primary"
+        : "bg-secondary/50 border-white/[0.06] text-foreground hover:border-primary/30"
+    }`}
+  >
+    <span className="text-xl font-black tabular-nums">{label}</span>
+    {sub && <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70">{sub}</span>}
+  </button>
+);
+
+/* ── Selector de ejercicio por grupo muscular (con ilustración) ── */
+const MuscleExercisePicker = ({
   library,
   libraryLoading,
+  suggested,
   onPick,
+  onClose,
 }: {
   library: LibraryExercise[];
   libraryLoading: boolean;
+  suggested: string[];
   onPick: (ex: ProgramExercise) => void;
+  onClose: () => void;
 }) => {
+  const [group, setGroup] = useState<MuscleGroup | null>(null);
   const [term, setTerm] = useState("");
-  const [muscle, setMuscle] = useState<string | null>(null);
-  const query = term.trim().toLowerCase();
 
-  // Grupos musculares presentes en la biblioteca (para explorar sin saber el nombre).
-  const muscles = useMemo(() => {
-    const set = new Set<string>();
-    library.forEach((e) => e.muscle && set.add(e.muscle.toLowerCase()));
-    return [...set].sort();
-  }, [library]);
+  // Grupos sugeridos primero (según el foco del día)
+  const groups = useMemo(() => {
+    const rank = (g: MuscleGroup) => (suggested.includes(g.id) ? 0 : 1);
+    return [...MUSCLE_GROUPS].sort((a, b) => rank(a) - rank(b));
+  }, [suggested]);
 
   const results = useMemo(() => {
-    if (!query && !muscle) return [];
+    if (!group) return [];
+    const q = term.trim().toLowerCase();
     return library
-      .filter((e) => {
-        const matchQ =
-          !query ||
-          e.name.toLowerCase().includes(query) ||
-          (e.muscle || "").toLowerCase().includes(query);
-        const matchM = !muscle || (e.muscle || "").toLowerCase() === muscle;
-        return matchQ && matchM;
-      })
-      .slice(0, 8);
-  }, [library, query, muscle]);
+      .filter((e) => exerciseMatchesGroup(e.muscle, group))
+      .filter((e) => !q || e.name.toLowerCase().includes(q))
+      .slice(0, 30);
+  }, [library, group, term]);
 
-  const hasExact = query.length > 0 && library.some((e) => e.name.toLowerCase() === query);
-
-  const pickLibrary = (lib: LibraryExercise) => {
+  const addLibrary = (lib: LibraryExercise) => {
     onPick({
       name: lib.name,
       sets: 3,
       reps: "8-12",
       restSeconds: 90,
-      rir: null,
-      muscleGroup: lib.muscle,
+      rir: 2,
+      muscleGroup: group?.label ?? lib.muscle ?? null,
       exerciseId: lib.id,
     });
-    setTerm("");
+    toast.success(`${lib.name} agregado`);
   };
 
-  const pickFreeText = (raw: string) => {
-    const name = raw.trim();
+  const addFreeText = () => {
+    const name = term.trim();
     if (!name) return;
     onPick({
       name,
       sets: 3,
       reps: "8-12",
       restSeconds: 90,
-      rir: null,
-      muscleGroup: null,
+      rir: 2,
+      muscleGroup: group?.label ?? null,
       exerciseId: null,
     });
     setTerm("");
-  };
-
-  const submit = () => {
-    if (results.length > 0) return pickLibrary(results[0]);
-    pickFreeText(term);
+    toast.success(`${name} agregado`);
   };
 
   return (
-    <div>
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          enterKeyHint="done"
-          placeholder="Buscá en la biblioteca…"
-          className="w-full min-w-0 h-11 pl-11 pr-10 rounded-xl bg-secondary border border-border text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
-        />
-        {term && (
-          <button
-            onClick={() => setTerm("")}
-            aria-label="Limpiar"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+    <div className="rounded-2xl border border-primary/25 bg-secondary/30 p-3">
+      {/* Header del picker */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+          <LayoutGrid className="w-3.5 h-3.5" />
+          {group ? group.label : "Elegí grupo muscular"}
+        </p>
+        <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 active:text-foreground">
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Filtro por músculo — chips scrolleables (activo en naranja) */}
-      {muscles.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 mt-2.5">
-          <button
-            onClick={() => setMuscle(null)}
-            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-              !muscle
-                ? "bg-primary/15 text-primary border-primary/40"
-                : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
-            }`}
-          >
-            Todos
-          </button>
-          {muscles.map((m) => (
+      {!group ? (
+        /* Grilla de grupos musculares con ilustración */
+        <div className="grid grid-cols-3 gap-2">
+          {groups.map((g) => (
             <button
-              key={m}
-              onClick={() => setMuscle(m === muscle ? null : m)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold capitalize border transition-colors ${
-                muscle === m
-                  ? "bg-primary/15 text-primary border-primary/40"
-                  : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
-              }`}
+              key={g.id}
+              onClick={() => setGroup(g)}
+              className="rounded-xl border border-white/[0.06] bg-secondary/50 p-2.5 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+              style={suggested.includes(g.id) ? { borderColor: `hsl(${g.hue} / 0.4)` } : undefined}
             >
-              {m}
+              <span
+                className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl"
+                style={{ background: `hsl(${g.hue} / 0.16)`, border: `1px solid hsl(${g.hue} / 0.3)` }}
+              >
+                {g.emoji}
+              </span>
+              <span className="text-[11px] font-bold text-foreground leading-none text-center">{g.label}</span>
             </button>
           ))}
         </div>
-      )}
-
-      {(query || muscle) && (
-        <div className="mt-3 space-y-1.5">
-          {results.map((ex) => (
+      ) : (
+        <>
+          {/* Volver a grupos + buscador */}
+          <div className="flex items-center gap-2 mb-2.5">
             <button
-              key={ex.id}
-              onClick={() => pickLibrary(ex)}
-              className="flex items-center gap-2.5 w-full rounded-xl bg-secondary/60 border border-white/[0.06] p-2 text-left active:opacity-70"
+              onClick={() => setGroup(null)}
+              className="shrink-0 flex items-center gap-1 text-xs font-bold text-primary px-2 py-1.5 rounded-lg bg-primary/10"
             >
-              <div className="w-9 h-9 rounded-lg bg-secondary overflow-hidden shrink-0 flex items-center justify-center">
-                {ex.thumbnailUrl ? (
-                  <img src={ex.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Dumbbell className="w-4 h-4 text-muted-foreground/40" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
-                {ex.muscle && (
-                  <p className="text-[11px] font-semibold text-primary capitalize truncate">
-                    {ex.muscle}
-                  </p>
-                )}
-              </div>
+              <ArrowLeft className="w-3.5 h-3.5" /> Grupos
             </button>
-          ))}
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (results[0] ? addLibrary(results[0]) : addFreeText())}
+                enterKeyHint="done"
+                placeholder={`Buscar en ${group.label}…`}
+                className="w-full min-w-0 h-10 pl-10 pr-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+              />
+            </div>
+          </div>
 
-          {libraryLoading && results.length === 0 && (
-            <p className="text-xs text-muted-foreground px-1 py-1">Buscando en la biblioteca…</p>
-          )}
+          <div className="space-y-1.5 max-h-72 overflow-y-auto scrollbar-hide">
+            {results.map((ex) => (
+              <button
+                key={ex.id}
+                onClick={() => addLibrary(ex)}
+                className="flex items-center gap-2.5 w-full rounded-xl bg-secondary/60 border border-white/[0.06] p-2 text-left active:opacity-70"
+              >
+                <div className="w-9 h-9 rounded-lg bg-secondary overflow-hidden shrink-0 flex items-center justify-center">
+                  {ex.thumbnailUrl ? (
+                    <img src={ex.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Dumbbell className="w-4 h-4 text-muted-foreground/40" />
+                  )}
+                </div>
+                <p className="text-sm font-bold text-foreground truncate flex-1 min-w-0">{ex.name}</p>
+                <Plus className="w-4 h-4 text-primary shrink-0" />
+              </button>
+            ))}
 
-          {/* Sin resultados al explorar solo por músculo */}
-          {!query && muscle && !libraryLoading && results.length === 0 && (
-            <p className="text-xs text-muted-foreground px-1 py-1">
-              Sin ejercicios de {muscle} en la biblioteca.
-            </p>
-          )}
+            {libraryLoading && results.length === 0 && (
+              <p className="text-xs text-muted-foreground px-1 py-2">Cargando biblioteca…</p>
+            )}
 
-          {/* Fallback texto libre */}
-          {query && !hasExact && (
-            <button
-              onClick={() => pickFreeText(term)}
-              className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-border p-2 text-left active:opacity-70"
-            >
-              <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-                <Plus className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">
-                  Agregar “{term.trim()}”
-                </p>
-                <p className="text-[11px] font-semibold text-muted-foreground">Ejercicio custom</p>
-              </div>
-            </button>
-          )}
-        </div>
+            {!libraryLoading && results.length === 0 && !term && (
+              <p className="text-xs text-muted-foreground px-1 py-2">
+                No hay ejercicios de {group.label} en la biblioteca. Escribí uno abajo.
+              </p>
+            )}
+
+            {/* Fallback texto libre */}
+            {term.trim() && (
+              <button
+                onClick={addFreeText}
+                className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-primary/40 p-2 text-left active:opacity-70"
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <Plus className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-sm font-bold text-foreground truncate">Agregar “{term.trim()}”</p>
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-/* ── Card de un ejercicio dentro de un día (edita sets/reps/descanso) ── */
+/* ── Fila de un ejercicio: nombre + Series / Reps / RIR + descanso ── */
 const ExerciseRow = ({
   ex,
   onChange,
@@ -231,75 +258,98 @@ const ExerciseRow = ({
   ex: ProgramExercise;
   onChange: (patch: Partial<ProgramExercise>) => void;
   onRemove: () => void;
-}) => {
-  return (
-    <div className="rounded-xl bg-secondary/40 border border-white/[0.06] p-3">
-      <div className="flex items-center justify-between gap-2 mb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-            <Dumbbell className="w-3.5 h-3.5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
-            {ex.muscleGroup && (
-              <p className="text-[11px] font-semibold text-primary capitalize truncate">
-                {ex.muscleGroup}
-              </p>
-            )}
-          </div>
+}) => (
+  <div className="rounded-xl bg-secondary/40 border border-white/[0.06] p-3">
+    <div className="flex items-center justify-between gap-2 mb-2.5">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+          <Dumbbell className="w-3.5 h-3.5 text-primary" />
         </div>
-        <button
-          onClick={onRemove}
-          aria-label="Quitar ejercicio"
-          className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
+          {ex.muscleGroup && (
+            <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscleGroup}</p>
+          )}
+        </div>
       </div>
+      <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-            Series
-          </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={ex.sets || ""}
-            onChange={(e) => onChange({ sets: parseInt(e.target.value, 10) || 0 })}
-            onFocus={(e) => e.target.select()}
-            placeholder="3"
-            className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-            Reps
-          </span>
-          <input
-            type="text"
-            value={ex.reps}
-            onChange={(e) => onChange({ reps: e.target.value })}
-            onFocus={(e) => e.target.select()}
-            placeholder="8-12"
-            className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-            Descanso (s)
-          </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={ex.restSeconds || ""}
-            onChange={(e) => onChange({ restSeconds: parseInt(e.target.value, 10) || 0 })}
-            onFocus={(e) => e.target.select()}
-            placeholder="90"
-            className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
-          />
-        </label>
-      </div>
+    <div className="grid grid-cols-3 gap-2">
+      <label className="flex flex-col gap-1 min-w-0">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Series</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={ex.sets || ""}
+          onChange={(e) => onChange({ sets: parseInt(e.target.value, 10) || 0 })}
+          onFocus={(e) => e.target.select()}
+          placeholder="3"
+          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+        />
+      </label>
+      <label className="flex flex-col gap-1 min-w-0">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Reps</span>
+        <input
+          type="text"
+          value={ex.reps}
+          onChange={(e) => onChange({ reps: e.target.value })}
+          onFocus={(e) => e.target.select()}
+          placeholder="8-12"
+          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+        />
+      </label>
+      <label className="flex flex-col gap-1 min-w-0">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">RIR (0-5)</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={5}
+          value={ex.rir ?? ""}
+          onChange={(e) => {
+            const v = e.target.value === "" ? null : Math.max(0, Math.min(5, parseInt(e.target.value, 10) || 0));
+            onChange({ rir: v });
+          }}
+          onFocus={(e) => e.target.select()}
+          placeholder="2"
+          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+        />
+      </label>
+    </div>
+
+    <div className="mt-2 flex items-center justify-center gap-2">
+      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Descanso</span>
+      <input
+        type="number"
+        inputMode="numeric"
+        value={ex.restSeconds || ""}
+        onChange={(e) => onChange({ restSeconds: parseInt(e.target.value, 10) || 0 })}
+        onFocus={(e) => e.target.select()}
+        placeholder="90"
+        className="w-16 h-8 rounded-lg bg-secondary border border-border text-center text-xs font-bold text-foreground focus:border-primary focus:outline-none"
+      />
+      <span className="text-[10px] font-semibold text-muted-foreground">seg</span>
+    </div>
+  </div>
+);
+
+/* ── Indicador de pasos ── */
+const StepDots = ({ step }: { step: Step }) => {
+  const order: Step[] = ["config", "split", "exercises"];
+  const idx = order.indexOf(step);
+  return (
+    <div className="flex items-center justify-center gap-2 mb-1">
+      {order.map((s, i) => (
+        <div
+          key={s}
+          className={`h-1.5 rounded-full transition-all ${
+            i <= idx ? "bg-primary w-6" : "bg-secondary w-2.5"
+          }`}
+        />
+      ))}
     </div>
   );
 };
@@ -309,57 +359,35 @@ export default function MyProgramBuilder() {
   const { id } = useParams();
   const { student, isAdminMode } = useAuthContext();
   const sid = student?.id || (isAdminMode ? "admin" : "anon");
-
   const { exercises: library, loading: libraryLoading } = useExerciseLibrary();
 
-  // Carga inicial: si hay id y existe, edita; si no, programa nuevo vacío.
-  const [program, setProgram] = useState<MyProgram>(() => {
-    if (id) {
-      const existing = getMyProgram(sid, id);
-      if (existing) return existing;
-    }
-    return emptyProgram();
-  });
+  const existing = useMemo(() => (id ? getMyProgram(sid, id) : null), [id, sid]);
+  const isEditing = !!existing;
 
-  // Día con el buscador de ejercicios abierto (solo uno a la vez)
-  const [pickerDayId, setPickerDayId] = useState<string | null>(null);
+  const [program, setProgram] = useState<MyProgram>(() => existing ?? { ...emptyProgram(), weeks: 8, days: [] });
+  const [step, setStep] = useState<Step>(isEditing ? "exercises" : "config");
+  const [daysPerWeek, setDaysPerWeek] = useState<number>(existing?.days.length ?? 0);
+  const [activeDayIdx, setActiveDayIdx] = useState(0);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
 
-  const isEditing = !!(id && getMyProgram(sid, id));
+  useEffect(() => {
+    setDayTemplates(loadDayTemplates(sid));
+  }, [sid]);
 
-  /* ── Mutadores inmutables ── */
-  const patchProgram = (patch: Partial<MyProgram>) =>
-    setProgram((p) => ({ ...p, ...patch }));
+  const totalExercises = program.days.reduce((a, d) => a + d.exercises.length, 0);
+
+  /* ── Mutadores ── */
+  const patchProgram = (patch: Partial<MyProgram>) => setProgram((p) => ({ ...p, ...patch }));
 
   const patchDay = (dayId: string, patch: Partial<ProgramDay>) =>
-    setProgram((p) => ({
-      ...p,
-      days: p.days.map((d) => (d.id === dayId ? { ...d, ...patch } : d)),
-    }));
-
-  const addDay = () =>
-    setProgram((p) => ({
-      ...p,
-      days: [
-        ...p.days,
-        { id: newId(), name: `Día ${p.days.length + 1}`, exercises: [] },
-      ],
-    }));
-
-  const removeDay = (dayId: string) =>
-    setProgram((p) => {
-      if (p.days.length <= 1) {
-        toast.error("El programa necesita al menos un día");
-        return p;
-      }
-      return { ...p, days: p.days.filter((d) => d.id !== dayId) };
-    });
+    setProgram((p) => ({ ...p, days: p.days.map((d) => (d.id === dayId ? { ...d, ...patch } : d)) }));
 
   const addExercise = (dayId: string, ex: ProgramExercise) =>
     setProgram((p) => ({
       ...p,
-      days: p.days.map((d) =>
-        d.id === dayId ? { ...d, exercises: [...d.exercises, ex] } : d
-      ),
+      days: p.days.map((d) => (d.id === dayId ? { ...d, exercises: [...d.exercises, ex] } : d)),
     }));
 
   const patchExercise = (dayId: string, index: number, patch: Partial<ProgramExercise>) =>
@@ -367,10 +395,7 @@ export default function MyProgramBuilder() {
       ...p,
       days: p.days.map((d) =>
         d.id === dayId
-          ? {
-              ...d,
-              exercises: d.exercises.map((e, i) => (i === index ? { ...e, ...patch } : e)),
-            }
+          ? { ...d, exercises: d.exercises.map((e, i) => (i === index ? { ...e, ...patch } : e)) }
           : d
       ),
     }));
@@ -379,22 +404,53 @@ export default function MyProgramBuilder() {
     setProgram((p) => ({
       ...p,
       days: p.days.map((d) =>
-        d.id === dayId
-          ? { ...d, exercises: d.exercises.filter((_, i) => i !== index) }
-          : d
+        d.id === dayId ? { ...d, exercises: d.exercises.filter((_, i) => i !== index) } : d
       ),
     }));
 
-  const totalExercises = program.days.reduce((a, d) => a + d.exercises.length, 0);
+  const addExtraDay = () =>
+    setProgram((p) => ({
+      ...p,
+      days: [...p.days, { id: newId(), name: `Día ${p.days.length + 1}`, exercises: [] }],
+    }));
 
-  const save = () => {
+  const removeDay = (dayId: string) =>
+    setProgram((p) => {
+      if (p.days.length <= 1) {
+        toast.error("El programa necesita al menos un día");
+        return p;
+      }
+      const days = p.days.filter((d) => d.id !== dayId);
+      setActiveDayIdx((i) => Math.min(i, days.length - 1));
+      return { ...p, days };
+    });
+
+  /* ── Paso 1 → 2 ── */
+  const goToSplit = () => {
+    if (!program.name.trim()) return toast.error("Ponele un nombre a tu programa");
+    if (!daysPerWeek) return toast.error("Elegí cuántos días por semana");
+    setStep("split");
+  };
+
+  /* ── Paso 2: elegir split o desde cero ── */
+  const chooseSplit = (preset: SplitPreset) => {
+    setProgram((p) => ({ ...p, days: daysFromPreset(preset), splitId: preset.id, daysPerWeek }));
+    setActiveDayIdx(0);
+    setPickerOpen(false);
+    setStep("exercises");
+  };
+  const chooseBlank = () => {
+    setProgram((p) => ({ ...p, days: blankDays(daysPerWeek), splitId: undefined, daysPerWeek }));
+    setActiveDayIdx(0);
+    setPickerOpen(false);
+    setStep("exercises");
+  };
+
+  /* ── Guardar ── */
+  const persist = (opts: { silent?: boolean } = {}) => {
     if (!program.name.trim()) {
       toast.error("Ponele un nombre a tu programa");
-      return;
-    }
-    if (totalExercises === 0) {
-      toast.error("Agregá al menos un ejercicio");
-      return;
+      return false;
     }
     const toSave: MyProgram = {
       ...program,
@@ -402,8 +458,46 @@ export default function MyProgramBuilder() {
       daysPerWeek: program.days.length,
     };
     saveMyProgram(sid, toSave);
-    toast.success("Programa guardado 💪");
-    navigate(`/programa/${toSave.id}`);
+    if (!opts.silent) toast.success("Programa guardado 💪");
+    return toSave;
+  };
+
+  const finishAndSave = () => {
+    if (totalExercises === 0) return toast.error("Agregá al menos un ejercicio");
+    const saved = persist();
+    if (saved) navigate(`/programa/${saved.id}`);
+  };
+
+  const saveAndExit = () => {
+    const saved = persist({ silent: true });
+    if (saved) {
+      toast.success("Guardado. Podés seguir después.");
+      navigate(`/programa/${saved.id}`);
+    }
+  };
+
+  const availablePresets = useMemo(() => presetsForDays(daysPerWeek), [daysPerWeek]);
+  const activeDay = program.days[activeDayIdx];
+  const isLastDay = activeDayIdx >= program.days.length - 1;
+
+  /* ── Plantillas de día (guardar / usar) ── */
+  const saveDayAsTemplate = () => {
+    if (!activeDay) return;
+    if (activeDay.exercises.length === 0) {
+      toast.error("Agregá ejercicios antes de guardar la plantilla");
+      return;
+    }
+    setDayTemplates(saveDayTemplate(sid, activeDay.name, activeDay.exercises));
+    toast.success(`Plantilla "${activeDay.name}" guardada`);
+  };
+  const applyDayTemplate = (t: DayTemplate) => {
+    if (!activeDay) return;
+    patchDay(activeDay.id, { exercises: t.exercises.map((e) => ({ ...e })) });
+    setShowTemplates(false);
+    toast.success(`"${t.name}" aplicada a ${activeDay.name}`);
+  };
+  const removeDayTemplateById = (t: DayTemplate) => {
+    setDayTemplates(deleteDayTemplate(sid, t.id));
   };
 
   return (
@@ -412,14 +506,14 @@ export default function MyProgramBuilder() {
         eyebrow={
           <>
             <Dumbbell className="w-3.5 h-3.5" />
-            Programa propio
+            {step === "config" ? "Configurar" : step === "split" ? "Elegí tu split" : "Ejercicios"}
           </>
         }
         title={isEditing ? "Editar programa" : "Nuevo programa"}
         maxWidth="max-w-2xl lg:max-w-3xl"
         left={
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => (step === "exercises" && !isEditing ? setStep("split") : step === "split" ? setStep("config") : navigate(-1))}
             className="text-muted-foreground -ml-1 p-1"
             aria-label="Volver"
           >
@@ -434,90 +528,148 @@ export default function MyProgramBuilder() {
         initial="initial"
         animate="animate"
       >
-        <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
-          {/* Datos del programa */}
-          <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="accent-bar" />
-              <h2 className="text-sm font-black text-foreground tracking-tight">Tu programa</h2>
-            </div>
+        <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 lg:px-8 pt-3 space-y-4">
+          {!isEditing && <StepDots step={step} />}
 
-            <label className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-                Nombre
-              </span>
-              <input
-                value={program.name}
-                onChange={(e) => patchProgram({ name: e.target.value })}
-                placeholder="Ej: Fuerza 4 días"
-                className="w-full min-w-0 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-bold text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
-              />
-            </label>
+          {/* ─────────── PASO 1: CONFIGURAR ─────────── */}
+          {step === "config" && (
+            <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4 space-y-5">
+              <div>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  ¿Cómo se llama tu programa?
+                </span>
+                <input
+                  value={program.name}
+                  onChange={(e) => patchProgram({ name: e.target.value })}
+                  placeholder="Ej: Hipertrofia 4 días"
+                  autoFocus
+                  className="mt-1.5 w-full min-w-0 h-12 rounded-xl bg-secondary border border-border px-3.5 text-base font-bold text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                />
+              </div>
 
-            <label className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-                Descripción (opcional)
-              </span>
-              <textarea
-                value={program.description ?? ""}
-                onChange={(e) => patchProgram({ description: e.target.value })}
-                placeholder="¿De qué trata tu plan?"
-                rows={2}
-                className="w-full min-w-0 rounded-xl bg-secondary border border-border px-3 py-2.5 text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none resize-none"
-              />
-            </label>
+              <div>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  ¿De cuántas semanas?
+                </span>
+                <div className="mt-1.5 flex gap-2">
+                  {WEEK_OPTIONS.map((w) => (
+                    <OptionTile
+                      key={w}
+                      label={String(w)}
+                      sub="sem"
+                      active={program.weeks === w}
+                      onClick={() => patchProgram({ weeks: w })}
+                    />
+                  ))}
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">
-                Nivel (opcional)
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {LEVELS.map((lvl) => {
-                  const active = program.level === lvl;
+              <div>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  ¿Cuántos días por semana?
+                </span>
+                <div className="mt-1.5 grid grid-cols-3 gap-2">
+                  {DAY_OPTIONS.map((d) => (
+                    <OptionTile
+                      key={d}
+                      label={String(d)}
+                      sub={d === 1 ? "día" : "días"}
+                      active={daysPerWeek === d}
+                      onClick={() => setDaysPerWeek(d)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ─────────── PASO 2: ELEGIR SPLIT ─────────── */}
+          {step === "split" && (
+            <motion.div variants={fadeUp} className="space-y-3">
+              <p className="text-sm text-muted-foreground px-1">
+                Elegí una estructura de {daysPerWeek} {daysPerWeek === 1 ? "día" : "días"} para empezar. Después la
+                editás como quieras.
+              </p>
+
+              {availablePresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => chooseSplit(preset)}
+                  className="w-full text-left card-elevated rounded-2xl p-4 active:scale-[0.99] hover:border-primary/40 border border-transparent transition-all"
+                >
+                  <h3 className="text-base font-black text-foreground tracking-tight mb-2">{preset.name}</h3>
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
+                    {preset.tags.map((t, i) => (
+                      <span
+                        key={i}
+                        className="text-[10px] font-bold text-primary bg-primary/12 border border-primary/25 rounded-full px-2 py-0.5"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{preset.description}</p>
+                </button>
+              ))}
+
+              <button
+                onClick={chooseBlank}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
+              >
+                <Plus className="w-4 h-4 text-primary" /> Empezar de cero ({daysPerWeek} {daysPerWeek === 1 ? "día" : "días"} vacíos)
+              </button>
+            </motion.div>
+          )}
+
+          {/* ─────────── PASO 3: EJERCICIOS POR DÍA ─────────── */}
+          {step === "exercises" && activeDay && (
+            <motion.div variants={fadeUp} className="space-y-4">
+              {/* Tabs de días */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                {program.days.map((d, i) => {
+                  const active = i === activeDayIdx;
+                  const count = d.exercises.length;
                   return (
                     <button
-                      key={lvl}
-                      onClick={() => patchProgram({ level: active ? undefined : lvl })}
-                      className={[
-                        "px-3 py-1.5 rounded-lg text-xs font-bold capitalize border transition-colors",
+                      key={d.id}
+                      onClick={() => {
+                        setActiveDayIdx(i);
+                        setPickerOpen(false);
+                      }}
+                      className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
                         active
-                          ? "bg-primary/15 border-primary/40 text-primary"
-                          : "bg-secondary/60 border-white/[0.06] text-muted-foreground active:text-foreground",
-                      ].join(" ")}
+                          ? "bg-primary/15 text-primary border-primary/40"
+                          : "bg-secondary/50 text-muted-foreground border-white/[0.06]"
+                      }`}
                     >
-                      {lvl}
+                      {d.name}
+                      <span className="ml-1.5 opacity-60 tabular-nums">{count}</span>
                     </button>
                   );
                 })}
+                <button
+                  onClick={addExtraDay}
+                  aria-label="Agregar día"
+                  className="shrink-0 w-9 h-9 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Días */}
-          {program.days.map((day, dayIdx) => {
-            const pickerOpen = pickerDayId === day.id;
-            return (
-              <motion.div
-                key={day.id}
-                variants={fadeUp}
-                className="card-elevated rounded-2xl overflow-hidden"
-              >
-                {/* Encabezado del día — nombre editable + eliminar */}
+              {/* Editor del día activo */}
+              <div className="card-elevated rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
                   <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
                     <Calendar className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <input
-                    value={day.name}
-                    onChange={(e) => patchDay(day.id, { name: e.target.value })}
-                    placeholder={`Día ${dayIdx + 1}`}
+                    value={activeDay.name}
+                    onChange={(e) => patchDay(activeDay.id, { name: e.target.value })}
+                    placeholder={`Día ${activeDayIdx + 1}`}
                     className="flex-1 min-w-0 bg-transparent text-sm font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
                   />
-                  <span className="text-[11px] font-bold text-muted-foreground tabular-nums shrink-0">
-                    {day.exercises.length} ej.
-                  </span>
                   <button
-                    onClick={() => removeDay(day.id)}
+                    onClick={() => removeDay(activeDay.id)}
                     aria-label="Eliminar día"
                     className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
                   >
@@ -525,12 +677,11 @@ export default function MyProgramBuilder() {
                   </button>
                 </div>
 
-                {/* Ejercicios del día */}
                 <div className="p-3 space-y-2">
                   <AnimatePresence initial={false}>
-                    {day.exercises.map((ex, i) => (
+                    {activeDay.exercises.map((ex, i) => (
                       <motion.div
-                        key={`${day.id}-${i}-${ex.name}`}
+                        key={`${activeDay.id}-${i}-${ex.name}`}
                         layout
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -538,75 +689,131 @@ export default function MyProgramBuilder() {
                       >
                         <ExerciseRow
                           ex={ex}
-                          onChange={(patch) => patchExercise(day.id, i, patch)}
-                          onRemove={() => removeExercise(day.id, i)}
+                          onChange={(patch) => patchExercise(activeDay.id, i, patch)}
+                          onRemove={() => removeExercise(activeDay.id, i)}
                         />
                       </motion.div>
                     ))}
                   </AnimatePresence>
 
-                  {day.exercises.length === 0 && !pickerOpen && (
-                    <p className="text-xs text-muted-foreground px-1 py-2">
-                      Sin ejercicios todavía
-                    </p>
+                  {activeDay.exercises.length === 0 && !pickerOpen && (
+                    <p className="text-xs text-muted-foreground px-1 py-2">Sin ejercicios todavía en {activeDay.name}.</p>
                   )}
 
-                  {/* Buscador de ejercicio (toggle) */}
                   {pickerOpen ? (
-                    <div className="rounded-xl border border-dashed border-primary/30 p-3">
-                      <ExercisePicker
-                        library={library}
-                        libraryLoading={libraryLoading}
-                        onPick={(ex) => {
-                          addExercise(day.id, ex);
-                          // mantengo abierto para seguir agregando
-                        }}
-                      />
-                      <button
-                        onClick={() => setPickerDayId(null)}
-                        className="w-full mt-2.5 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold text-muted-foreground active:text-foreground"
-                      >
-                        <ChevronDown className="w-4 h-4" /> Listo
-                      </button>
-                    </div>
+                    <MuscleExercisePicker
+                      library={library}
+                      libraryLoading={libraryLoading}
+                      suggested={[]}
+                      onPick={(ex) => addExercise(activeDay.id, ex)}
+                      onClose={() => setPickerOpen(false)}
+                    />
                   ) : (
                     <button
-                      onClick={() => setPickerDayId(day.id)}
+                      onClick={() => setPickerOpen(true)}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
                     >
                       <Plus className="w-4 h-4 text-primary" /> Agregar ejercicio
                     </button>
                   )}
-                </div>
-              </motion.div>
-            );
-          })}
 
-          {/* Agregar día */}
-          <motion.button
-            variants={fadeUp}
-            onClick={addDay}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
-          >
-            <Plus className="w-4 h-4 text-primary" /> Agregar día
-          </motion.button>
+                  {/* Plantillas de día: guardar el día actual / reusar uno guardado */}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={saveDayAsTemplate}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-bold text-foreground active:scale-95 transition-transform"
+                    >
+                      <BookMarked className="w-3.5 h-3.5 text-primary" /> Guardar plantilla
+                    </button>
+                    <button
+                      onClick={() => setShowTemplates((v) => !v)}
+                      disabled={dayTemplates.length === 0}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-bold text-foreground active:scale-95 transition-transform disabled:opacity-40"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5 text-primary" /> Usar plantilla
+                    </button>
+                  </div>
+
+                  {showTemplates && dayTemplates.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      {dayTemplates.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-center gap-2 rounded-xl bg-secondary/40 border border-white/[0.06] p-2"
+                        >
+                          <button onClick={() => applyDayTemplate(t)} className="flex-1 min-w-0 text-left active:opacity-70">
+                            <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {t.exercises.length} {t.exercises.length === 1 ? "ejercicio" : "ejercicios"}
+                            </p>
+                          </button>
+                          <button
+                            onClick={() => removeDayTemplateById(t)}
+                            aria-label="Borrar plantilla"
+                            className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Navegación entre días */}
+              {!isLastDay ? (
+                <button
+                  onClick={() => {
+                    setActiveDayIdx((i) => i + 1);
+                    setPickerOpen(false);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                >
+                  Guardar día y siguiente
+                  <ArrowRight className="w-4 h-4 text-primary" />
+                </button>
+              ) : null}
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
-      {/* CTA fijo — Guardar */}
+      {/* ── CTA fijo por paso ── */}
       <div
         className="fixed bottom-0 left-0 right-0 z-40 px-5 pt-10 bg-gradient-to-t from-background via-background to-transparent pointer-events-none"
         style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
       >
-        <div className="max-w-2xl lg:max-w-3xl mx-auto pointer-events-auto">
-          <motion.button
-            onClick={save}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide shadow-lg glow-primary flex items-center justify-center gap-2"
-          >
-            <Save className="w-5 h-5" />
-            Guardar programa
-          </motion.button>
+        <div className="max-w-2xl lg:max-w-3xl mx-auto pointer-events-auto space-y-2">
+          {step === "config" && (
+            <motion.button
+              onClick={goToSplit}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide shadow-lg glow-primary flex items-center justify-center gap-2"
+            >
+              Siguiente <ArrowRight className="w-5 h-5" />
+            </motion.button>
+          )}
+
+          {step === "exercises" && (
+            <>
+              <motion.button
+                onClick={finishAndSave}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide shadow-lg glow-primary flex items-center justify-center gap-2"
+              >
+                {isLastDay ? <Check className="w-5 h-5" /> : <Save className="w-5 h-5" />}
+                Guardar programa
+              </motion.button>
+              <button
+                onClick={saveAndExit}
+                className="w-full py-2.5 rounded-xl text-sm font-bold text-muted-foreground active:text-foreground"
+              >
+                Guardar y salir (continuar después)
+              </button>
+            </>
+          )}
         </div>
       </div>
     </AppShell>

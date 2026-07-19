@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Plus, Flame, CalendarDays, PencilRuler, Library, ChevronRight } from "lucide-react";
-import { loadMyPrograms, type MyProgram } from "@/lib/myPrograms";
+import { Dumbbell, Plus, Flame, CalendarDays, PencilRuler, Library, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { loadMyPrograms, deleteMyProgram, type MyProgram } from "@/lib/myPrograms";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -31,6 +32,8 @@ import {
 
 type ProgramsFilter = "active" | "completed";
 
+const MAX_OWN_PROGRAMS = 2;
+
 const Routines = () => {
   const navigate = useNavigate();
   const { student } = useAuthContext();
@@ -40,6 +43,7 @@ const Routines = () => {
   useEffect(() => {
     if (student) setMyPrograms(loadMyPrograms(student.id));
   }, [student]);
+  const atProgramLimit = myPrograms.length >= MAX_OWN_PROGRAMS;
 
   // Una sola consulta con status='all': derivamos activas/completadas en cliente.
   const { data: routines, isLoading, error } = useAlumnoRoutines({
@@ -120,6 +124,22 @@ const Routines = () => {
     });
   };
   const viewRoutine = (routineId: string) => navigate(`/routine/${routineId}`);
+
+  // Eliminar un programa propio (confirmación no bloqueante vía toast).
+  const handleDeleteProgram = (p: MyProgram) => {
+    toast(`¿Eliminar "${p.name || "programa"}"?`, {
+      description: "Esta acción no se puede deshacer.",
+      action: {
+        label: "Eliminar",
+        onClick: () => {
+          if (!student) return;
+          deleteMyProgram(student.id, p.id);
+          setMyPrograms((list) => list.filter((x) => x.id !== p.id));
+          toast.success("Programa eliminado");
+        },
+      },
+    });
+  };
 
   // ─── Sin coach vinculado ───────────────────────────────────────────────────
   if (!student) {
@@ -330,24 +350,50 @@ const Routines = () => {
                     <span className="accent-bar" />
                     <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
                   </div>
-                  <button
-                    onClick={() => navigate("/programas/nuevo")}
-                    className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Crear
-                  </button>
+                  {!atProgramLimit && (
+                    <button
+                      onClick={() => navigate("/programas/nuevo")}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Crear
+                    </button>
+                  )}
+                </div>
+
+                {/* Contador de programas propios (límite del plan) */}
+                <div className="rounded-2xl card-elevated px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-primary tabular-nums leading-none">
+                      {myPrograms.length}
+                    </span>
+                    <span className="text-sm font-bold text-muted-foreground tabular-nums leading-none">
+                      /{MAX_OWN_PROGRAMS}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
+                      Programas activos
+                    </p>
+                    {atProgramLimit && (
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                        Eliminá uno para crear otro.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {myPrograms.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {myPrograms.map((p) => (
-                      <button
+                      <div
                         key={p.id}
-                        onClick={() => navigate(`/programa/${p.id}`)}
-                        className="text-left rounded-2xl card-elevated p-4 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+                        className="rounded-2xl card-elevated p-4 flex items-start gap-2"
                       >
-                        <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/programa/${p.id}`)}
+                          className="flex items-center gap-2 flex-1 min-w-0 text-left active:opacity-70"
+                        >
                           <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
                             <PencilRuler className="w-4 h-4 text-primary" />
                           </div>
@@ -355,13 +401,30 @@ const Routines = () => {
                             <p className="text-sm font-black text-foreground truncate">
                               {p.name || "Programa sin nombre"}
                             </p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {p.days.length} {p.days.length === 1 ? "día" : "días"}
-                              {p.origin === "template" ? " · de template" : " · propio"}
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {p.days.length} {p.days.length === 1 ? "día" : "días"}/sem
+                              {p.weeks ? ` · ${p.weeks} sem` : ""}
+                              {p.origin === "template" ? " · template" : ""}
                             </p>
                           </div>
+                        </button>
+                        <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+                          <button
+                            onClick={() => navigate(`/programa/${p.id}/editar`)}
+                            aria-label="Editar programa"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProgram(p)}
+                            aria-label="Eliminar programa"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 ) : (

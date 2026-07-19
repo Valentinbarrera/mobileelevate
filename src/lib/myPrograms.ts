@@ -28,10 +28,12 @@ export interface MyProgram {
   name: string;
   description?: string;
   level?: string; // principiante · intermedio · avanzado
+  weeks?: number; // duración del mesociclo (semanas)
   daysPerWeek?: number;
   days: ProgramDay[];
   origin: "propio" | "template";
   templateId?: string; // de qué template salió (si aplica)
+  splitId?: string; // split elegido en el wizard (si aplica)
   createdAt: string; // ISO
 }
 
