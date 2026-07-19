@@ -48,6 +48,13 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   const [session, setSession] = useState<CoachWorkoutSession | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Rehidrata una sesión ya existente (para "reanudar entreno" tras reabrir la
+  // app). Reusa el mismo completed_session por id → los sets siguientes se
+  // insertan en la sesión original, sin duplicar.
+  const resumeSession = useCallback((s: CoachWorkoutSession) => {
+    setSession(s);
+  }, []);
+
   // Ephemeral session: lets the user go through the full workout UI
   // (exercises, sets, rest timer) without persisting anything to the DB.
   const startLocalSession = useCallback(() => {

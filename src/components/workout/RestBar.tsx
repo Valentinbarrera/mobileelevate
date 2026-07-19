@@ -5,9 +5,11 @@
  *  - "mini" → pastilla chiquita: lo escondés pero sigue contando; tap para volver.
  * El ±15s y "Saltar" están en los tres. El tiempo sigue corriendo siempre.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { SkipForward, Plus, Minus, Timer, Maximize2, Minimize2, ChevronDown } from "lucide-react";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
+import { scheduleRestEnd, cancelRestEnd } from "@/lib/restNotification";
 
 interface RestBarProps {
   duration: number;
@@ -23,24 +25,60 @@ const RestBar = ({ duration, onComplete, onSkip, enableVibration = true }: RestB
   const [timeLeft, setTimeLeft] = useState(duration);
   const [view, setView] = useState<View>("bar");
 
-  const buzz = useCallback((pattern: number | number[]) => {
-    if (enableVibration && "vibrate" in navigator) navigator.vibrate(pattern);
+  // Ancla al timestamp de fin: el tiempo se calcula desde Date.now(), así que
+  // sobrevive al background / throttling de la pantalla bloqueada (no driftea).
+  const endAtRef = useRef(Date.now() + duration * 1000);
+  const completedRef = useRef(false); // onComplete() dispara una sola vez
+  const lastBuzzSecRef = useRef<number | null>(null); // evita repetir el buzz en el mismo segundo
+
+  const buzzLight = useCallback(() => {
+    if (enableVibration) hapticLight();
+  }, [enableVibration]);
+  const buzzMedium = useCallback(() => {
+    if (enableVibration) hapticMedium();
   }, [enableVibration]);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      buzz([200, 100, 200]);
-      onComplete();
-      return;
-    }
-    if (timeLeft <= 3) buzz(50);
-    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    const tick = () => {
+      const secs = Math.max(0, Math.ceil((endAtRef.current - Date.now()) / 1000));
+      setTimeLeft(secs);
+
+      if (secs <= 0) {
+        if (!completedRef.current) {
+          completedRef.current = true;
+          cancelRestEnd(); // en foreground el aviso in-app basta
+          buzzMedium(); // fin de descanso
+          onComplete();
+        }
+        return;
+      }
+      // Buzz liviano en cada uno de los últimos 3 segundos (una sola vez por segundo).
+      if (secs <= 3 && lastBuzzSecRef.current !== secs) {
+        lastBuzzSecRef.current = secs;
+        buzzLight();
+      }
+    };
+    tick(); // recalcular inmediatamente (ej. al volver del background)
+    const id = setInterval(tick, 250);
     return () => clearInterval(id);
-  }, [timeLeft, onComplete, buzz]);
+  }, [onComplete, buzzLight, buzzMedium]);
+
+  // Notificación local de fin de descanso (suena con pantalla bloqueada).
+  // Se cancela al desmontar (saltar o terminar → el padre cierra la barra).
+  useEffect(() => {
+    scheduleRestEnd(Math.ceil((endAtRef.current - Date.now()) / 1000));
+    return () => {
+      cancelRestEnd();
+    };
+  }, []);
 
   const addTime = (s: number) => {
-    setTimeLeft((t) => Math.max(1, t + s));
+    // Desplazamos el timestamp de fin; mínimo 1s restante.
+    endAtRef.current = Math.max(Date.now() + 1000, endAtRef.current + s * 1000);
     setTotal((t) => Math.max(1, t + s));
+    const remaining = Math.max(1, Math.ceil((endAtRef.current - Date.now()) / 1000));
+    setTimeLeft(remaining);
+    scheduleRestEnd(remaining); // reprograma el aviso con el nuevo tiempo
   };
 
   const pct = Math.max(0, Math.min(100, (timeLeft / total) * 100));

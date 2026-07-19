@@ -3,6 +3,8 @@
  * Se deben disparar desde un gesto del usuario (tap) para que el navegador
  * permita reproducir audio.
  */
+import { hapticLight, hapticMedium, hapticSuccess } from "./haptics";
+
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -13,10 +15,6 @@ function getCtx(): AudioContext | null {
     ctx = new AC();
   }
   return ctx;
-}
-
-function buzz(pattern: number | number[]) {
-  if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern);
 }
 
 /** Toca una secuencia de notas (Hz) tipo arpegio con envolvente suave. */
@@ -43,17 +41,17 @@ function playNotes(freqs: number[], { step = 0.09, dur = 0.28, gain = 0.18 } = {
 /** Chime ascendente (C5-E5-G5) + vibración: arranque de entrenamiento. */
 export function playStartSound() {
   playNotes([523.25, 659.25, 783.99]);
-  buzz(45);
+  hapticMedium();
 }
 
 /** Tick corto + micro-vibración: serie registrada. */
 export function playSetLoggedSound() {
   playNotes([987.77], { step: 0, dur: 0.11, gain: 0.13 });
-  buzz(16);
+  hapticLight();
 }
 
 /** Arpegio triunfal + vibración marcada: nuevo récord personal (PR). */
 export function playPRSound() {
   playNotes([659.25, 880, 1174.66], { step: 0.07, dur: 0.32, gain: 0.2 });
-  buzz([30, 40, 70]);
+  hapticSuccess();
 }

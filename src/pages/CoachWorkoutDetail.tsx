@@ -3,7 +3,7 @@
  * Uses routine_day_id from route params or navigation state
  * Persists workout data to local Lovable Cloud database
  */
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -27,6 +27,13 @@ import { saveReadiness, type ReadinessData } from "@/lib/readiness";
 import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
 import { getLocalDateString } from "@/lib/date";
 import { playStartSound } from "@/lib/sound";
+import {
+  saveActiveWorkout,
+  loadActiveWorkout,
+  clearActiveWorkout,
+  type ActiveWorkoutSnapshot,
+  type PersistedExerciseState,
+} from "@/lib/activeWorkout";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import type { DifficultyLevel } from "@/types/database";
@@ -69,11 +76,14 @@ const CoachWorkoutDetail = () => {
   const {
     session,
     startSession,
+    resumeSession,
     completeSet: persistSet,
     updateSet: persistUpdateSet,
     deleteSet: persistDeleteSet,
     finishSession
   } = useCoachWorkoutSession(routineDayId || "", routineId);
+
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
 
   // State
   const [exerciseStates, setExerciseStates] = useState<Map<string, ExerciseState>>(new Map());
@@ -90,6 +100,10 @@ const CoachWorkoutDetail = () => {
   const [reorderMode, setReorderMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  // Cronómetro anclado a timestamp: sobrevive al background / throttling.
+  const startedAtRef = useRef<number | null>(null); // Date.now() del arranque
+  const pausedAtRef = useRef<number | null>(null); // instante en que se pausó
+  const pausedTotalRef = useRef(0); // ms acumulados en pausa
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showReadiness, setShowReadiness] = useState(false);
@@ -132,16 +146,104 @@ const CoachWorkoutDetail = () => {
     });
   };
 
-  // Workout timer — keeps running during rest (the rest bar no longer blocks)
+  // Workout timer — keeps running during rest (the rest bar no longer blocks).
+  // Anclado a timestamp: calcula el tiempo desde Date.now() para no driftear ni
+  // pausarse cuando la app queda en background / pantalla bloqueada.
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (workoutStarted && !isPaused) {
-      interval = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
-      }, 1000);
+      const compute = () => {
+        if (startedAtRef.current == null) return;
+        setElapsedTime(
+          Math.floor((Date.now() - startedAtRef.current - pausedTotalRef.current) / 1000)
+        );
+      };
+      compute(); // recalcular inmediatamente (ej. al volver del background)
+      interval = setInterval(compute, 500);
     }
     return () => clearInterval(interval);
   }, [workoutStarted, isPaused]);
+
+  // ── Reanudar entreno ──────────────────────────────────────────────────────
+  const [resumeSnapshot, setResumeSnapshot] = useState<ActiveWorkoutSnapshot | null>(null);
+
+  // Al montar: si hay una sesión en curso de HOY para este día, ofrecer reanudar.
+  useEffect(() => {
+    if (!routineDayId || workoutStarted) return;
+    const snap = loadActiveWorkout(sid, getLocalDateString());
+    if (snap && snap.routineDayId === routineDayId) setResumeSnapshot(snap);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routineDayId, sid]);
+
+  // Persistir la sesión en curso ante cada cambio relevante.
+  useEffect(() => {
+    if (!workoutStarted || !session || startedAtRef.current == null) return;
+    const persisted: PersistedExerciseState[] = Array.from(exerciseStates.values()).map((s) => ({
+      id: s.id,
+      completed: s.completed,
+      currentSet: s.currentSet,
+      extraSets: s.extraSets,
+      completedSets: s.completedSets.map((cs) => ({
+        setNumber: cs.setNumber,
+        weight: cs.weight,
+        reps: cs.reps,
+        difficulty: cs.difficulty,
+        completedAt: (cs.completedAt instanceof Date ? cs.completedAt : new Date()).toISOString(),
+      })),
+    }));
+    saveActiveWorkout(sid, {
+      routineDayId: routineDayId || "",
+      routineName: routineDay?.name,
+      session,
+      exerciseStates: persisted,
+      activeExerciseId,
+      orderIds,
+      startedAt: startedAtRef.current,
+      pausedTotal: pausedTotalRef.current,
+      date: getLocalDateString(),
+      savedAt: Date.now(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutStarted, session, exerciseStates, activeExerciseId, orderIds]);
+
+  const resumeWorkout = () => {
+    if (!resumeSnapshot) return;
+    const map = new Map<string, ExerciseState>();
+    resumeSnapshot.exerciseStates.forEach((s) => {
+      map.set(s.id, {
+        id: s.id,
+        completed: s.completed,
+        currentSet: s.currentSet,
+        extraSets: s.extraSets,
+        completedSets: s.completedSets.map((cs) => ({
+          setNumber: cs.setNumber,
+          weight: cs.weight,
+          reps: cs.reps,
+          difficulty: cs.difficulty,
+          completedAt: new Date(cs.completedAt),
+        })),
+      });
+    });
+    setExerciseStates(map);
+    setActiveExerciseId(resumeSnapshot.activeExerciseId);
+    if (resumeSnapshot.orderIds?.length) setOrderIds(resumeSnapshot.orderIds);
+    startedAtRef.current = resumeSnapshot.startedAt;
+    pausedTotalRef.current = resumeSnapshot.pausedTotal;
+    pausedAtRef.current = null;
+    resumeSession(resumeSnapshot.session);
+    setWorkoutStarted(true);
+    setResumeSnapshot(null);
+    toast.success("Entrenamiento reanudado 💪");
+  };
+
+  const discardResume = () => {
+    clearActiveWorkout(sid);
+    setResumeSnapshot(null);
+  };
+
+  const resumeSetsDone = resumeSnapshot
+    ? resumeSnapshot.exerciseStates.reduce((a, s) => a + s.completedSets.length, 0)
+    : 0;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -174,6 +276,10 @@ const CoachWorkoutDetail = () => {
     // Start session in database
     const newSession = await startSession();
     if (newSession) {
+      // Ancla del cronómetro: momento real de arranque de la sesión.
+      startedAtRef.current = Date.now();
+      pausedAtRef.current = null;
+      pausedTotalRef.current = 0;
       setWorkoutStarted(true);
       if (routineDay?.exercises.length) {
         setActiveExerciseId(routineDay.exercises[0].id);
@@ -425,7 +531,9 @@ const CoachWorkoutDetail = () => {
       toast.error("No se pudo finalizar la sesión. Intentá nuevamente.");
       return;
     }
-    
+
+    clearActiveWorkout(sid); // entreno terminado → ya no hay nada que reanudar
+
     navigate("/workout-summary", {
       state: {
         summaryData: {
@@ -515,13 +623,71 @@ const CoachWorkoutDetail = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      {/* Prompt de reanudar entreno en curso */}
+      <AnimatePresence>
+        {resumeSnapshot && !workoutStarted && (
+          <motion.div
+            className="fixed inset-0 z-[130] bg-black/70 flex items-end sm:items-center justify-center p-5"
+            style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-sm card-elevated rounded-3xl p-6 text-center"
+              initial={{ y: 30, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 30, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 30 }}
+            >
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+                <Dumbbell className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-black text-foreground tracking-tight">Tenés un entreno en curso</h3>
+              <p className="text-sm text-muted-foreground mt-1.5">
+                Dejaste{" "}
+                <span className="font-semibold text-foreground">{resumeSnapshot.routineName || "tu entreno"}</span> a mitad
+                {resumeSetsDone > 0
+                  ? ` con ${resumeSetsDone} ${resumeSetsDone === 1 ? "serie cargada" : "series cargadas"}`
+                  : ""}
+                . ¿Retomamos donde ibas?
+              </p>
+              <button
+                onClick={resumeWorkout}
+                className="w-full mt-5 py-3.5 rounded-2xl bg-gradient-primary text-primary-foreground font-black uppercase tracking-wide glow-primary active:scale-[0.98] transition-transform"
+              >
+                Reanudar entrenamiento
+              </button>
+              <button
+                onClick={discardResume}
+                className="w-full mt-2 py-2.5 rounded-xl text-sm font-bold text-muted-foreground active:text-foreground"
+              >
+                Empezar de nuevo
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Active Workout Header */}
       <AnimatePresence>
         {workoutStarted && (
           <ActiveWorkoutHeader
             elapsedTime={formatTime(elapsedTime)}
             isPaused={isPaused}
-            onPauseToggle={() => setIsPaused(!isPaused)}
+            onPauseToggle={() =>
+              setIsPaused((paused) => {
+                if (!paused) {
+                  // Pausando: guardamos el instante para descontarlo luego.
+                  pausedAtRef.current = Date.now();
+                } else if (pausedAtRef.current != null) {
+                  // Reanudando: acumulamos el tiempo estado en pausa.
+                  pausedTotalRef.current += Date.now() - pausedAtRef.current;
+                  pausedAtRef.current = null;
+                }
+                return !paused;
+              })
+            }
             completedExercises={completedExercises}
             totalExercises={exercises.length}
             completedSets={completedSets}

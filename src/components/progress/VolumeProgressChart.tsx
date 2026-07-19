@@ -24,9 +24,18 @@ interface SessionData {
 interface VolumeProgressChartProps {
   data: SessionData[];
   title?: string;
+  /** Unidad mostrada en el tooltip (ej. "kg", "entrenos"). */
+  unit?: string;
+  /** Texto de la leyenda al pie del gráfico. */
+  legend?: string;
 }
 
-const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProgressChartProps) => {
+const VolumeProgressChart = ({
+  data,
+  title = "Volumen por Sesión",
+  unit = "kg",
+  legend = "Volumen total (peso × reps × series) por sesión",
+}: VolumeProgressChartProps) => {
   const trend = useMemo(() => {
     if (data.length < 2) return 0;
     const firstHalf = data.slice(0, Math.floor(data.length / 2));
@@ -66,7 +75,7 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
           <p className="text-xs text-muted-foreground mb-1">{label}</p>
           <p className="text-lg font-bold text-foreground">
-            {payload[0].value.toLocaleString()} kg
+            {payload[0].value.toLocaleString()} {unit}
           </p>
         </div>
       );
@@ -145,7 +154,7 @@ const VolumeProgressChart = ({ data, title = "Volumen por Sesión" }: VolumeProg
       {/* Legend */}
       <div className="mt-3 pt-3 border-t border-white/[0.06]">
         <p className="text-xs text-muted-foreground text-center">
-          Volumen total (peso × reps × series) por sesión
+          {legend}
         </p>
       </div>
     </motion.div>

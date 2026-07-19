@@ -205,7 +205,12 @@ const Progress = () => {
 
           const volumeChart = chartData.length > 0 && (
             <motion.div variants={fadeUp}>
-              <VolumeProgressChart data={chartData} title="Entrenamientos Semanales" />
+              <VolumeProgressChart
+                data={chartData}
+                title="Entrenamientos Semanales"
+                unit="entrenos"
+                legend="Entrenamientos completados por semana"
+              />
             </motion.div>
           );
 
