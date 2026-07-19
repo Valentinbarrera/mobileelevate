@@ -1,7 +1,8 @@
-import React from "react";
-import { Home, Dumbbell, Apple, TrendingUp, User } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, X, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import { hapticLight } from "@/lib/haptics";
 
 interface NavItemData {
   id: string;
@@ -14,8 +15,40 @@ interface NavItemData {
 const SPRING = { type: "spring" as const, stiffness: 380, damping: 30 };
 
 const triggerHaptic = () => {
-  if (navigator.vibrate) navigator.vibrate(8);
+  hapticLight();
 };
+
+/* Acciones del "speed-dial" del botón central Entrenar */
+interface TrainAction {
+  icon: typeof Home;
+  label: string;
+  desc: string;
+  path: string;
+  hue: string;
+}
+const TRAIN_ACTIONS: TrainAction[] = [
+  {
+    icon: Dumbbell,
+    label: "Entrenar con el coach",
+    desc: "Seguí las rutinas que armó tu coach para vos.",
+    path: "/rutinas-coach",
+    hue: "18 100% 55%",
+  },
+  {
+    icon: PencilRuler,
+    label: "Crear programa",
+    desc: "Diseñá tu propio plan paso a paso.",
+    path: "/programas/nuevo",
+    hue: "217 91% 60%",
+  },
+  {
+    icon: Flame,
+    label: "Mis entrenos",
+    desc: "Tus programas, entreno libre y templates.",
+    path: "/routines",
+    hue: "142 71% 45%",
+  },
+];
 
 /* ── Átomo: ítem regular (icono + label + lozenge de vidrio activo) ── */
 const NavItem = ({
@@ -76,40 +109,36 @@ const NavItem = ({
   </motion.button>
 );
 
-/* ── Átomo: botón central elevado (CTA "Entrenar") ──
-   Flota sobre la cápsula de vidrio; el label se alinea con los demás
-   mediante un placeholder del tamaño del ícono. */
+/* ── Átomo: botón central elevado (abre el speed-dial) ──
+   Flota sobre la cápsula de vidrio; el ícono gira a ✕ cuando el menú está abierto. */
 const NavFab = ({
-  icon: Icon,
   label,
-  active,
+  open,
   onClick,
 }: {
-  icon: typeof Home;
   label: string;
-  active: boolean;
+  open: boolean;
   onClick: () => void;
 }) => (
   <motion.button
     onClick={onClick}
     whileTap={{ scale: 0.92 }}
     className="relative flex-1 flex flex-col items-center justify-center gap-1 h-full"
-    aria-label={label}
-    aria-current={active ? "page" : undefined}
+    aria-label={open ? "Cerrar menú de entrenar" : label}
+    aria-expanded={open}
   >
     {/* Placeholder con la altura del ícono regular → alinea el label */}
     <span className="block w-[25px] h-[25px]" aria-hidden />
 
     <span
-      className={`text-[10.5px] leading-none tracking-tight transition-colors duration-200 ${
-        active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
+      className={`text-[10.5px] leading-none tracking-tight font-bold transition-colors duration-200 ${
+        open ? "text-primary" : "text-muted-foreground/55"
       }`}
     >
       {label}
     </span>
 
-    {/* Círculo flotante elevado (CTA). Centrado por CSS puro; sólo animamos
-        el glow (box-shadow) para no pisar el translate del centrado. */}
+    {/* Círculo flotante elevado. Centrado por CSS puro; sólo animamos el glow. */}
     <motion.span
       className="absolute left-1/2 -translate-x-1/2 -top-[34px] w-[58px] h-[58px] rounded-[19px] flex items-center justify-center"
       style={{
@@ -125,7 +154,13 @@ const NavFab = ({
       }}
       transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
     >
-      <Icon className="w-[26px] h-[26px] text-white" strokeWidth={2.4} />
+      <motion.span animate={{ rotate: open ? 135 : 0 }} transition={SPRING} className="flex">
+        {open ? (
+          <Plus className="w-[26px] h-[26px] text-white" strokeWidth={2.6} />
+        ) : (
+          <Dumbbell className="w-[26px] h-[26px] text-white" strokeWidth={2.4} />
+        )}
+      </motion.span>
     </motion.span>
   </motion.button>
 );
@@ -134,6 +169,7 @@ const NavFab = ({
 const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems: NavItemData[] = [
     { id: "home", path: "/", icon: Home, label: "Inicio" },
@@ -147,7 +183,19 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
 
   const handleNavClick = (item: NavItemData) => {
     triggerHaptic();
+    setMenuOpen(false);
     navigate(item.path);
+  };
+
+  const toggleMenu = () => {
+    triggerHaptic();
+    setMenuOpen((v) => !v);
+  };
+
+  const runAction = (path: string) => {
+    triggerHaptic();
+    setMenuOpen(false);
+    navigate(path);
   };
 
   return (
@@ -157,12 +205,61 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
       role="navigation"
       aria-label="Navegación principal"
     >
+      {/* Backdrop + acciones del speed-dial */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.button
+              key="backdrop"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Cerrar menú"
+              className="fixed inset-0 -z-10 bg-black/55"
+              style={{ backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <div
+              className="absolute inset-x-0 flex flex-col items-center gap-2.5"
+              style={{ bottom: "calc(98px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              {TRAIN_ACTIONS.map((a, i) => (
+                <motion.button
+                  key={a.path}
+                  onClick={() => runAction(a.path)}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                  transition={{ ...SPRING, delay: (TRAIN_ACTIONS.length - 1 - i) * 0.05 }}
+                  className="flex items-center gap-2.5 rounded-full pl-2 pr-4 py-2 active:scale-95 transition-transform"
+                  style={{
+                    background: "hsl(240 6% 12% / 0.92)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
+                  }}
+                >
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: `hsl(${a.hue} / 0.18)`, border: `1px solid hsl(${a.hue} / 0.35)` }}
+                  >
+                    <a.icon className="w-[17px] h-[17px]" style={{ color: `hsl(${a.hue})` }} strokeWidth={2.3} />
+                  </span>
+                  <span className="text-sm font-bold text-foreground whitespace-nowrap pr-0.5">{a.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Degradado sutil de transición hacia el contenido */}
       <div className="absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-background/90 to-transparent pointer-events-none" />
 
       <div className="px-4 pb-2 max-w-lg mx-auto">
         <div
-          className="relative flex items-stretch rounded-[26px] px-1.5 h-[70px] overflow-hidden"
+          className="relative flex items-stretch rounded-[26px] px-1.5 h-[70px]"
           style={{
             background: "hsl(240 6% 9% / 0.60)",
             backdropFilter: "blur(40px) saturate(1.8)",
@@ -186,10 +283,9 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
             return item.isCenter ? (
               <NavFab
                 key={item.id}
-                icon={item.icon}
                 label={item.label}
-                active={active}
-                onClick={() => handleNavClick(item)}
+                open={menuOpen}
+                onClick={toggleMenu}
               />
             ) : (
               <NavItem

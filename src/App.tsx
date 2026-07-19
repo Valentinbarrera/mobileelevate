@@ -20,6 +20,7 @@ const Auth = React.lazy(() => import("./pages/Auth"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = React.lazy(() => import("./pages/UpdatePassword"));
 const Routines = React.lazy(() => import("./pages/Routines"));
+const CoachRoutines = React.lazy(() => import("./pages/CoachRoutines"));
 const RoutineDetail = React.lazy(() => import("./pages/RoutineDetail"));
 const ProgramTemplates = React.lazy(() => import("./pages/ProgramTemplates"));
 const MyProgramBuilder = React.lazy(() => import("./pages/MyProgramBuilder"));
@@ -103,6 +104,7 @@ const App = () => {
             <Route element={<AppLayout />}>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
+              <Route path="/rutinas-coach" element={<ProtectedRoute><CoachRoutines /></ProtectedRoute>} />
               <Route path="/programas/templates" element={<ProtectedRoute><ProgramTemplates /></ProtectedRoute>} />
               <Route path="/programa/:id" element={<ProtectedRoute><MyProgramDetail /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
