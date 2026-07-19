@@ -470,6 +470,38 @@ const CoachWorkoutDetail = () => {
     });
   }, []);
 
+  // Quitar la última serie EXTRA (inverso de "Agregar serie"). No toca las
+  // series prescritas por el coach.
+  const handleRemoveSet = useCallback((exerciseId: string) => {
+    setExerciseStates(prev => {
+      const newStates = new Map(prev);
+      const state = newStates.get(exerciseId);
+      if (!state || (state.extraSets || 0) <= 0) return prev;
+      const extraSets = (state.extraSets || 0) - 1;
+      const exercise = routineDay?.exercises.find(e => e.id === exerciseId);
+      const target = (exercise?.sets || 0) + extraSets;
+      newStates.set(exerciseId, {
+        ...state,
+        extraSets,
+        completed: state.completedSets.length >= target,
+      });
+      return newStates;
+    });
+  }, [routineDay]);
+
+  // Saltar este ejercicio hoy: pasa al siguiente (respetando el orden elegido).
+  const handleSkipExercise = useCallback((exerciseId: string) => {
+    const order = orderIds.length ? orderIds : (routineDay?.exercises.map(e => e.id) || []);
+    const idx = order.indexOf(exerciseId);
+    const nextId = order[idx + 1];
+    if (nextId) {
+      setActiveExerciseId(nextId);
+      toast.info("Pasaste al siguiente ejercicio");
+    } else {
+      toast.info("Ya es el último ejercicio");
+    }
+  }, [orderIds, routineDay]);
+
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
   }, []);
@@ -795,6 +827,8 @@ const CoachWorkoutDetail = () => {
                     onUpdateSet={handleUpdateSet}
                     onDeleteSet={handleDeleteSet}
                     onAddSet={() => handleAddSet(exercise.id)}
+                    onRemoveSet={() => handleRemoveSet(exercise.id)}
+                    onSkipExercise={() => handleSkipExercise(exercise.id)}
                   />
                 );
               })()}
@@ -835,6 +869,8 @@ const CoachWorkoutDetail = () => {
                       onUpdateSet={handleUpdateSet}
                       onDeleteSet={handleDeleteSet}
                       onAddSet={() => handleAddSet(exercise.id)}
+                    onRemoveSet={() => handleRemoveSet(exercise.id)}
+                    onSkipExercise={() => handleSkipExercise(exercise.id)}
                     />
                   );
                 }

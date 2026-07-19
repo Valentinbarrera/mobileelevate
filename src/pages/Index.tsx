@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { RefreshCw, GraduationCap, ChevronRight } from "lucide-react";
+import { RefreshCw, GraduationCap, ChevronRight, Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
@@ -171,6 +171,31 @@ const Index = () => {
 
   const quickActions = <QuickActions />;
 
+  // Card destacada: entrenamiento autoguiado con la app (aparte del plan del coach)
+  const trainWithElevateCard = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => navigate("/routines")}
+      className="w-full card-elevated rounded-2xl px-4 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left overflow-hidden relative bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/25"
+    >
+      <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+        <Dumbbell className="w-6 h-6 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
+          Modo libre
+        </p>
+        <p className="text-base font-black text-foreground tracking-tight">
+          Entrenar con Elevate
+        </p>
+        <p className="text-[12px] text-muted-foreground truncate">
+          Creá tus programas, entrená libre y seguí tu progreso.
+        </p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-primary shrink-0" />
+    </motion.button>
+  );
+
   // Acceso a la sección educativa "Aprendé" (guía de la app + recursos)
   const learnCard = (
     <motion.button
@@ -244,6 +269,7 @@ const Index = () => {
               {/* Rail derecho — glance: meta, atajos, coach */}
               <div className="col-span-12 xl:col-span-5 space-y-6">
                 {weeklyGoalCard}
+                {trainWithElevateCard}
                 {quickActions}
                 {learnCard}
                 {coachCard}
@@ -283,6 +309,9 @@ const Index = () => {
 
             {/* 3. Objetivo semanal — resumen tipo dashboard (glance) */}
             {weeklyGoalCard}
+
+            {/* 3b. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
+            {trainWithElevateCard}
 
             {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
             {quickActions}

@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, StickyNote, Pin, Youtube } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, Minus, SkipForward, StickyNote, Pin, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import ExerciseNoteSheet from "./ExerciseNoteSheet";
@@ -79,6 +79,8 @@ interface CoachExerciseCardProps {
   ) => Promise<boolean>;
   onDeleteSet?: (exerciseId: string, setNumber: number) => Promise<boolean>;
   onAddSet?: () => void;
+  onRemoveSet?: () => void; // quita la última serie EXTRA agregada
+  onSkipExercise?: () => void; // saltar este ejercicio hoy (pasa al siguiente)
 }
 
 interface PerformanceRecord {
@@ -104,6 +106,8 @@ const CoachExerciseCard = ({
   onUpdateSet,
   onDeleteSet,
   onAddSet,
+  onRemoveSet,
+  onSkipExercise,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
@@ -863,15 +867,39 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
-                {/* Sumar una serie más allá de las prescritas por el coach */}
-                {onAddSet && editingSetNum === null && (
-                  <button
-                    type="button"
-                    onClick={onAddSet}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-primary" /> Agregar serie
-                  </button>
+                {/* Acciones del ejercicio (agregar/quitar serie · saltar hoy) */}
+                {editingSetNum === null && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      {onAddSet && (
+                        <button
+                          type="button"
+                          onClick={onAddSet}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-primary" /> Agregar serie
+                        </button>
+                      )}
+                      {(state.extraSets ?? 0) > 0 && onRemoveSet && (
+                        <button
+                          type="button"
+                          onClick={onRemoveSet}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-xs font-bold text-red-400/80 hover:text-red-400 transition-colors"
+                        >
+                          <Minus className="w-3.5 h-3.5" /> Quitar serie
+                        </button>
+                      )}
+                    </div>
+                    {onSkipExercise && !isCompleted && (
+                      <button
+                        type="button"
+                        onClick={onSkipExercise}
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-muted-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        <SkipForward className="w-3.5 h-3.5" /> Saltar hoy
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Calculadora de discos (solo mientras hay serie activa) */}
