@@ -12,8 +12,12 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
+      // Handoff invisible: la capa web (SplashScreen.tsx) llama a hide() apenas
+      // monta, para pasar sin costura del splash nativo a la animación. El
+      // auto-hide a 2.5s es sólo una red de seguridad por si la web no llegara
+      // a ocultarlo (nunca debería quedar pegado el splash nativo).
       launchAutoHide: true,
-      launchShowDuration: 2000,
+      launchShowDuration: 2500,
       backgroundColor: '#09090b', // gray-950 to match app theme
       showSpinner: false,
     },

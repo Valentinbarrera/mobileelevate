@@ -8,9 +8,10 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import PushInit from "@/components/PushInit";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import SplashScreen from "@/components/SplashScreen";
 
 // Lazy load all pages
 const Welcome = React.lazy(() => import("./pages/Welcome"));
@@ -65,11 +66,14 @@ function Lazy({ children }: { children: React.ReactNode }) {
   );
 }
 
-const App = () => (
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  return (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
         <Toaster />
         <Sonner />
         <PushInit />
@@ -124,6 +128,7 @@ const App = () => (
     </AuthProvider>
   </QueryClientProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 export default App;
