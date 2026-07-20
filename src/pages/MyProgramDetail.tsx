@@ -18,6 +18,7 @@ import {
   Timer,
   Gauge,
   FolderOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
@@ -25,6 +26,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getMyProgram, deleteMyProgram } from "@/lib/myPrograms";
+import { loadActivePlan, setActivePlan, clearActivePlan, isOwnPlanActive } from "@/lib/activePlan";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const LEVEL_STYLES: Record<string, string> = {
@@ -41,6 +43,23 @@ export default function MyProgramDetail() {
 
   const program = useMemo(() => (id ? getMyProgram(sid, id) : null), [sid, id]);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [plan, setPlan] = useState(() => loadActivePlan(sid));
+  const isActive = !!program && isOwnPlanActive(plan, program.id);
+
+  const handleActivate = () => {
+    if (!program) return;
+    setActivePlan(sid, { type: "own", programId: program.id });
+    setPlan({ type: "own", programId: program.id });
+    toast.success(`"${program.name}" es tu plan activo`, {
+      description: "Es el que vas a ver en Inicio. Tu coach no se entera de este cambio.",
+    });
+  };
+
+  const handleDeactivate = () => {
+    clearActivePlan(sid);
+    setPlan({ type: "coach" });
+    toast.success("Volviste al plan de tu coach");
+  };
 
   // Empty state — el programa no existe
   if (!program) {
@@ -155,8 +174,32 @@ export default function MyProgramDetail() {
               </span>
             </div>
 
+            {/* Activar como plan: define qué te toca entrenar en Inicio. Solo uno
+                a la vez, así no hay dos respuestas a "¿qué hago hoy?". */}
+            {isActive ? (
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-primary/10 border border-primary/25 px-3.5 py-3">
+                <p className="text-xs font-bold text-primary">
+                  <CheckCircle2 className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+                  Es tu plan activo
+                </p>
+                <button
+                  onClick={handleDeactivate}
+                  className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  Volver al de mi coach
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleActivate}
+                className="w-full mt-4 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Usar como mi plan
+              </button>
+            )}
+
             {/* Acciones globales */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-3">
               <button
                 onClick={() => navigate(`/programa/${program.id}/editar`)}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"

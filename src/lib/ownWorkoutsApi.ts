@@ -264,6 +264,36 @@ export async function fetchOwnWorkoutHistory(
   }
 }
 
+/**
+ * Fechas (YYYY-MM-DD) de los entrenos propios. Liviano: solo la columna date.
+ *
+ * Existe para que la racha, los días activos del mes y el calendario cuenten
+ * TAMBIÉN los entrenos propios: si solo miran `completed_sessions`, el alumno ve
+ * el entreno en el historial pero se le corta la racha, que es incoherente.
+ * Best-effort: si la tabla no existe o falla la red, devuelve [] y quien la use
+ * sigue funcionando igual que antes.
+ */
+export async function fetchOwnSessionDates(
+  studentId: string,
+  limit = 200
+): Promise<string[]> {
+  if (!isRealStudent(studentId)) return [];
+  try {
+    const { data, error } = await sb
+      .from("own_workout_sessions")
+      .select("date")
+      .eq("student_id", studentId)
+      .order("date", { ascending: false })
+      .limit(limit);
+    if (error || !data) return [];
+    return data
+      .map((r) => (r.date == null ? "" : String(r.date)))
+      .filter((d): d is string => d.length > 0);
+  } catch {
+    return [];
+  }
+}
+
 /** Título visible del entreno propio: notas > "programa · día" > genérico. */
 function sessionTitle(row: Row): string {
   const notes = typeof row.notes === "string" ? row.notes.trim() : "";

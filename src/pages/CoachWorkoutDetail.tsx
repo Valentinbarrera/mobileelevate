@@ -13,6 +13,7 @@ import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
 import { useOwnWorkoutSession } from "@/hooks/useOwnWorkoutSession";
 import { getMyProgram } from "@/lib/myPrograms";
+import { setPlanCursorAfter } from "@/lib/activePlan";
 import RestBar from "@/components/workout/RestBar";
 import WorkoutHero from "@/components/workout/WorkoutHero";
 import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
@@ -860,6 +861,12 @@ const CoachWorkoutDetail = () => {
     }
 
     clearActiveWorkout(sid); // entreno terminado → ya no hay nada que reanudar
+
+    // Programa propio: la rotación sigue por el día que viene después del que
+    // acaba de hacer (aunque haya salteado alguno).
+    if (isOwnMode && ownProgram && routineDay) {
+      setPlanCursorAfter(sid, ownProgram.id, routineDay.dayNumber - 1, ownProgram.days.length);
+    }
 
     navigate("/workout-summary", {
       state: {

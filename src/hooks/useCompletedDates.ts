@@ -1,10 +1,13 @@
 /**
- * Fechas con entrenamiento COMPLETADO real (tabla completed_sessions) del alumno.
+ * Fechas con entrenamiento COMPLETADO real del alumno: las del plan del coach
+ * (`completed_sessions`) MÁS las de sus programas propios (`own_workout_sessions`).
+ * Los dos tipos de entreno pintan verde el día en el calendario de Entrenar.
  * Solo lectura; se combina con los completados manuales en el calendario.
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { fetchOwnSessionDates } from "@/lib/ownWorkoutsApi";
 
 export function useCompletedDates() {
   const { student } = useAuthContext();
@@ -21,7 +24,12 @@ export function useCompletedDates() {
         .select("date")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []).map((r) => r.date as string);
+      const coachDates = (data || []).map((r) => r.date as string);
+      // Best-effort: `fetchOwnSessionDates` nunca lanza, así que si la tabla de
+      // entrenos propios no existe el calendario queda igual que antes.
+      const ownDates = await fetchOwnSessionDates(studentId);
+      // El Set del return ya deduplica si un día tiene entreno del coach y propio.
+      return [...coachDates, ...ownDates];
     },
   });
 

@@ -1,7 +1,19 @@
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Plus, Flame, CalendarDays, PencilRuler, Library, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import {
+  Dumbbell,
+  Plus,
+  Flame,
+  CalendarDays,
+  PencilRuler,
+  Library,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  Check,
+  Target,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   loadMyPrograms,
@@ -17,6 +29,15 @@ import TodaySessionHero from "@/components/routines/TodaySessionHero";
 import WeekStrip from "@/components/routines/WeekStrip";
 import TrainingCalendar from "@/components/routines/TrainingCalendar";
 import AlumnoRoutineCard from "@/components/routines/AlumnoRoutineCard";
+import OwnPlanCard from "@/components/home/OwnPlanCard";
+import {
+  loadActivePlan,
+  setActivePlan,
+  clearActivePlan,
+  isOwnPlanActive,
+  nextProgramDay,
+  type ActivePlan,
+} from "@/lib/activePlan";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
@@ -58,6 +79,37 @@ const Routines = () => {
     };
   }, [student]);
   const atProgramLimit = myPrograms.length >= MAX_OWN_PROGRAMS;
+
+  // ── Plan ACTIVO ────────────────────────────────────────────────────────────
+  // Un solo plan manda a la vez: el del coach (default) o uno propio. Toda la
+  // pantalla se ordena alrededor de esa decisión, para que el alumno nunca tenga
+  // dudas sobre qué le toca entrenar.
+  const sid = student?.id ?? "";
+  const [plan, setPlan] = useState<ActivePlan>(() =>
+    sid ? loadActivePlan(sid) : { type: "coach" }
+  );
+  useEffect(() => {
+    if (sid) setPlan(loadActivePlan(sid));
+  }, [sid]);
+
+  // Si el plan guardado apunta a un programa que ya no existe, se cae al coach.
+  const activeOwn =
+    plan.type === "own" ? myPrograms.find((p) => p.id === plan.programId) ?? null : null;
+  const ownNext = activeOwn ? nextProgramDay(sid, activeOwn) : null;
+
+  // Elegir un programa propio como plan activo (desde "Mis programas").
+  const pickOwnPlan = (p: MyProgram, e: React.MouseEvent) => {
+    e.stopPropagation(); // no debe navegar al detalle de la card
+    setActivePlan(sid, { type: "own", programId: p.id });
+    setPlan({ type: "own", programId: p.id });
+    toast.success(`"${p.name || "Programa"}" es ahora tu plan`);
+  };
+
+  const backToCoachPlan = () => {
+    clearActivePlan(sid);
+    setPlan({ type: "coach" });
+    toast.success("Volviste al plan de tu coach");
+  };
 
   // Una sola consulta con status='all': derivamos activas/completadas en cliente.
   const { data: routines, isLoading, error } = useAlumnoRoutines({
@@ -210,34 +262,31 @@ const Routines = () => {
             </div>
           )}
 
-          {!isLoading && !error && assignments.length === 0 && (
+          {/* Nada que mostrar: ni rutinas del coach ni un plan propio activo. */}
+          {!isLoading && !error && assignments.length === 0 && !ownNext && (
             <div className="rounded-3xl card-elevated p-8 text-center">
               <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="font-semibold text-foreground">Sin rutinas todavía</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Tu coach aún no te asignó una rutina.
+                Tu coach aún no te asignó una rutina. Podés armar tu propio programa acá abajo.
               </p>
             </div>
           )}
 
-          {!isLoading && !error && assignments.length > 0 && (
-            <>
-              {/* ── HÉROE: programa activo ── */}
-              {primary && (
-                <motion.div variants={fadeUp}>
-                  <ActiveProgram
-                    assignment={primary}
-                    weekIndex={getCurrentWeekIndex(primary, today)}
-                    weekCount={getProgramWeekCount(primary)}
-                    progress={programProgress(primary, doneDates, today).pct}
-                    onView={viewRoutine}
-                  />
-                </motion.div>
-              )}
+          {/* ══ BLOQUE 1 · HOY ══════════════════════════════════════════════
+              El protagonista de la pantalla: lo único que hay que hacer hoy,
+              venga del plan del coach o del plan propio activo. */}
+          {!isLoading && !error && (ownNext || heroSession) && (
+            <motion.div variants={fadeUp} className="space-y-3">
+              <div className="flex items-center gap-2 px-0.5">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Hoy</h3>
+              </div>
 
-              {/* ── Sesión de HOY ── */}
-              {heroSession && (
-                <motion.div variants={fadeUp}>
+              {ownNext && activeOwn ? (
+                <OwnPlanCard program={activeOwn} day={ownNext.day} index={ownNext.index} />
+              ) : (
+                heroSession && (
                   <TodaySessionHero
                     variant={heroVariant}
                     label={heroLabel}
@@ -247,105 +296,232 @@ const Routines = () => {
                     done={sessionDone}
                     onToggleDone={() => toggle(doneKey)}
                   />
-                </motion.div>
+                )
               )}
+            </motion.div>
+          )}
 
-              {/* ── Esta semana / Calendario ── */}
-              {activeAssignments.length > 0 && (
-                <motion.div variants={fadeUp} className="space-y-2.5">
-                  <div className="flex items-center justify-between gap-3 px-0.5">
+          {/* ══ BLOQUE 2 · MI PLAN ══════════════════════════════════════════
+              El plan que manda hoy, con su detalle. Solo uno a la vez: o el del
+              coach (con su calendario y sus rutinas) o el propio del alumno. */}
+          {!isLoading && !error && (activeOwn || assignments.length > 0) && (
+            <motion.div variants={fadeUp} className="space-y-3">
+              <div className="flex items-center gap-2 px-0.5">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Mi plan</h3>
+              </div>
+
+              {/* Línea sutil: qué plan está mandando ahora mismo. */}
+              <div className="flex items-center justify-between gap-3 px-0.5">
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {activeOwn
+                    ? `Tu plan: ${activeOwn.name || "Programa sin nombre"}`
+                    : "Plan de tu coach"}
+                </p>
+                {activeOwn && assignments.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={backToCoachPlan}
+                    className="text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors shrink-0"
+                  >
+                    Volver al plan de mi coach
+                  </button>
+                )}
+              </div>
+
+              {activeOwn ? (
+                <>
+                  {/* Card compacta del programa propio activo */}
+                  <div className="rounded-2xl card-elevated p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <span className="accent-bar" />
-                      <h3 className="text-sm font-black text-foreground tracking-tight">
-                        {showCalendar ? "Calendario" : "Esta semana"}
-                      </h3>
+                      <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                        <PencilRuler className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-black text-foreground truncate">
+                          {activeOwn.name || "Programa sin nombre"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {activeOwn.days.length}{" "}
+                          {activeOwn.days.length === 1 ? "día" : "días"}
+                          {activeOwn.weeks ? ` · ${activeOwn.weeks} sem` : ""}
+                        </p>
+                      </div>
                     </div>
                     <button
-                      onClick={() => setShowCalendar((v) => !v)}
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                      type="button"
+                      onClick={() => navigate(`/programa/${activeOwn.id}`)}
+                      className="w-full inline-flex items-center justify-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors py-1"
                     >
-                      <CalendarDays className="w-3.5 h-3.5" />
-                      {showCalendar ? "Ver semana" : "Ver mes"}
+                      Ver el programa completo <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  {showCalendar ? (
-                    <TrainingCalendar
-                      monthOnly
-                      plannedDates={plannedDates}
-                      doneDates={doneDates}
-                      selectedDate={today}
-                      today={today}
-                      onSelect={goToDay}
-                      onCollapse={() => setShowCalendar(false)}
-                    />
-                  ) : (
-                    <WeekStrip days={weekDays} onSelectDay={goToDay} />
-                  )}
-                </motion.div>
-              )}
-
-              {/* ── De tu coach ── */}
-              {(activeAssignments.length > 0 || completedAssignments.length > 0) && (
-                <motion.div variants={fadeUp} className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 px-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="accent-bar" />
-                      <h3 className="text-sm font-black text-foreground tracking-tight">De tu coach</h3>
-                    </div>
-
-                    {completedAssignments.length > 0 && (
-                      <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-border/50">
-                        {(["active", "completed"] as ProgramsFilter[]).map((f) => {
-                          const active = programsFilter === f;
-                          return (
-                            <button
-                              key={f}
-                              onClick={() => setProgramsFilter(f)}
-                              className={`relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                                active ? "text-primary-foreground" : "text-muted-foreground"
-                              }`}
-                            >
-                              {active && (
-                                <motion.div
-                                  layoutId="programsFilter"
-                                  className="absolute inset-0 bg-gradient-primary rounded-lg"
-                                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                />
-                              )}
-                              <span className="relative z-10">
-                                {f === "active" ? "Activas" : "Completadas"}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {programsList.length > 0 ? (
+                  {/* Los días del programa: rotación, no calendario. */}
+                  {activeOwn.days.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                      {programsList.map((assignment, index) => (
-                        <AlumnoRoutineCard key={assignment.id} assignment={assignment} index={index} />
+                      {activeOwn.days.map((d, i) => (
+                        <div
+                          key={d.id}
+                          className="rounded-2xl card-elevated p-4 flex items-center gap-2"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <p className="text-sm font-black text-foreground truncate">
+                                {d.name || `Día ${i + 1}`}
+                              </p>
+                              {ownNext?.day.id === d.id && (
+                                <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-primary-foreground bg-gradient-primary rounded-full px-2 py-0.5">
+                                  Te toca
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              Día {i + 1} de {activeOwn.days.length} · {d.exercises.length}{" "}
+                              {d.exercises.length === 1 ? "ejercicio" : "ejercicios"}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label={`Entrenar ${d.name || `día ${i + 1}`}`}
+                            onClick={() =>
+                              navigate(`/programa/${activeOwn.id}/dia/${d.id}/entrenar`)
+                            }
+                            className="shrink-0 px-3 py-2 rounded-xl bg-primary/10 border border-primary/25 text-primary text-xs font-bold hover:bg-primary/15 transition-colors"
+                          >
+                            Entrenar
+                          </button>
+                        </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="rounded-2xl card-elevated p-6 text-center">
-                      <p className="text-sm text-muted-foreground">
-                        {programsFilter === "completed"
-                          ? "Todavía no completaste ningún programa."
-                          : "No tenés programas activos."}
-                      </p>
-                    </div>
                   )}
-                </motion.div>
+                </>
+              ) : (
+                <>
+                  {/* ── Programa activo del coach ── */}
+                  {primary && (
+                    <motion.div variants={fadeUp}>
+                      <ActiveProgram
+                        assignment={primary}
+                        weekIndex={getCurrentWeekIndex(primary, today)}
+                        weekCount={getProgramWeekCount(primary)}
+                        progress={programProgress(primary, doneDates, today).pct}
+                        onView={viewRoutine}
+                      />
+                    </motion.div>
+                  )}
+
+                  {/* ── Esta semana / Calendario ── */}
+                  {activeAssignments.length > 0 && (
+                    <motion.div variants={fadeUp} className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-3 px-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="accent-bar" />
+                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                            {showCalendar ? "Calendario" : "Esta semana"}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => setShowCalendar((v) => !v)}
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                        >
+                          <CalendarDays className="w-3.5 h-3.5" />
+                          {showCalendar ? "Ver semana" : "Ver mes"}
+                        </button>
+                      </div>
+
+                      {showCalendar ? (
+                        <TrainingCalendar
+                          monthOnly
+                          plannedDates={plannedDates}
+                          doneDates={doneDates}
+                          selectedDate={today}
+                          today={today}
+                          onSelect={goToDay}
+                          onCollapse={() => setShowCalendar(false)}
+                        />
+                      ) : (
+                        <WeekStrip days={weekDays} onSelectDay={goToDay} />
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* ── De tu coach ── */}
+                  {(activeAssignments.length > 0 || completedAssignments.length > 0) && (
+                    <motion.div variants={fadeUp} className="space-y-3">
+                      <div className="flex items-center justify-between gap-3 px-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="accent-bar" />
+                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                            De tu coach
+                          </h3>
+                        </div>
+
+                        {completedAssignments.length > 0 && (
+                          <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-border/50">
+                            {(["active", "completed"] as ProgramsFilter[]).map((f) => {
+                              const active = programsFilter === f;
+                              return (
+                                <button
+                                  key={f}
+                                  onClick={() => setProgramsFilter(f)}
+                                  className={`relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                                    active ? "text-primary-foreground" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {active && (
+                                    <motion.div
+                                      layoutId="programsFilter"
+                                      className="absolute inset-0 bg-gradient-primary rounded-lg"
+                                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                  )}
+                                  <span className="relative z-10">
+                                    {f === "active" ? "Activas" : "Completadas"}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {programsList.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {programsList.map((assignment, index) => (
+                            <AlumnoRoutineCard
+                              key={assignment.id}
+                              assignment={assignment}
+                              index={index}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl card-elevated p-6 text-center">
+                          <p className="text-sm text-muted-foreground">
+                            {programsFilter === "completed"
+                              ? "Todavía no completaste ningún programa."
+                              : "No tenés programas activos."}
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </>
               )}
-            </>
+            </motion.div>
           )}
 
-          {/* ── Entreno propio: SIEMPRE disponible (con o sin coach) ── */}
+          {/* ══ BLOQUE 3 · EXPLORAR ═════════════════════════════════════════
+              Todo lo que NO es el plan de hoy: programas propios, entreno libre
+              y templates. Siempre disponible, con o sin coach. */}
           {!isLoading && !error && (
             <>
+              <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Explorar</h3>
+              </motion.div>
+
               {/* Entreno libre */}
               <motion.button
                 variants={fadeUp}
@@ -423,7 +599,28 @@ const Routines = () => {
                           </div>
                         </button>
                         <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+                          {/* Elegirlo como plan activo (o marcar que ya lo es). */}
+                          {isOwnPlanActive(plan, p.id) ? (
+                            <span
+                              aria-label="Es tu plan activo"
+                              title="Es tu plan activo"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-primary bg-primary/10"
+                            >
+                              <Check className="w-4 h-4" />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => pickOwnPlan(p, e)}
+                              aria-label="Usar como mi plan"
+                              title="Usar como mi plan"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                            >
+                              <Target className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
+                            type="button"
                             onClick={() => navigate(`/programa/${p.id}/editar`)}
                             aria-label="Editar programa"
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
@@ -431,6 +628,7 @@ const Routines = () => {
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteProgram(p)}
                             aria-label="Eliminar programa"
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"

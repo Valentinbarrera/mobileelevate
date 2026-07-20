@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { RefreshCw, GraduationCap, ChevronRight, Dumbbell } from "lucide-react";
@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
 import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
+import OwnPlanCard from "@/components/home/OwnPlanCard";
+import { loadActivePlan, nextProgramDay } from "@/lib/activePlan";
+import { getMyProgram } from "@/lib/myPrograms";
 import RestDayCard from "@/components/home/RestDayCard";
 import WeeklyGoalCard from "@/components/home/WeeklyGoalCard";
 import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
@@ -45,6 +48,18 @@ const Index = () => {
   const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
   const { setForDate } = useSessionOverrides(overrideSid);
   const [showReschedule, setShowReschedule] = useState(false);
+
+  // Plan activo: el del coach por defecto, o uno propio si el alumno lo eligió.
+  // Se relee en cada montaje de Inicio, que es cuando puede haber cambiado
+  // (se activa desde el detalle del programa).
+  const ownPlanNext = useMemo(() => {
+    const plan = loadActivePlan(overrideSid);
+    if (plan.type !== "own") return null;
+    const program = getMyProgram(overrideSid, plan.programId);
+    if (!program) return null;
+    const next = nextProgramDay(overrideSid, program);
+    return next ? { program, day: next.day, index: next.index } : null;
+  }, [overrideSid]);
 
   // Onboarding obligatorio la 1ª vez: si es alumno real y no completó el
   // cuestionario, lo llevamos una vez por sesión (flag para no atraparlo si sale).
@@ -133,7 +148,18 @@ const Index = () => {
   const hasWorkoutToday = !!(todayRoutineDay && activeRoutine);
 
   // Héroe: el entreno de hoy (o el estado de descanso). Es el protagonista.
-  const heroCard = hasWorkoutToday ? (
+  // Si el alumno eligió un programa PROPIO como plan activo, manda ese: es la
+  // respuesta a "¿qué entreno?" y no puede haber dos. Si el programa se borró,
+  // `ownPlanProgram` queda null y se vuelve solo al plan del coach.
+  const heroCard = ownPlanNext ? (
+    <motion.div variants={fadeUp}>
+      <OwnPlanCard
+        program={ownPlanNext.program}
+        day={ownPlanNext.day}
+        index={ownPlanNext.index}
+      />
+    </motion.div>
+  ) : hasWorkoutToday ? (
     <motion.div variants={fadeUp}>
       <CoachWorkoutCard
         routineDay={todayRoutineDay!}
@@ -152,13 +178,14 @@ const Index = () => {
   );
 
   // Link secundario, agrupado bajo el héroe (solo si hoy hay entreno)
-  const heroExtras = hasWorkoutToday && (
+  const heroExtras = !ownPlanNext && hasWorkoutToday && (
     <motion.div variants={fadeUp}>
       <ViewAllRoutinesLink />
     </motion.div>
   );
 
-  const rescheduleBtn = activeRoutine && allDays.length > 0 && (
+  // Reprogramar es del calendario del coach: no aplica a un plan propio (rota).
+  const rescheduleBtn = !ownPlanNext && activeRoutine && allDays.length > 0 && (
     <motion.button
       variants={fadeUp}
       onClick={() => setShowReschedule(true)}

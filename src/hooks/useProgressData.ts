@@ -10,6 +10,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { getLocalDateString, getStartOfWeekLocal, parseLocalDateString } from "@/lib/date";
 import { getUserErrorMessage } from "@/lib/errors";
 import { MOCK_COMPLETED_SESSIONS } from "@/lib/mock-data";
+import { fetchOwnSessionDates } from "@/lib/ownWorkoutsApi";
 
 interface WorkoutHistoryItem {
   id: string;
@@ -75,6 +76,11 @@ export function useProgressData() {
 
     try {
       let sessions: { id: string; date: string; total_tonnage: number | null; notes: string | null }[];
+      // Fechas de los entrenos de programas PROPIOS del alumno: la racha, los días
+      // activos del mes y las sesiones de la semana tienen que contar los dos tipos
+      // de entreno (coach + propio), si no el historial los muestra pero la racha
+      // los ignora. En modo admin/demo no se consulta la base.
+      let ownDates: string[] = [];
 
       if (isAdminMode) {
         sessions = MOCK_COMPLETED_SESSIONS.map(s => ({
@@ -93,7 +99,16 @@ export function useProgressData() {
 
         if (sessionsError) throw sessionsError;
         sessions = data || [];
+        // Best-effort: nunca lanza; si la tabla no existe devuelve [] y todo
+        // queda exactamente como antes.
+        ownDates = await fetchOwnSessionDates(student!.id);
       }
+
+      // Días con actividad, UNIFICADOS y deduplicados por fecha: si el alumno hizo
+      // un entreno del coach y uno propio el mismo día, es UN día activo, no dos.
+      const activityDates = [
+        ...new Set([...(sessions || []).map(s => s.date), ...ownDates].filter(Boolean)),
+      ].sort((a, b) => b.localeCompare(a));
 
       // Workout history
       const history: WorkoutHistoryItem[] = (sessions || []).map(s => ({
@@ -104,8 +119,8 @@ export function useProgressData() {
       }));
       setWorkoutHistory(history);
 
-      // Streak
-      const streak = calculateStreak(sessions || []);
+      // Streak (sobre los días unificados coach + propios)
+      const streak = calculateStreak(activityDates.map(date => ({ date })));
       setCurrentStreak(streak);
 
       // Active days this month
@@ -113,21 +128,21 @@ export function useProgressData() {
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      const thisMonthSessions = (sessions || []).filter(s => {
-        const [year, month] = s.date.split('-').map(Number);
+      const thisMonthDates = activityDates.filter(d => {
+        const [year, month] = d.split('-').map(Number);
         return month - 1 === currentMonth && year === currentYear;
       });
 
-      const activeDays = [...new Set(thisMonthSessions.map(s => {
-        return parseInt(s.date.split('-')[2], 10);
+      const activeDays = [...new Set(thisMonthDates.map(d => {
+        return parseInt(d.split('-')[2], 10);
       }))];
       setActiveDaysThisMonth(activeDays);
 
-      // Sessions this week
+      // Sessions this week (días entrenados, ya deduplicados)
       const startDateStr = getLocalDateString(getStartOfWeekLocal());
 
-      const thisWeekSessions = (sessions || []).filter(s => s.date >= startDateStr);
-      setSessionsThisWeek(thisWeekSessions.length);
+      const thisWeekDates = activityDates.filter(d => d >= startDateStr);
+      setSessionsThisWeek(thisWeekDates.length);
 
       // Weekly sessions count per week
       const sessionsByWeek: { [key: string]: number } = {};
@@ -147,7 +162,10 @@ export function useProgressData() {
 
       setWeeklySessions(weeklySessionsData);
 
-      // Personal best tonnage (max total_tonnage in a single session)
+      // Personal best tonnage (max total_tonnage in a single session).
+      // A propósito NO suma los entrenos propios: `fetchOwnSessionDates` solo trae
+      // fechas (es la consulta liviana) y el récord de tonelaje se calcula sobre las
+      // series del plan del coach, que son las comparables entre sí.
       const maxTonnage = (sessions || []).reduce((max, s) =>
         (s.total_tonnage || 0) > max ? (s.total_tonnage || 0) : max, 0
       );
