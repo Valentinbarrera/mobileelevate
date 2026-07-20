@@ -18,6 +18,7 @@ import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
+import ExerciseVideoPlayer from "@/components/workout/ExerciseVideoPlayer";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import ReadinessCheck from "@/components/workout/ReadinessCheck";
@@ -57,6 +58,8 @@ import {
   saveActiveWorkout,
   loadActiveWorkout,
   clearActiveWorkout,
+  elapsedAtSave,
+  snapshotAge,
   type ActiveWorkoutSnapshot,
   type PersistedExerciseState,
 } from "@/lib/activeWorkout";
@@ -205,6 +208,7 @@ const CoachWorkoutDetail = () => {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showReadiness, setShowReadiness] = useState(false);
+  const [headerVideo, setHeaderVideo] = useState(false); // video del ejercicio activo, desde el header
 
   // Exercise completed modal state
   const [showExerciseCompleted, setShowExerciseCompleted] = useState(false);
@@ -355,8 +359,16 @@ const CoachWorkoutDetail = () => {
     if (resumeSnapshot.orderIds?.length) {
       updatePlan((prev) => ({ ...prev, order: resumeSnapshot.orderIds as string[] }));
     }
-    startedAtRef.current = resumeSnapshot.startedAt;
-    pausedTotalRef.current = resumeSnapshot.pausedTotal;
+    // Si la sesión es de otro día, re-anclamos el cronómetro al tiempo que ya
+    // llevaba entrenado: mantener el ancla original mostraría las horas que
+    // pasaron desde que la dejó (un entreno de ayer arrancaría en 20 h).
+    if (resumeSnapshot.date !== getLocalDateString()) {
+      startedAtRef.current = Date.now() - elapsedAtSave(resumeSnapshot);
+      pausedTotalRef.current = 0;
+    } else {
+      startedAtRef.current = resumeSnapshot.startedAt;
+      pausedTotalRef.current = resumeSnapshot.pausedTotal;
+    }
     pausedAtRef.current = null;
     resumeSession(resumeSnapshot.session);
     setWorkoutStarted(true);
@@ -851,6 +863,23 @@ const CoachWorkoutDetail = () => {
 
   // La rutina del coach con los ajustes de hoy ya aplicados (ver sessionExercises).
   const exercises = sessionExercises;
+  const activeExercise = exercises.find((e) => e.id === activeExerciseId) ?? null;
+
+  // Video del ejercicio en curso desde el header: el del coach si lo cargó, y
+  // si no una búsqueda en YouTube por el nombre (mismo criterio que la card).
+  const openActiveVideo = () => {
+    if (!activeExercise) return;
+    if (activeExercise.videoUrl && !/youtu\.?be/i.test(activeExercise.videoUrl)) {
+      setHeaderVideo(true);
+      return;
+    }
+    const url =
+      activeExercise.videoUrl ||
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(
+        activeExercise.name + " técnica ejercicio"
+      )}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
   const hasPlanChanges = planHasChanges(plan);
   const exerciseGroups = computeExerciseGroups(exercises);
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
@@ -889,9 +918,12 @@ const CoachWorkoutDetail = () => {
               <h3 className="text-lg font-black text-foreground tracking-tight">Tenés un entreno en curso</h3>
               <p className="text-sm text-muted-foreground mt-1.5">
                 Dejaste{" "}
-                <span className="font-semibold text-foreground">{resumeSnapshot.routineName || "tu entreno"}</span> a mitad
+                <span className="font-semibold text-foreground">{resumeSnapshot.routineName || "tu entreno"}</span> a mitad{" "}
+                <span className="font-semibold text-foreground">
+                  {snapshotAge(resumeSnapshot, getLocalDateString())}
+                </span>
                 {resumeSetsDone > 0
-                  ? ` con ${resumeSetsDone} ${resumeSetsDone === 1 ? "serie cargada" : "series cargadas"}`
+                  ? `, con ${resumeSetsDone} ${resumeSetsDone === 1 ? "serie cargada" : "series cargadas"}`
                   : ""}
                 . ¿Retomamos donde ibas?
               </p>
@@ -936,6 +968,8 @@ const CoachWorkoutDetail = () => {
             completedSets={completedSets}
             totalSets={totalSets}
             onFinish={handleFinishWorkout}
+            activeExerciseName={activeExercise?.name}
+            onOpenVideo={activeExercise ? openActiveVideo : undefined}
           />
         )}
       </AnimatePresence>
@@ -1250,6 +1284,27 @@ const CoachWorkoutDetail = () => {
             transition={{ duration: 0.2 }}
           >
             <ExerciseLibrary onClose={() => setShowLibrary(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Video de técnica del ejercicio activo, abierto desde el header */}
+      <AnimatePresence>
+        {headerVideo && activeExercise?.videoUrl && (
+          <motion.div
+            className="fixed inset-0 z-[140] flex items-center justify-center bg-background/90 backdrop-blur-sm p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setHeaderVideo(false)}
+          >
+            <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+              <ExerciseVideoPlayer
+                videoUrl={activeExercise.videoUrl}
+                exerciseName={activeExercise.name}
+                onClose={() => setHeaderVideo(false)}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

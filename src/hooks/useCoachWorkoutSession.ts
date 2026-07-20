@@ -343,6 +343,7 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     session,
     loading,
     startSession,
+    resumeSession, // sin esto, "Reanudar entrenamiento" reventaba al tocarlo
     completeSet,
     updateSet,
     deleteSet,

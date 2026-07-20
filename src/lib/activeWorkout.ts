@@ -36,7 +36,12 @@ export interface ActiveWorkoutSnapshot {
 }
 
 const keyFor = (studentId: string) => `elevate_active_workout_${studentId}`;
-const MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 h
+/**
+ * Una sesión a medias se puede retomar hasta 7 días después: el alumno arranca
+ * el entreno, lo corta, y lo termina otro día. Pasado ese plazo ya no tiene
+ * sentido continuarla y se descarta.
+ */
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function saveActiveWorkout(studentId: string, snap: ActiveWorkoutSnapshot) {
   try {
@@ -47,15 +52,16 @@ export function saveActiveWorkout(studentId: string, snap: ActiveWorkoutSnapshot
 }
 
 /**
- * Devuelve la sesión en curso si existe, es de HOY, es reciente y tiene al menos
- * una serie cargada. Si está vencida o es de otro día, la limpia y devuelve null.
+ * Devuelve la sesión a medias si existe, no está vencida y tiene al menos una
+ * serie cargada. Puede ser de un día anterior: el alumno puede retomarla.
+ * Si está vencida, la limpia y devuelve null.
  */
-export function loadActiveWorkout(studentId: string, todayDate: string): ActiveWorkoutSnapshot | null {
+export function loadActiveWorkout(studentId: string, _todayDate?: string): ActiveWorkoutSnapshot | null {
   try {
     const raw = localStorage.getItem(keyFor(studentId));
     if (!raw) return null;
     const snap = JSON.parse(raw) as ActiveWorkoutSnapshot;
-    if (snap.date !== todayDate || Date.now() - snap.savedAt > MAX_AGE_MS) {
+    if (Date.now() - snap.savedAt > MAX_AGE_MS) {
       clearActiveWorkout(studentId);
       return null;
     }
@@ -65,6 +71,21 @@ export function loadActiveWorkout(studentId: string, todayDate: string): ActiveW
   } catch {
     return null;
   }
+}
+
+/** Tiempo de entreno ya acumulado cuando se guardó (para no contar el tiempo ausente). */
+export const elapsedAtSave = (snap: ActiveWorkoutSnapshot) =>
+  Math.max(0, snap.savedAt - snap.startedAt - snap.pausedTotal);
+
+/** Texto para el prompt de reanudar: "hoy", "ayer" o "hace N días". */
+export function snapshotAge(snap: ActiveWorkoutSnapshot, todayDate: string): string {
+  if (snap.date === todayDate) return "hoy";
+  const days = Math.round(
+    (new Date(todayDate + "T00:00:00").getTime() - new Date(snap.date + "T00:00:00").getTime()) /
+      86_400_000
+  );
+  if (days === 1) return "ayer";
+  return days > 1 ? `hace ${days} días` : "hoy";
 }
 
 export function clearActiveWorkout(studentId: string) {

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pause, Play, X, Check } from "lucide-react";
+import { Pause, Play, X, Check, Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -12,6 +12,14 @@ interface ActiveWorkoutHeaderProps {
   completedSets: number;
   totalSets: number;
   onFinish?: () => void;
+  /**
+   * Video de técnica del ejercicio en curso. Se ofrece acá arriba porque el
+   * alumno lo necesita justo antes de levantar, sin tener que desplegar la
+   * sección "Técnica" de la card. Si el coach no cargó video, la página cae a
+   * una búsqueda en YouTube, así que el botón se muestra igual.
+   */
+  activeExerciseName?: string;
+  onOpenVideo?: () => void;
 }
 
 const ActiveWorkoutHeader = ({
@@ -23,6 +31,8 @@ const ActiveWorkoutHeader = ({
   completedSets,
   totalSets,
   onFinish,
+  activeExerciseName,
+  onOpenVideo,
 }: ActiveWorkoutHeaderProps) => {
   const navigate = useNavigate();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -56,27 +66,41 @@ const ActiveWorkoutHeader = ({
         </div>
 
         <div className="px-5 py-3">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
             {/* Exit Button + Timer */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 min-w-0">
               <motion.button
                 onClick={handleExit}
-                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
+                className="w-9 h-9 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
                 whileTap={{ scale: 0.95 }}
               >
                 <X className="w-5 h-5" />
               </motion.button>
-              
-              <div>
-                <span className="text-2xl font-black text-foreground tabular-nums tracking-tight">
+
+              <div className="min-w-0">
+                <span className="text-xl font-black text-foreground tabular-nums tracking-tight">
                   {elapsedTime}
                 </span>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Tiempo activo</p>
+                <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none">
+                  Tiempo activo
+                </p>
               </div>
+
+              {/* Video del ejercicio en curso, a mano desde acá arriba */}
+              {onOpenVideo && (
+                <motion.button
+                  onClick={onOpenVideo}
+                  aria-label={`Ver video de ${activeExerciseName || "el ejercicio"}`}
+                  className="w-9 h-9 shrink-0 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary touch-target"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Video className="w-5 h-5" />
+                </motion.button>
+              )}
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               {/* Sets Counter */}
               <div className="text-center">
                 <div className="flex items-center gap-0.5">
@@ -98,7 +122,7 @@ const ActiveWorkoutHeader = ({
               {/* Pause Button */}
               <motion.button
                 onClick={onPauseToggle}
-                className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors touch-target ${
+                className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center transition-colors touch-target ${
                   isPaused
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -116,11 +140,13 @@ const ActiveWorkoutHeader = ({
               {onFinish && (
                 <motion.button
                   onClick={onFinish}
-                  className="h-11 px-3.5 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-1.5 touch-target"
+                  aria-label="Finalizar entrenamiento"
+                  className="h-10 px-2.5 sm:px-3.5 shrink-0 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-1.5 touch-target"
                   whileTap={{ scale: 0.95 }}
                 >
                   <Check className="w-4 h-4" strokeWidth={3} />
-                  Finalizar
+                  {/* En pantallas angostas el ícono alcanza: si no, se sale del header */}
+                  <span className="hidden sm:inline">Finalizar</span>
                 </motion.button>
               )}
             </div>
