@@ -8,7 +8,7 @@ import Greeting from "@/components/home/Greeting";
 import CoachWorkoutCard from "@/components/home/CoachWorkoutCard";
 import OwnPlanCard from "@/components/home/OwnPlanCard";
 import { loadActivePlan, nextProgramDay } from "@/lib/activePlan";
-import { getMyProgram } from "@/lib/myPrograms";
+import { getMyProgram, loadMyPrograms } from "@/lib/myPrograms";
 import RestDayCard from "@/components/home/RestDayCard";
 import WeeklyGoalCard from "@/components/home/WeeklyGoalCard";
 import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
@@ -52,6 +52,12 @@ const Index = () => {
   // Plan activo: el del coach por defecto, o uno propio si el alumno lo eligió.
   // Se relee en cada montaje de Inicio, que es cuando puede haber cambiado
   // (se activa desde el detalle del programa).
+  // Programas propios disponibles (los terminados quedan archivados, no acá).
+  const myProgramsOpen = useMemo(
+    () => loadMyPrograms(overrideSid).filter((p) => !p.completedAt),
+    [overrideSid]
+  );
+
   const ownPlanNext = useMemo(() => {
     const plan = loadActivePlan(overrideSid);
     if (plan.type !== "own") return null;
@@ -199,28 +205,86 @@ const Index = () => {
   const quickActions = <QuickActions />;
 
   // Card destacada: entrenamiento autoguiado con la app (aparte del plan del coach)
+  // Modo libre: además del acceso, lista los programas que el alumno se armó.
+  // Antes era solo un link a Entrenar y sus programas quedaban escondidos a dos
+  // toques; acá los ve y los empieza directo.
   const trainWithElevateCard = (
-    <motion.button
+    <motion.div
       variants={fadeUp}
-      onClick={() => navigate("/routines")}
-      className="w-full card-elevated rounded-2xl px-4 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left overflow-hidden relative bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/25"
+      className="card-elevated rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/25"
     >
-      <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
-        <Dumbbell className="w-6 h-6 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
-          Modo libre
-        </p>
-        <p className="text-base font-black text-foreground tracking-tight">
-          Entrenar con Elevate
-        </p>
-        <p className="text-[12px] text-muted-foreground truncate">
-          Creá tus programas, entrená libre y seguí tu progreso.
-        </p>
-      </div>
-      <ChevronRight className="w-5 h-5 text-primary shrink-0" />
-    </motion.button>
+      <button
+        type="button"
+        onClick={() => navigate("/routines")}
+        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left"
+      >
+        <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+          <Dumbbell className="w-6 h-6 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
+            Modo libre
+          </p>
+          <p className="text-base font-black text-foreground tracking-tight">
+            Entrenar con Elevate
+          </p>
+          <p className="text-[12px] text-muted-foreground truncate">
+            {myProgramsOpen.length
+              ? "Tus programas, entreno libre y tu progreso."
+              : "Creá tus programas, entrená libre y seguí tu progreso."}
+          </p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-primary shrink-0" />
+      </button>
+
+      {myProgramsOpen.length > 0 ? (
+        <div className="px-3 pb-3 space-y-1.5">
+          {myProgramsOpen.map((p) => {
+            const next = nextProgramDay(overrideSid, p);
+            return (
+              <div
+                key={p.id}
+                className="flex items-center gap-2 rounded-xl bg-background/40 border border-white/[0.06] pl-3 pr-1.5 py-2"
+              >
+                <button
+                  type="button"
+                  onClick={() => navigate(`/programa/${p.id}`)}
+                  className="flex-1 min-w-0 text-left"
+                >
+                  <p className="text-sm font-bold text-foreground truncate">
+                    {p.name || "Mi programa"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {p.days.length} {p.days.length === 1 ? "día" : "días"}
+                    {next ? ` · te toca ${next.day.name}` : ""}
+                  </p>
+                </button>
+                {next && next.day.exercises.length > 0 && (
+                  <button
+                    type="button"
+                    aria-label={`Entrenar ${next.day.name} de ${p.name || "mi programa"}`}
+                    onClick={() => navigate(`/programa/${p.id}/dia/${next.day.id}/entrenar`)}
+                    className="shrink-0 h-9 px-3 rounded-lg bg-primary/15 border border-primary/25 text-primary text-xs font-bold active:scale-95 transition-transform"
+                  >
+                    Entrenar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="px-3 pb-3">
+          <button
+            type="button"
+            onClick={() => navigate("/programas/nuevo")}
+            className="w-full py-2.5 rounded-xl border border-dashed border-primary/30 text-xs font-bold text-primary active:scale-[0.99] transition-transform"
+          >
+            + Crear mi primer programa
+          </button>
+        </div>
+      )}
+    </motion.div>
   );
 
   // Acceso a la sección educativa "Aprendé" (guía de la app + recursos)
