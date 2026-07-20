@@ -405,23 +405,52 @@ const Routines = () => {
                 <h3 className="text-sm font-black text-foreground tracking-tight">Mi plan</h3>
               </div>
 
-              {/* Línea sutil: qué plan está mandando ahora mismo. */}
-              <div className="flex items-center justify-between gap-3 px-0.5">
-                <p className="text-[11px] text-muted-foreground truncate">
-                  {activeOwn
-                    ? `Tu plan: ${activeOwn.name || "Programa sin nombre"}`
-                    : "Plan de tu coach"}
-                </p>
-                {activeOwn && assignments.length > 0 && (
+              {/* Selector de plan. El del coach es UNA OPCIÓN MÁS, no un "volver
+                  atrás": si fuera solo un link de deshacer, el alumno que cambió
+                  de plan no tendría cómo darse cuenta de que puede regresar.
+                  Solo se muestra si de verdad hay entre qué elegir. */}
+              {assignments.length > 0 && openPrograms.length > 0 && (
+                <div className="-mx-1 px-1 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                   <button
                     type="button"
                     onClick={backToCoachPlan}
-                    className="text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors shrink-0"
+                    aria-pressed={!activeOwn}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                      !activeOwn
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+                    }`}
                   >
-                    Volver al plan de mi coach
+                    Mi coach
                   </button>
-                )}
-              </div>
+                  {openPrograms.map((p) => {
+                    const active = isOwnPlanActive(plan, p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={(e) => pickOwnPlan(p, e)}
+                        aria-pressed={active}
+                        className={`shrink-0 max-w-[60%] truncate px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+                        }`}
+                      >
+                        {p.name || "Programa sin nombre"}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Qué plan manda ahora mismo (siempre visible, aunque no haya
+                  entre qué elegir). */}
+              <p className="text-[11px] text-muted-foreground truncate px-0.5">
+                {activeOwn
+                  ? `Tu plan: ${activeOwn.name || "Programa sin nombre"}`
+                  : "Plan de tu coach"}
+              </p>
 
               {activeOwn ? (
                 <>
