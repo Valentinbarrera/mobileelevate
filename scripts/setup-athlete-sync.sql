@@ -81,10 +81,14 @@ CREATE TABLE IF NOT EXISTS public.my_programs (
   origin        text NOT NULL DEFAULT 'propio',  -- 'propio' | 'template'
   template_id   text,
   split_id      text,
-  days          jsonb NOT NULL DEFAULT '[]'::jsonb,  -- [{id,name,exercises:[...]}]
+  days          jsonb NOT NULL DEFAULT '[]'::jsonb,  -- [{id,name,week,exercises:[...]}]
+  completed_at  timestamptz,                          -- lo dio por terminado (null = disponible)
   created_at    timestamptz NOT NULL DEFAULT now(),
   updated_at    timestamptz NOT NULL DEFAULT now()
 );
+
+-- Por si la tabla ya existía de una corrida anterior sin esta columna.
+ALTER TABLE public.my_programs ADD COLUMN IF NOT EXISTS completed_at timestamptz;
 
 CREATE INDEX IF NOT EXISTS idx_my_programs_student
   ON public.my_programs (student_id, created_at DESC);

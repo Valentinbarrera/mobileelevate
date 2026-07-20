@@ -132,6 +132,7 @@ export async function pushMyProgram(studentId: string, program: MyProgram): Prom
       template_id: program.templateId ?? null,
       split_id: program.splitId ?? null,
       days: program.days,
+      completed_at: program.completedAt ?? null,
       created_at: program.createdAt,
     },
     "id"
@@ -152,7 +153,7 @@ export async function fetchMyPrograms(studentId: string): Promise<MyProgram[]> {
   if (!isRealStudent(studentId)) return [];
   const rows = await selectRows(
     "my_programs",
-    "id,name,description,level,weeks,days_per_week,origin,template_id,split_id,days,created_at",
+    "id,name,description,level,weeks,days_per_week,origin,template_id,split_id,days,completed_at,created_at",
     studentId,
     { column: "created_at", ascending: true }
   );
@@ -167,6 +168,7 @@ export async function fetchMyPrograms(studentId: string): Promise<MyProgram[]> {
     origin: (r.origin as MyProgram["origin"]) ?? "propio",
     templateId: (r.template_id as string) ?? undefined,
     splitId: (r.split_id as string) ?? undefined,
+    completedAt: (r.completed_at as string) ?? null,
     createdAt: String(r.created_at ?? new Date().toISOString()),
   }));
 }

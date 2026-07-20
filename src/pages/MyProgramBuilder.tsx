@@ -24,6 +24,9 @@ import {
   LayoutGrid,
   BookMarked,
   FolderOpen,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
@@ -35,6 +38,8 @@ import {
   getMyProgram,
   saveMyProgram,
   newId,
+  groupDaysByWeek,
+  programWeekCount,
   type MyProgram,
   type ProgramDay,
   type ProgramExercise,
@@ -58,6 +63,12 @@ type Step = "config" | "split" | "exercises";
 
 const WEEK_OPTIONS = [4, 6, 8, 12];
 const DAY_OPTIONS = [1, 2, 3, 4, 5, 6];
+
+/**
+ * Semana de un día, tolerante con programas viejos: sin `week` (o inválida)
+ * cuenta como semana 1, igual que en groupDaysByWeek.
+ */
+const weekOf = (d: ProgramDay) => (d.week && d.week > 0 ? d.week : 1);
 
 /* ── Tile de opción (chip grande tipo la referencia) ── */
 const OptionTile = ({
@@ -366,8 +377,16 @@ export default function MyProgramBuilder() {
 
   const [program, setProgram] = useState<MyProgram>(() => existing ?? { ...emptyProgram(), weeks: 8, days: [] });
   const [step, setStep] = useState<Step>(isEditing ? "exercises" : "config");
-  const [daysPerWeek, setDaysPerWeek] = useState<number>(existing?.days.length ?? 0);
-  const [activeDayIdx, setActiveDayIdx] = useState(0);
+  // Los días/semana se cuentan sobre la semana 1: en un programa con varias
+  // semanas, program.days.length es el TOTAL, no los días semanales.
+  const [daysPerWeek, setDaysPerWeek] = useState<number>(
+    existing ? existing.days.filter((d) => weekOf(d) === 1).length : 0
+  );
+  // Identificamos el día activo por id y no por índice: con las semanas la lista
+  // visible se filtra y un índice apuntaría al día equivocado.
+  const [activeDayId, setActiveDayId] = useState<string>(existing?.days[0]?.id ?? "");
+  const [activeWeek, setActiveWeek] = useState<number>(existing?.days[0] ? weekOf(existing.days[0]) : 1);
+  const [weekMenuOpen, setWeekMenuOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -408,11 +427,50 @@ export default function MyProgramBuilder() {
       ),
     }));
 
+  /** El día nuevo nace en la semana que se está viendo (cero fricción). */
   const addExtraDay = () =>
-    setProgram((p) => ({
-      ...p,
-      days: [...p.days, { id: newId(), name: `Día ${p.days.length + 1}`, exercises: [] }],
-    }));
+    setProgram((p) => {
+      const day: ProgramDay = {
+        id: newId(),
+        name: `Día ${p.days.filter((d) => weekOf(d) === activeWeek).length + 1}`,
+        exercises: [],
+        week: activeWeek,
+      };
+      setActiveDayId(day.id);
+      return { ...p, days: [...p.days, day] };
+    });
+
+  /**
+   * Agrega la semana siguiente. Duplicando, copia la estructura de la última
+   * semana (el caso real del mesociclo: misma rutina, más carga) con ids NUEVOS
+   * para que los días no se pisen entre sí.
+   */
+  const addWeek = (duplicate: boolean) => {
+    setProgram((p) => {
+      const nextWeek = programWeekCount(p) + 1;
+      const source = duplicate ? p.days.filter((d) => weekOf(d) === nextWeek - 1) : [];
+      const days: ProgramDay[] = source.map((d) => ({
+        id: newId(),
+        name: d.name,
+        week: nextWeek,
+        exercises: d.exercises.map((e) => ({ ...e })),
+      }));
+      if (!days.length) days.push({ id: newId(), name: "Día 1", exercises: [], week: nextWeek });
+      setActiveWeek(nextWeek);
+      setActiveDayId(days[0].id);
+      // La duración declarada nunca puede quedar por debajo del diseño real.
+      return { ...p, days: [...p.days, ...days], weeks: Math.max(p.weeks ?? 0, nextWeek) };
+    });
+    setWeekMenuOpen(false);
+    setPickerOpen(false);
+  };
+
+  /** Mueve un día de semana (respetando el mínimo de 1). */
+  const moveDayToWeek = (dayId: string, week: number) => {
+    if (week < 1) return;
+    patchDay(dayId, { week });
+    setActiveWeek(week);
+  };
 
   const removeDay = (dayId: string) =>
     setProgram((p) => {
@@ -421,7 +479,11 @@ export default function MyProgramBuilder() {
         return p;
       }
       const days = p.days.filter((d) => d.id !== dayId);
-      setActiveDayIdx((i) => Math.min(i, days.length - 1));
+      if (activeDayId === dayId) {
+        const fallback = days.find((d) => weekOf(d) === activeWeek) ?? days[0];
+        setActiveDayId(fallback.id);
+        setActiveWeek(weekOf(fallback));
+      }
       return { ...p, days };
     });
 
@@ -433,18 +495,17 @@ export default function MyProgramBuilder() {
   };
 
   /* ── Paso 2: elegir split o desde cero ── */
-  const chooseSplit = (preset: SplitPreset) => {
-    setProgram((p) => ({ ...p, days: daysFromPreset(preset), splitId: preset.id, daysPerWeek }));
-    setActiveDayIdx(0);
+  // El esqueleto inicial siempre es la semana 1; después se agregan más semanas.
+  const startWithDays = (days: ProgramDay[], splitId?: string) => {
+    const week1 = days.map((d) => ({ ...d, week: 1 }));
+    setProgram((p) => ({ ...p, days: week1, splitId, daysPerWeek }));
+    setActiveDayId(week1[0]?.id ?? "");
+    setActiveWeek(1);
     setPickerOpen(false);
     setStep("exercises");
   };
-  const chooseBlank = () => {
-    setProgram((p) => ({ ...p, days: blankDays(daysPerWeek), splitId: undefined, daysPerWeek }));
-    setActiveDayIdx(0);
-    setPickerOpen(false);
-    setStep("exercises");
-  };
+  const chooseSplit = (preset: SplitPreset) => startWithDays(daysFromPreset(preset), preset.id);
+  const chooseBlank = () => startWithDays(blankDays(daysPerWeek), undefined);
 
   /* ── Guardar ── */
   const persist = (opts: { silent?: boolean } = {}) => {
@@ -452,10 +513,13 @@ export default function MyProgramBuilder() {
       toast.error("Ponele un nombre a tu programa");
       return false;
     }
+    // `days` (con su `week`) se guarda entero, así que la semana persiste sola.
+    // daysPerWeek se calcula sobre la semana 1 para no contar el mesociclo entero
+    // (en programas viejos, sin semanas, da exactamente lo mismo que antes).
     const toSave: MyProgram = {
       ...program,
       name: program.name.trim(),
-      daysPerWeek: program.days.length,
+      daysPerWeek: program.days.filter((d) => weekOf(d) === 1).length || program.days.length,
     };
     saveMyProgram(sid, toSave);
     if (!opts.silent) toast.success("Programa guardado 💪");
@@ -477,8 +541,16 @@ export default function MyProgramBuilder() {
   };
 
   const availablePresets = useMemo(() => presetsForDays(daysPerWeek), [daysPerWeek]);
-  const activeDay = program.days[activeDayIdx];
-  const isLastDay = activeDayIdx >= program.days.length - 1;
+
+  /* ── Semanas ── */
+  const weekGroups = useMemo(() => groupDaysByWeek(program), [program]);
+  // Fallback defensivo: si la semana activa quedó vacía (borré su último día),
+  // caemos a la primera que tenga días, así nunca se ve una pantalla en blanco.
+  const currentGroup = weekGroups.find((g) => g.week === activeWeek) ?? weekGroups[0];
+  const weekDays = currentGroup?.days ?? [];
+  const activeDay = weekDays.find((d) => d.id === activeDayId) ?? weekDays[0];
+  const activeDayIdx = activeDay ? weekDays.findIndex((d) => d.id === activeDay.id) : -1;
+  const isLastDay = activeDayIdx >= weekDays.length - 1;
 
   /* ── Plantillas de día (guardar / usar) ── */
   const saveDayAsTemplate = () => {
@@ -624,16 +696,75 @@ export default function MyProgramBuilder() {
           {/* ─────────── PASO 3: EJERCICIOS POR DÍA ─────────── */}
           {step === "exercises" && activeDay && (
             <motion.div variants={fadeUp} className="space-y-4">
-              {/* Tabs de días */}
+              {/* Pestañas de semana: el mesociclo se navega semana por semana */}
               <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
-                {program.days.map((d, i) => {
-                  const active = i === activeDayIdx;
+                {weekGroups.map((g) => {
+                  const active = g.week === (currentGroup?.week ?? 1);
+                  return (
+                    <button
+                      key={g.week}
+                      type="button"
+                      onClick={() => {
+                        setActiveWeek(g.week);
+                        setActiveDayId(g.days[0]?.id ?? "");
+                        setPickerOpen(false);
+                        setWeekMenuOpen(false);
+                      }}
+                      className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-colors ${
+                        active
+                          ? "bg-primary/15 text-primary border-primary/40"
+                          : "bg-secondary/50 text-muted-foreground border-white/[0.06]"
+                      }`}
+                    >
+                      Semana {g.week}
+                      <span className="ml-1.5 opacity-60 tabular-nums">{g.days.length}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setWeekMenuOpen((v) => !v)}
+                  aria-label="Agregar semana"
+                  className="shrink-0 w-9 h-9 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Cómo nace la semana nueva: vacía o clonando la anterior */}
+              {weekMenuOpen && (
+                <div className="rounded-2xl border border-primary/25 bg-secondary/30 p-3 space-y-2">
+                  <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                    Nueva semana {programWeekCount(program) + 1}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => addWeek(true)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                  >
+                    <Copy className="w-4 h-4 text-primary" /> Duplicar semana {programWeekCount(program)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addWeek(false)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-white/10 text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                  >
+                    <Plus className="w-4 h-4 text-primary" /> Empezar vacía
+                  </button>
+                </div>
+              )}
+
+              {/* Tabs de días (solo los de la semana activa) */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                {weekDays.map((d) => {
+                  const active = d.id === activeDay.id;
                   const count = d.exercises.length;
                   return (
                     <button
                       key={d.id}
+                      type="button"
                       onClick={() => {
-                        setActiveDayIdx(i);
+                        setActiveDayId(d.id);
                         setPickerOpen(false);
                       }}
                       className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
@@ -648,6 +779,7 @@ export default function MyProgramBuilder() {
                   );
                 })}
                 <button
+                  type="button"
                   onClick={addExtraDay}
                   aria-label="Agregar día"
                   className="shrink-0 w-9 h-9 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
@@ -668,7 +800,31 @@ export default function MyProgramBuilder() {
                     placeholder={`Día ${activeDayIdx + 1}`}
                     className="flex-1 min-w-0 bg-transparent text-sm font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
                   />
+                  {/* Stepper de semana al lado del nombre: mover el día sin salir del editor */}
+                  <div className="flex items-center gap-0.5 shrink-0 rounded-lg bg-secondary/60 border border-white/[0.06] px-1 py-0.5">
+                    <button
+                      type="button"
+                      onClick={() => moveDayToWeek(activeDay.id, weekOf(activeDay) - 1)}
+                      disabled={weekOf(activeDay) <= 1}
+                      aria-label="Mover el día a la semana anterior"
+                      className="text-muted-foreground p-0.5 disabled:opacity-30 active:text-foreground"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider tabular-nums px-0.5">
+                      Sem {weekOf(activeDay)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => moveDayToWeek(activeDay.id, weekOf(activeDay) + 1)}
+                      aria-label="Mover el día a la semana siguiente"
+                      className="text-muted-foreground p-0.5 active:text-foreground"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <button
+                    type="button"
                     onClick={() => removeDay(activeDay.id)}
                     aria-label="Eliminar día"
                     className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
@@ -764,8 +920,10 @@ export default function MyProgramBuilder() {
               {/* Navegación entre días */}
               {!isLastDay ? (
                 <button
+                  type="button"
                   onClick={() => {
-                    setActiveDayIdx((i) => i + 1);
+                    const next = weekDays[activeDayIdx + 1];
+                    if (next) setActiveDayId(next.id);
                     setPickerOpen(false);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}

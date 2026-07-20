@@ -19,7 +19,10 @@ import {
   loadMyPrograms,
   deleteMyProgram,
   hydrateMyPrograms,
+  programStatus,
+  PROGRAM_STATUS_LABEL,
   type MyProgram,
+  type ProgramStatus,
 } from "@/lib/myPrograms";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
@@ -60,6 +63,12 @@ type ProgramsFilter = "active" | "completed";
 
 const MAX_OWN_PROGRAMS = 2;
 
+const PROGRAM_STATUS_STYLES: Record<ProgramStatus, string> = {
+  en_curso: "bg-primary/15 text-primary border-primary/25",
+  guardado: "bg-secondary/60 text-muted-foreground border-white/[0.06]",
+  terminado: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+};
+
 const Routines = () => {
   const navigate = useNavigate();
   const { student } = useAuthContext();
@@ -78,7 +87,11 @@ const Routines = () => {
       cancelled = true;
     };
   }, [student]);
-  const atProgramLimit = myPrograms.length >= MAX_OWN_PROGRAMS;
+  // Los terminados están archivados: no ocupan lugar en el límite del plan ni se
+  // mezclan con los que el alumno puede entrenar hoy.
+  const openPrograms = useMemo(() => myPrograms.filter((p) => !p.completedAt), [myPrograms]);
+  const finishedPrograms = useMemo(() => myPrograms.filter((p) => !!p.completedAt), [myPrograms]);
+  const atProgramLimit = openPrograms.length >= MAX_OWN_PROGRAMS;
 
   // ── Plan ACTIVO ────────────────────────────────────────────────────────────
   // Un solo plan manda a la vez: el del coach (default) o uno propio. Toda la
@@ -205,6 +218,87 @@ const Routines = () => {
         },
       },
     });
+  };
+
+  /**
+   * Card de un programa propio. El estado es DERIVADO (el plan activo manda),
+   * así el badge nunca puede contradecir lo que Inicio muestra como plan.
+   * Un terminado no ofrece "usar como mi plan": está archivado, no en juego.
+   */
+  const renderProgramCard = (p: MyProgram) => {
+    const status = programStatus(p, isOwnPlanActive(plan, p.id));
+    const finished = status === "terminado";
+    return (
+      <div
+        key={p.id}
+        className={`rounded-2xl card-elevated p-4 flex items-start gap-2 ${
+          finished ? "opacity-60" : ""
+        }`}
+      >
+        <button
+          onClick={() => navigate(`/programa/${p.id}`)}
+          className="flex items-center gap-2 flex-1 min-w-0 text-left active:opacity-70"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+            <PencilRuler className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-foreground truncate">
+              {p.name || "Programa sin nombre"}
+            </p>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {p.days.length} {p.days.length === 1 ? "día" : "días"}/sem
+              {p.weeks ? ` · ${p.weeks} sem` : ""}
+              {p.origin === "template" ? " · template" : ""}
+            </p>
+            <span
+              className={`mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${PROGRAM_STATUS_STYLES[status]}`}
+            >
+              {PROGRAM_STATUS_LABEL[status]}
+            </span>
+          </div>
+        </button>
+        <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+          {/* Elegirlo como plan activo (o marcar que ya lo es). */}
+          {!finished &&
+            (isOwnPlanActive(plan, p.id) ? (
+              <span
+                aria-label="Es tu plan activo"
+                title="Es tu plan activo"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-primary bg-primary/10"
+              >
+                <Check className="w-4 h-4" />
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => pickOwnPlan(p, e)}
+                aria-label="Usar como mi plan"
+                title="Usar como mi plan"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Target className="w-4 h-4" />
+              </button>
+            ))}
+          <button
+            type="button"
+            onClick={() => navigate(`/programa/${p.id}/editar`)}
+            aria-label="Editar programa"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDeleteProgram(p)}
+            aria-label="Eliminar programa"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // ─── Sin coach vinculado ───────────────────────────────────────────────────
@@ -555,7 +649,7 @@ const Routines = () => {
                 <div className="rounded-2xl card-elevated px-4 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-primary tabular-nums leading-none">
-                      {myPrograms.length}
+                      {openPrograms.length}
                     </span>
                     <span className="text-sm font-bold text-muted-foreground tabular-nums leading-none">
                       /{MAX_OWN_PROGRAMS}
@@ -567,78 +661,42 @@ const Routines = () => {
                     </p>
                     {atProgramLimit && (
                       <p className="text-[11px] text-muted-foreground mt-1 leading-none">
-                        Eliminá uno para crear otro.
+                        Terminá o eliminá uno para crear otro.
+                      </p>
+                    )}
+                    {!atProgramLimit && finishedPrograms.length > 0 && (
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                        {finishedPrograms.length}{" "}
+                        {finishedPrograms.length === 1 ? "terminado" : "terminados"} (no cuentan)
                       </p>
                     )}
                   </div>
                 </div>
 
                 {myPrograms.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                    {myPrograms.map((p) => (
-                      <div
-                        key={p.id}
-                        className="rounded-2xl card-elevated p-4 flex items-start gap-2"
-                      >
-                        <button
-                          onClick={() => navigate(`/programa/${p.id}`)}
-                          className="flex items-center gap-2 flex-1 min-w-0 text-left active:opacity-70"
-                        >
-                          <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-                            <PencilRuler className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-black text-foreground truncate">
-                              {p.name || "Programa sin nombre"}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground truncate">
-                              {p.days.length} {p.days.length === 1 ? "día" : "días"}/sem
-                              {p.weeks ? ` · ${p.weeks} sem` : ""}
-                              {p.origin === "template" ? " · template" : ""}
-                            </p>
-                          </div>
-                        </button>
-                        <div className="flex items-center gap-0.5 shrink-0 -mr-1">
-                          {/* Elegirlo como plan activo (o marcar que ya lo es). */}
-                          {isOwnPlanActive(plan, p.id) ? (
-                            <span
-                              aria-label="Es tu plan activo"
-                              title="Es tu plan activo"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-primary bg-primary/10"
-                            >
-                              <Check className="w-4 h-4" />
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => pickOwnPlan(p, e)}
-                              aria-label="Usar como mi plan"
-                              title="Usar como mi plan"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                            >
-                              <Target className="w-4 h-4" />
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/programa/${p.id}/editar`)}
-                            aria-label="Editar programa"
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProgram(p)}
-                            aria-label="Eliminar programa"
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                  <>
+                    {openPrograms.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {openPrograms.map(renderProgramCard)}
+                      </div>
+                    )}
+
+                    {/* Terminados: archivados al final, sin robarle foco a los
+                        que el alumno todavía puede entrenar. */}
+                    {finishedPrograms.length > 0 && (
+                      <div className="space-y-3 pt-1">
+                        <div className="flex items-center gap-2 px-0.5">
+                          <span className="accent-bar" />
+                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                            Terminados
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {finishedPrograms.map(renderProgramCard)}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="rounded-2xl card-elevated p-6 text-center">
                     <p className="text-sm text-muted-foreground mb-3">
