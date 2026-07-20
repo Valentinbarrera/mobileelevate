@@ -3,10 +3,12 @@
  * coach (sesión de hoy, programa activo, semana y lista de rutinas del coach).
  * Sin programas propios, entreno libre ni templates — foco total en el coach.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Dumbbell, CalendarDays, Flame, Sparkles } from "lucide-react";
+import { ArrowLeft, Dumbbell, CalendarDays, Flame, Sparkles, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { loadActivePlan, clearActivePlan, type ActivePlan } from "@/lib/activePlan";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -97,6 +99,22 @@ const CoachRoutines = () => {
   const [programsFilter, setProgramsFilter] = useState<ProgramsFilter>("active");
   const programsList = programsFilter === "completed" ? completedAssignments : activeAssignments;
 
+  // Plan activo: el del coach manda salvo que el alumno haya elegido uno propio.
+  const sid = student?.id ?? "";
+  const [plan, setPlan] = useState<ActivePlan>(() =>
+    sid ? loadActivePlan(sid) : { type: "coach" }
+  );
+  useEffect(() => {
+    if (sid) setPlan(loadActivePlan(sid));
+  }, [sid]);
+  const coachPlanActive = plan.type === "coach";
+
+  const useCoachPlan = () => {
+    clearActivePlan(sid);
+    setPlan({ type: "coach" });
+    toast.success("El plan de tu coach es tu plan activo");
+  };
+
   if (!student) {
     return (
       <AppShell>
@@ -148,6 +166,39 @@ const CoachRoutines = () => {
         animate="animate"
       >
         <div className="max-w-2xl lg:max-w-6xl mx-auto px-5 lg:px-8 pt-5 space-y-6">
+          {/* Activar el plan del coach desde acá, con el mismo gesto que tienen
+              los programas propios ("Usar como mi plan"). Sin esto, el alumno que
+              se pasó a un plan propio no tiene un lugar obvio para volver. */}
+          {assignments.length > 0 &&
+            (coachPlanActive ? (
+              <motion.div
+                variants={fadeUp}
+                className="flex items-center gap-2 rounded-2xl bg-primary/10 border border-primary/25 px-4 py-3"
+              >
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <p className="text-xs font-bold text-primary">
+                  El plan de tu coach es tu plan activo
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div variants={fadeUp} className="rounded-2xl card-elevated p-4">
+                <p className="text-sm font-bold text-foreground">
+                  Ahora estás siguiendo un programa propio
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Volvé al plan de tu coach para que Inicio y tu calendario se guíen otra
+                  vez por lo que te armó.
+                </p>
+                <button
+                  type="button"
+                  onClick={useCoachPlan}
+                  className="w-full mt-3 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Usar como mi plan
+                </button>
+              </motion.div>
+            ))}
+
           <motion.div
             variants={fadeUp}
             className="relative overflow-hidden rounded-3xl border border-primary/15 card-elevated p-6 lg:p-8"
