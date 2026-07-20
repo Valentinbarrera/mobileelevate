@@ -3,7 +3,12 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Dumbbell, Plus, Flame, CalendarDays, PencilRuler, Library, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { loadMyPrograms, deleteMyProgram, type MyProgram } from "@/lib/myPrograms";
+import {
+  loadMyPrograms,
+  deleteMyProgram,
+  hydrateMyPrograms,
+  type MyProgram,
+} from "@/lib/myPrograms";
 import PageLoading from "@/components/ui/page-loading";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -41,7 +46,16 @@ const Routines = () => {
   // Programas PROPIOS del alumno (locales), separados de los del coach.
   const [myPrograms, setMyPrograms] = useState<MyProgram[]>([]);
   useEffect(() => {
-    if (student) setMyPrograms(loadMyPrograms(student.id));
+    if (!student) return;
+    setMyPrograms(loadMyPrograms(student.id));
+    // Y traemos de la nube los que no estén en este dispositivo (best-effort).
+    let cancelled = false;
+    hydrateMyPrograms(student.id).then((merged) => {
+      if (!cancelled && merged) setMyPrograms(merged);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [student]);
   const atProgramLimit = myPrograms.length >= MAX_OWN_PROGRAMS;
 

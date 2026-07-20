@@ -1,9 +1,11 @@
 /**
  * Readiness pre-sesión ("¿Cómo te sientes hoy?"). El alumno responde 5 preguntas
  * (sueño, energía, recuperación, estrés, motivación) ANTES de entrenar. Es OMITIBLE.
- * Guardado LOCAL por alumno+fecha; alimenta la "energía diaria" en Progreso.
- * Cálculo determinista (promedio → 0-100), sin IA. Sync al coach = futuro (requiere tabla).
+ * Guardado LOCAL por alumno+fecha (fuente de verdad para la UI) + push
+ * best-effort a Supabase para que el COACH lo vea y no se pierda al reinstalar.
+ * Cálculo determinista (promedio → 0-100), sin IA.
  */
+import { pushReadiness } from "@/lib/athleteSyncApi";
 export interface ReadinessData {
   sleep: number; // 1-5 (5 = dormí excelente)
   energy: number; // 1-5 (5 = a full)
@@ -43,6 +45,7 @@ export function saveReadiness(studentId: string, date: string, data: ReadinessDa
   } catch {
     /* almacenamiento no disponible */
   }
+  void pushReadiness(studentId, entry); // best-effort, no bloquea el arranque del entreno
   return entry;
 }
 

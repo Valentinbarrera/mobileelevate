@@ -42,6 +42,13 @@ begin
   begin delete from public.routine_assignments  where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.meal_plan_assignments where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.device_tokens where email = auth.email(); exception when others then null; end;
+  -- Datos sincronizados desde el teléfono (scripts/setup-athlete-sync.sql).
+  -- Tienen ON DELETE CASCADE, pero los borramos explícito para no depender de eso.
+  begin delete from public.readiness_entries where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  begin delete from public.exercise_feedback where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  begin delete from public.my_programs       where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  begin delete from public.exercise_notes    where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  begin delete from public.body_log          where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.students where email = auth.email(); exception when others then null; end;
 
   -- ── Fotos del storage (bucket privado, carpeta = uid) ────────────────────

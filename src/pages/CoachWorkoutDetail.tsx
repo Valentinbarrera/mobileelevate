@@ -25,6 +25,7 @@ import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import { saveReadiness, type ReadinessData } from "@/lib/readiness";
 import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
+import { hydrateExerciseNotes } from "@/lib/exerciseNotes";
 import { getLocalDateString } from "@/lib/date";
 import { playStartSound } from "@/lib/sound";
 import {
@@ -287,6 +288,12 @@ const CoachWorkoutDetail = () => {
       toast.success("¡Entrenamiento iniciado!");
     }
   };
+
+  // Trae de la nube las notas propias del alumno que no estén en este teléfono,
+  // antes de que las tarjetas de ejercicio las lean (best-effort, no bloquea).
+  useEffect(() => {
+    if (student?.id) void hydrateExerciseNotes(student.id);
+  }, [student?.id]);
 
   const handleReadinessComplete = (data: ReadinessData) => {
     const sid = student?.id || (isAdminMode ? "admin" : "anon");

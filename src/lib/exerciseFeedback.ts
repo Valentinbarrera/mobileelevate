@@ -1,8 +1,10 @@
 /**
  * Feedback rápido al terminar CADA ejercicio: estímulo muscular (1-5) y dolor
  * articular (1-5). Ayuda al alumno (y al coach) a afinar el plan. Es OPCIONAL.
- * Guardado LOCAL por alumno+fecha+ejercicio. Sin IA. Sync al coach = futuro.
+ * Guardado LOCAL por alumno+fecha+ejercicio + push best-effort a Supabase para
+ * que el COACH lo vea. Sin IA.
  */
+import { pushExerciseFeedback } from "@/lib/athleteSyncApi";
 export interface ExerciseFeedbackData {
   stimulus: number; // 1-5 estímulo/sensación muscular (5 = mucho estímulo)
   jointPain: number; // 1-5 dolor articular (1 = nada, 5 = mucho)
@@ -36,6 +38,7 @@ export function saveExerciseFeedback(studentId: string, entry: ExerciseFeedbackE
   } catch {
     /* almacenamiento no disponible */
   }
+  void pushExerciseFeedback(studentId, entry); // best-effort
 }
 
 export function getExerciseFeedback(

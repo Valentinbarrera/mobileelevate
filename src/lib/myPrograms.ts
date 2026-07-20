@@ -1,11 +1,13 @@
 /**
  * Programas PROPIOS del alumno (diseño propio o copiados de un template).
  * Conviven con los programas del coach, NO los reemplazan. Guardado LOCAL por
- * alumno (mismo patrón local-first del resto). Sin IA. Sync a Supabase = futuro.
+ * alumno (fuente de verdad para la UI, sin latencia) + respaldo best-effort en
+ * Supabase, así no se pierden al reinstalar y el coach puede verlos. Sin IA.
  *
  * Los tipos ProgramExercise/ProgramDay/MyProgram son la fuente de verdad que
  * comparten el diseñador, los templates y el detalle de programa.
  */
+import { pushMyProgram, deleteMyProgramRemote, fetchMyPrograms } from "@/lib/athleteSyncApi";
 
 export interface ProgramExercise {
   name: string;
@@ -70,6 +72,7 @@ export function saveMyProgram(studentId: string, program: MyProgram): MyProgram 
   const all = loadMyPrograms(studentId).filter((p) => p.id !== program.id);
   all.push(program);
   persist(studentId, all);
+  void pushMyProgram(studentId, program); // best-effort
   return program;
 }
 
@@ -78,6 +81,25 @@ export function deleteMyProgram(studentId: string, id: string) {
     studentId,
     loadMyPrograms(studentId).filter((p) => p.id !== id)
   );
+  void deleteMyProgramRemote(studentId, id); // best-effort
+}
+
+/**
+ * Trae de la nube los programas que no estén en este dispositivo y los guarda
+ * en local. Gana SIEMPRE la versión local (es la que el alumno viene editando
+ * acá); el remoto solo aporta los que faltan. Devuelve la lista ya mergeada, o
+ * null si no hubo nada nuevo que traer. Best-effort: sin tabla/red, no hace nada.
+ */
+export async function hydrateMyPrograms(studentId: string): Promise<MyProgram[] | null> {
+  const remote = await fetchMyPrograms(studentId);
+  if (!remote.length) return null;
+  const local = loadMyPrograms(studentId);
+  const localIds = new Set(local.map((p) => p.id));
+  const missing = remote.filter((p) => !localIds.has(p.id));
+  if (!missing.length) return null;
+  const merged = [...local, ...missing];
+  persist(studentId, merged);
+  return merged;
 }
 
 /** Crea un programa propio vacío listo para editar. */
