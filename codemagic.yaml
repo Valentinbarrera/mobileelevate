@@ -6,14 +6,15 @@ workflows:
     integrations:
       app_store_connect: codemagic
     environment:
-      # Firma AUTOMÁTICA: Codemagic guarda el certificado de distribución y lo
-      # REUSA en cada build. Antes se generaba una clave nueva y se creaba un
-      # certificado por build (`openssl genrsa` + `--create`), y como Apple
-      # permite muy pocos certificados de distribución, a los pocos builds se
-      # agotaba el cupo y el archive fallaba con "requires a provisioning profile".
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: tech.elevatefit.app
+      # La firma usa una clave privada FIJA guardada en la variable secreta
+      # CERTIFICATE_PRIVATE_KEY (grupo `appstore`). Es la pieza clave: como la
+      # clave no cambia, `fetch-signing-files --create` encuentra el certificado
+      # de distribución que ya existe y lo REUSA. Antes se generaba una clave
+      # nueva con `openssl genrsa` en cada build, así que Apple veía una clave
+      # distinta y emitía un certificado nuevo cada vez; como el cupo es de 3,
+      # a los pocos builds el archive fallaba por falta de perfil.
+      groups:
+        - appstore
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -40,9 +41,18 @@ workflows:
         script: |
           npx cap sync ios
       - name: Set up signing
-        # Los perfiles ya los preparó el bloque `ios_signing`; acá solo se
-        # aplican al proyecto.
         script: |
+          # Guard: sin la clave fija, `fetch-signing-files` generaría una nueva
+          # y volvería a quemar un certificado de distribución. Preferimos
+          # cortar el build antes que gastar cupo de Apple en silencio.
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "ERROR: falta la variable CERTIFICATE_PRIVATE_KEY (grupo 'appstore')."
+            echo "Sin ella cada build crearía un certificado de distribución nuevo."
+            exit 1
+          fi
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          keychain add-certificates
           xcode-project use-profiles
       - name: Increment build number
         script: |
@@ -77,9 +87,8 @@ workflows:
     integrations:
       app_store_connect: codemagic
     environment:
-      ios_signing:
-        distribution_type: development
-        bundle_identifier: tech.elevatefit.app
+      groups:
+        - appstore
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -101,7 +110,15 @@ workflows:
       - name: Sync Capacitor iOS
         script: npx cap sync ios
       - name: Set up signing
-        script: xcode-project use-profiles
+        script: |
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "ERROR: falta la variable CERTIFICATE_PRIVATE_KEY (grupo 'appstore')."
+            exit 1
+          fi
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_DEVELOPMENT --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build unsigned for verification
         script: |
           xcode-project build-ipa \
