@@ -86,20 +86,14 @@ export default function MyProgramDetail() {
     navigate("/routines");
   };
 
+  /**
+   * Entrena el día con la MISMA pantalla que un día del coach: así el alumno
+   * tiene una sola experiencia (series, RIR, descanso, cambiar ejercicios) y la
+   * sesión queda guardada en el historial. Antes iba a /free-workout, que es
+   * otra pantalla y no guardaba nada.
+   */
   const trainDay = (day: (typeof program.days)[number]) => {
-    navigate("/free-workout", {
-      state: {
-        preset: {
-          name: day.name,
-          exercises: day.exercises.map((e) => ({
-            name: e.name,
-            sets: e.sets,
-            reps: e.reps,
-            exerciseId: e.exerciseId ?? null,
-          })),
-        },
-      },
-    });
+    navigate(`/programa/${program.id}/dia/${day.id}/entrenar`);
   };
 
   return (

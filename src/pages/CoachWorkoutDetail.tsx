@@ -11,6 +11,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
 import { useCoachWorkoutSession } from "@/hooks/useCoachWorkoutSession";
+import { useOwnWorkoutSession } from "@/hooks/useOwnWorkoutSession";
+import { getMyProgram } from "@/lib/myPrograms";
 import RestBar from "@/components/workout/RestBar";
 import WorkoutHero from "@/components/workout/WorkoutHero";
 import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
@@ -149,24 +151,85 @@ function buildSessionExercises(
 }
 
 const CoachWorkoutDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  // La pantalla sirve para DOS fuentes: un día de la rutina del coach
+  // (/workout/:id) y un día de un programa propio del alumno
+  // (/programa/:programId/dia/:dayId/entrenar). Es la misma experiencia de
+  // entreno; lo único que cambia es de dónde salen los ejercicios y dónde se
+  // guarda la sesión.
+  const { id, programId, dayId } = useParams<{ id: string; programId: string; dayId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
   const { allDays, activeRoutine } = useCoachHomeData();
-  
+
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  const isOwnMode = !!programId && !!dayId;
+
   // Get routine day from navigation state or find in allDays
   const navState = location.state as { routineDayId?: string; routineId?: string } | null;
-  const routineDayId = navState?.routineDayId || id;
+  const routineDayId = isOwnMode ? dayId : navState?.routineDayId || id;
+
+  // ── Fuente: programa propio ────────────────────────────────────────────────
+  const ownProgram = useMemo(
+    () => (programId ? getMyProgram(sid, programId) : null),
+    [sid, programId]
+  );
+
+  const ownRoutineDay = useMemo<TodayRoutineDay | null>(() => {
+    if (!ownProgram || !dayId) return null;
+    const idx = ownProgram.days.findIndex((d) => d.id === dayId);
+    const day = ownProgram.days[idx];
+    if (!day) return null;
+    return {
+      id: day.id,
+      name: day.name,
+      dayNumber: idx + 1,
+      description: null,
+      // Los ejercicios de un programa propio no tienen id propio: derivamos uno
+      // estable por posición para que el progreso y los PRs se sigan entre días.
+      exercises: day.exercises.map((e, i) => ({
+        id: `${day.id}:${i}`,
+        exerciseId: e.exerciseId ?? "",
+        name: e.name,
+        sets: e.sets,
+        reps: e.reps,
+        restSeconds: e.restSeconds,
+        rir: e.rir ?? null,
+        tempo: null,
+        method: null,
+        notes: null,
+        videoUrl: null,
+        thumbnail: null,
+        muscleGroup: e.muscleGroup ?? null,
+        equipment: null,
+        description: null,
+        instructions: null,
+      })),
+      totalExercises: day.exercises.length,
+      estimatedDuration: Math.max(20, day.exercises.length * 8),
+    };
+  }, [ownProgram, dayId]);
 
   const routineDay = useMemo(() => {
+    if (isOwnMode) return ownRoutineDay;
     return allDays.find(d => d.id === routineDayId) || null;
-  }, [allDays, routineDayId]);
+  }, [isOwnMode, ownRoutineDay, allDays, routineDayId]);
 
   const routineId = navState?.routineId || activeRoutine?.id || "";
   
-  // Session persistence hook
+  // Persistencia de la sesión. Los dos hooks se llaman siempre (no se puede
+  // llamar hooks condicionalmente) pero solo el elegido toca la red: el otro
+  // queda inerte porque nadie invoca su startSession.
+  const coachApi = useCoachWorkoutSession(routineDayId || "", routineId);
+  const ownApi = useOwnWorkoutSession(
+    routineDayId || "",
+    ownProgram ? { id: ownProgram.id, name: ownProgram.name } : null,
+    ownRoutineDay?.name ?? null
+  );
+
+  // Exponen la misma superficie; el cast evita que TS intente unir las dos
+  // firmas de completeSet (una recibe el ejercicio completo del coach).
   const {
     session,
     startSession,
@@ -174,10 +237,8 @@ const CoachWorkoutDetail = () => {
     completeSet: persistSet,
     updateSet: persistUpdateSet,
     deleteSet: persistDeleteSet,
-    finishSession
-  } = useCoachWorkoutSession(routineDayId || "", routineId);
-
-  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    finishSession,
+  } = (isOwnMode ? (ownApi as unknown as typeof coachApi) : coachApi);
 
   // State
   const [exerciseStates, setExerciseStates] = useState<Map<string, ExerciseState>>(new Map());
@@ -564,7 +625,9 @@ const CoachWorkoutDetail = () => {
     if (!exercise) return false;
 
     let ok = true;
-    if (session) ok = await persistUpdateSet(exerciseId, setNumber, weight, reps);
+    // El nombre solo lo usa la sesión de programa propio (sus series no tienen
+    // id de rutina); el hook del coach lo ignora.
+    if (session) ok = await persistUpdateSet(exerciseId, setNumber, weight, reps, exercise.name);
 
     setExerciseStates(prev => {
       const newStates = new Map(prev);
@@ -590,7 +653,7 @@ const CoachWorkoutDetail = () => {
     if (!exercise) return false;
 
     let ok = true;
-    if (session) ok = await persistDeleteSet(exerciseId, setNumber);
+    if (session) ok = await persistDeleteSet(exerciseId, setNumber, exercise.name);
 
     setExerciseStates(prev => {
       const newStates = new Map(prev);
@@ -784,7 +847,13 @@ const CoachWorkoutDetail = () => {
     const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
 
     // Persist session completion
-    const finishedSession = await finishSession(elapsedTime, `Routine day: ${routineDay?.name}`);
+    // La nota es lo que se ve como NOMBRE del entreno en el historial.
+    const finishedSession = await finishSession(
+      elapsedTime,
+      isOwnMode
+        ? `${ownProgram?.name ?? "Mi programa"} · ${routineDay?.name ?? ""}`.trim()
+        : `Routine day: ${routineDay?.name}`
+    );
     if (!finishedSession) {
       toast.error("No se pudo finalizar la sesión. Intentá nuevamente.");
       return;
@@ -978,7 +1047,7 @@ const CoachWorkoutDetail = () => {
       {!workoutStarted && (
         <WorkoutHero
           title={routineDay.name.toUpperCase()}
-          subtitle={activeRoutine?.name || ""}
+          subtitle={(isOwnMode ? ownProgram?.name : activeRoutine?.name) || ""}
           duration={`${routineDay.estimatedDuration} min`}
           intensity={activeRoutine?.difficulty || "Moderada"}
           focus={`Día ${routineDay.dayNumber}`}

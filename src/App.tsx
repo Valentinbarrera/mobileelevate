@@ -91,6 +91,9 @@ const App = () => {
             {/* Protected full-screen (sin nav) */}
             <Route path="/routine/:id" element={<ProtectedRoute><Lazy><RoutineDetail /></Lazy></ProtectedRoute>} />
             <Route path="/workout/:id" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
+            {/* Un día de un programa PROPIO se entrena con la misma pantalla que
+                el del coach: misma carga de series, RIR, descanso y ajustes. */}
+            <Route path="/programa/:programId/dia/:dayId/entrenar" element={<ProtectedRoute><Lazy><CoachWorkoutDetail /></Lazy></ProtectedRoute>} />
             <Route path="/free-workout" element={<ProtectedRoute><Lazy><FreeWorkout /></Lazy></ProtectedRoute>} />
             <Route path="/workout-summary" element={<ProtectedRoute><Lazy><WorkoutSummary /></Lazy></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Lazy><Onboarding /></Lazy></ProtectedRoute>} />

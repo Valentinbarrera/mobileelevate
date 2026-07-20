@@ -230,7 +230,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     exerciseId: string,
     setNumber: number,
     weight: number,
-    reps: number
+    reps: number,
+    /** Solo lo usa la sesión de programa propio; acá se ignora. */
+    _exerciseName?: string
   ): Promise<boolean> => {
     if (!session) return false;
 
@@ -264,7 +266,8 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
   // Borrar una serie ya cargada (deshacer / volver atrás)
   const deleteSet = useCallback(async (
     exerciseId: string,
-    setNumber: number
+    setNumber: number,
+    _exerciseName?: string
   ): Promise<boolean> => {
     if (!session) return false;
 

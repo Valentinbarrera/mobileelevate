@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { MOCK_COMPLETED_SESSIONS, MOCK_COMPLETED_EXERCISES } from "@/lib/mock-data";
+import { fetchOwnWorkoutHistory } from "@/lib/ownWorkoutsApi";
 
 /** Una serie cargada dentro de un ejercicio de una sesión. */
 export interface SessionSet {
@@ -157,6 +158,11 @@ export function useWorkoutDetails() {
 
       if (!student?.id) return { sessions: [], exerciseProgress: [] };
 
+      // Los entrenos de programas PROPIOS viven en otras tablas (ver
+      // ownWorkoutsApi) pero llegan con la misma forma, así que se concatenan y
+      // `build` los trata igual: el historial y los PRs salen unificados.
+      const own = await fetchOwnWorkoutHistory(student.id, 60);
+
       // Dos pasos (evita problemas de RLS con joins anidados), igual que usePRData
       const { data: sessions, error: sErr } = await supabase
         .from("completed_sessions")
@@ -165,7 +171,9 @@ export function useWorkoutDetails() {
         .order("date", { ascending: false })
         .limit(60);
 
-      if (sErr || !sessions?.length) return { sessions: [], exerciseProgress: [] };
+      if (sErr || !sessions?.length) {
+        return build(own.sessions as SessionRow[], own.exercises as ExerciseRow[]);
+      }
 
       const sessionIds = sessions.map((s) => s.id);
       const { data: exercises, error: eErr } = await supabase
@@ -175,7 +183,10 @@ export function useWorkoutDetails() {
 
       if (eErr && import.meta.env.DEV) console.error("Error fetching workout details:", eErr);
 
-      return build(sessions as SessionRow[], ((exercises as unknown) as ExerciseRow[]) || []);
+      return build(
+        [...(sessions as SessionRow[]), ...(own.sessions as SessionRow[])],
+        [...(((exercises as unknown) as ExerciseRow[]) || []), ...(own.exercises as ExerciseRow[])]
+      );
     },
   });
 

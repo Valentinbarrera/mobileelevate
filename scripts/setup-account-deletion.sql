@@ -49,6 +49,10 @@ begin
   begin delete from public.my_programs       where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.exercise_notes    where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.body_log          where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  -- Entrenos de programas propios (scripts/setup-own-workouts.sql). Las series
+  -- van primero: cuelgan de la sesión.
+  begin delete from public.own_workout_sets where session_id in (select id from public.own_workout_sessions where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
+  begin delete from public.own_workout_sessions where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.students where email = auth.email(); exception when others then null; end;
 
   -- ── Fotos del storage (bucket privado, carpeta = uid) ────────────────────
