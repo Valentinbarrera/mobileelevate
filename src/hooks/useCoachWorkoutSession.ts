@@ -159,7 +159,15 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
     setNumber: number,
     weight: number,
     reps: number,
-    _difficulty: string
+    _difficulty: string,
+    /**
+     * Ejercicios que el alumno cambió o sumó hoy: se registran SOLO en el
+     * historial local. `completed_exercises.routine_exercise_id` apunta a la
+     * rutina del coach, así que un extra rompería la FK y un reemplazo guardaría
+     * los kilos bajo el ejercicio equivocado. El local igual alimenta PRs,
+     * "la vez pasada" e historial.
+     */
+    localOnly = false
   ): Promise<CompletedSet | null> => {
     if (!session) {
       if (import.meta.env.DEV) console.error("No active session");
@@ -177,8 +185,9 @@ export function useCoachWorkoutSession(routineDayId: string, routineId: string) 
       reps,
     });
 
-    // Demo/admin session: ya quedó guardado local, no tocamos la base
-    if (session.id === LOCAL_SESSION_ID) {
+    // Demo/admin session, o ejercicio que no es el del coach: ya quedó guardado
+    // local, no tocamos la base.
+    if (session.id === LOCAL_SESSION_ID || localOnly) {
       return { setNumber, weight, reps, completedAt: new Date() };
     }
 

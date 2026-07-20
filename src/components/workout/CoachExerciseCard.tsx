@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, Minus, SkipForward, StickyNote, Pin, Youtube } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, Minus, SkipForward, StickyNote, Pin, Youtube, Repeat, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import ExerciseNoteSheet from "./ExerciseNoteSheet";
@@ -81,6 +81,11 @@ interface CoachExerciseCardProps {
   onAddSet?: () => void;
   onRemoveSet?: () => void; // quita la última serie EXTRA agregada
   onSkipExercise?: () => void; // saltar este ejercicio hoy (pasa al siguiente)
+  onReplaceExercise?: () => void; // cambiarlo por otro de la biblioteca (solo hoy)
+  onRemoveExercise?: () => void; // sacarlo de la sesión de hoy
+  onUndoReplace?: () => void; // volver al que prescribió el coach
+  isSubstituted?: boolean; // el alumno lo cambió por otro
+  isExtra?: boolean; // lo sumó el alumno, no está en la rutina del coach
 }
 
 interface PerformanceRecord {
@@ -108,6 +113,11 @@ const CoachExerciseCard = ({
   onAddSet,
   onRemoveSet,
   onSkipExercise,
+  onReplaceExercise,
+  onRemoveExercise,
+  onUndoReplace,
+  isSubstituted,
+  isExtra,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
@@ -370,9 +380,22 @@ const CoachExerciseCard = ({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold text-sm truncate ${isCompleted ? "text-emerald-500" : "text-foreground"}`}>
-              {exercise.name}
-            </h3>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h3 className={`font-semibold text-sm truncate ${isCompleted ? "text-emerald-500" : "text-foreground"}`}>
+                {exercise.name}
+              </h3>
+              {/* Deja claro qué se apartó de lo que prescribió el coach */}
+              {isSubstituted && (
+                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400">
+                  Cambiado
+                </span>
+              )}
+              {isExtra && (
+                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                  Extra
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`text-xs ${isCompleted ? "text-emerald-500/70" : "text-muted-foreground"}`}>
                 {doneCount}/{exercise.sets} series • {exercise.reps} reps
@@ -867,7 +890,7 @@ const CoachExerciseCard = ({
                   </div>
                 )}
 
-                {/* Acciones del ejercicio (agregar/quitar serie · saltar hoy) */}
+                {/* Acciones del ejercicio (series · cambiar/sacar · saltar hoy) */}
                 {editingSetNum === null && (
                   <div className="space-y-2">
                     <div className="flex gap-2">
@@ -890,6 +913,42 @@ const CoachExerciseCard = ({
                         </button>
                       )}
                     </div>
+                    {/* Cambiar por otro / sacarlo del día. Son ajustes de HOY:
+                        la rutina del coach queda intacta. */}
+                    {(onReplaceExercise || onRemoveExercise) && (
+                      <div className="flex gap-2">
+                        {onReplaceExercise && (
+                          <button
+                            type="button"
+                            onClick={onReplaceExercise}
+                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <Repeat className="w-3.5 h-3.5 text-primary" /> Cambiar ejercicio
+                          </button>
+                        )}
+                        {onRemoveExercise && (
+                          <button
+                            type="button"
+                            onClick={onRemoveExercise}
+                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-xs font-bold text-red-400/80 hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {isExtra ? "Quitar" : "Sacar del día"}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {isSubstituted && onUndoReplace && (
+                      <button
+                        type="button"
+                        onClick={onUndoReplace}
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-amber-400/90 hover:text-amber-300 transition-colors"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" /> Volver al del coach
+                      </button>
+                    )}
+
                     {onSkipExercise && !isCompleted && (
                       <button
                         type="button"

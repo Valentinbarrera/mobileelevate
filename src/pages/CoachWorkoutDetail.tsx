@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown, Plus, RotateCcw } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -26,6 +26,26 @@ import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import { saveReadiness, type ReadinessData } from "@/lib/readiness";
 import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
 import { hydrateExerciseNotes } from "@/lib/exerciseNotes";
+import ExercisePickerSheet, {
+  type ExercisePickerResult,
+} from "@/components/workout/ExercisePickerSheet";
+import {
+  loadSessionPlan,
+  saveSessionPlan,
+  clearSessionPlan,
+  emptyPlan,
+  planHasChanges,
+  isCoachPrescribed,
+  isExtraId,
+  newExtraId,
+  removeFromPlan,
+  replaceInPlan,
+  undoReplaceInPlan,
+  addToPlan,
+  moveInOrder,
+  type SessionPlan,
+} from "@/lib/sessionPlan";
+import type { TodayRoutineDay } from "@/hooks/useCoachHomeData";
 import { getLocalDateString } from "@/lib/date";
 import { playStartSound } from "@/lib/sound";
 import {
@@ -53,6 +73,71 @@ interface ExerciseState {
   currentSet: number;
   completedSets: CompletedSet[];
   extraSets?: number; // series que el alumno sumó sobre la marcha, además de las prescritas
+}
+
+type SessionExercise = TodayRoutineDay["exercises"][number];
+
+/**
+ * Aplica los ajustes de hoy (cambiar / sacar / sumar / reordenar) sobre la
+ * rutina del coach. La rutina original nunca se modifica: esto arma la lista
+ * que se ve durante el entreno.
+ *
+ * Al cambiar un ejercicio se conserva la PRESCRIPCIÓN del coach (series, reps,
+ * descanso, RIR, tempo, método): lo que cambia es el movimiento, no el estímulo
+ * que pidió. Se descartan las notas y el video del original porque hablan del
+ * ejercicio viejo y confundirían.
+ */
+function buildSessionExercises(
+  coachExercises: SessionExercise[],
+  plan: SessionPlan
+): SessionExercise[] {
+  const base = coachExercises
+    .filter((e) => !plan.removed.includes(e.id))
+    .map((e) => {
+      const swap = plan.replaced[e.id];
+      if (!swap) return e;
+      return {
+        ...e,
+        exerciseId: swap.exerciseId,
+        name: swap.name,
+        muscleGroup: swap.muscleGroup ?? e.muscleGroup,
+        equipment: swap.equipment ?? e.equipment,
+        videoUrl: swap.videoUrl ?? null,
+        thumbnail: swap.thumbnail ?? null,
+        notes: null,
+        description: null,
+        instructions: null,
+      };
+    });
+
+  const extras: SessionExercise[] = plan.extras.map((x) => ({
+    id: x.id,
+    exerciseId: x.exerciseId,
+    name: x.name,
+    sets: x.sets,
+    reps: x.reps,
+    restSeconds: x.restSeconds,
+    rir: null,
+    tempo: null,
+    method: null,
+    notes: null,
+    videoUrl: x.videoUrl ?? null,
+    thumbnail: x.thumbnail ?? null,
+    muscleGroup: x.muscleGroup ?? null,
+    equipment: x.equipment ?? null,
+    description: null,
+    instructions: null,
+  }));
+
+  const all = [...base, ...extras];
+
+  // El orden guardado puede estar desactualizado (el coach editó la rutina):
+  // se usa como preferencia, y lo que no figure queda al final en su orden.
+  if (!plan.order.length) return all;
+  const byId = new Map(all.map((e) => [e.id, e]));
+  const ordered = plan.order.map((id) => byId.get(id)).filter(Boolean) as SessionExercise[];
+  const seen = new Set(ordered.map((e) => e.id));
+  return [...ordered, ...all.filter((e) => !seen.has(e.id))];
 }
 
 const CoachWorkoutDetail = () => {
@@ -97,8 +182,15 @@ const CoachWorkoutDetail = () => {
     reps: string;
   } | null>(null);
   const [workoutStarted, setWorkoutStarted] = useState(false);
-  const [orderIds, setOrderIds] = useState<string[]>([]); // orden (reordenable) de los ejercicios
+  // Ajustes del alumno sobre la sesión de HOY (cambiar / sacar / sumar / ordenar).
+  // Es una capa aparte: la rutina del coach nunca se toca. Ver lib/sessionPlan.
+  const [plan, setPlan] = useState<SessionPlan>(emptyPlan);
   const [reorderMode, setReorderMode] = useState(false);
+  // Qué está pidiendo el selector de ejercicios: cambiar uno (con su id) o sumar.
+  const [picker, setPicker] = useState<{ mode: "replace" | "add"; exerciseId?: string } | null>(
+    null
+  );
+  const orderIds = plan.order;
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   // Cronómetro anclado a timestamp: sobrevive al background / throttling.
@@ -118,33 +210,61 @@ const CoachWorkoutDetail = () => {
     isLastExercise: boolean;
   } | null>(null);
 
-  // Initialize exercise states
-  useEffect(() => {
-    if (routineDay?.exercises) {
-      const states = new Map<string, ExerciseState>();
-      routineDay.exercises.forEach(ex => {
-        states.set(ex.id, {
-          id: ex.id,
-          completed: false,
-          currentSet: 0,
-          completedSets: [],
-        });
-      });
-      setExerciseStates(states);
-      setOrderIds(routineDay.exercises.map((e) => e.id));
-    }
-  }, [routineDay]);
+  // Lista de ejercicios de HOY = rutina del coach + los ajustes del alumno.
+  const sessionExercises = useMemo(
+    () => buildSessionExercises(routineDay?.exercises ?? [], plan),
+    [routineDay, plan]
+  );
 
-  // Reordenar ejercicios (preferencia del alumno para esta sesión)
-  const moveExercise = (id: string, dir: -1 | 1) => {
-    setOrderIds((prev) => {
-      const i = prev.indexOf(id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      [next[i], next[j]] = [next[j], next[i]];
+  // Al entrar al día, recuperamos los ajustes que el alumno ya hizo hoy (si
+  // recargó la app o volvió a entrar). Mañana arranca limpio: la clave lleva la fecha.
+  useEffect(() => {
+    if (!routineDayId) return;
+    setPlan(loadSessionPlan(sid, routineDayId, getLocalDateString()));
+  }, [sid, routineDayId]);
+
+  /** Único punto de escritura del plan: actualiza el estado y lo persiste. */
+  const updatePlan = useCallback(
+    (fn: (prev: SessionPlan) => SessionPlan) => {
+      setPlan((prev) => {
+        const next = fn(prev);
+        if (routineDayId) saveSessionPlan(sid, routineDayId, getLocalDateString(), next);
+        return next;
+      });
+    },
+    [sid, routineDayId]
+  );
+
+  // Estados de ejercicio: se AGREGAN los que falten (un ejercicio nuevo del
+  // alumno) sin pisar el progreso ya cargado de los demás. Al cambiar de día sí
+  // se arranca de cero.
+  useEffect(() => {
+    setExerciseStates(new Map());
+  }, [routineDayId]);
+
+  useEffect(() => {
+    setExerciseStates((prev) => {
+      const missing = sessionExercises.filter((ex) => !prev.has(ex.id));
+      if (!missing.length) return prev;
+      const next = new Map(prev);
+      missing.forEach((ex) =>
+        next.set(ex.id, { id: ex.id, completed: false, currentSet: 0, completedSets: [] })
+      );
       return next;
     });
+  }, [sessionExercises]);
+
+  // Reordenar ejercicios (preferencia del alumno para hoy). El orden se guarda
+  // completo la primera vez, así no depende de la lista del coach.
+  const moveExercise = (id: string, dir: -1 | 1) => {
+    updatePlan((prev) => ({
+      ...prev,
+      order: moveInOrder(
+        prev.order.length ? prev.order : sessionExercises.map((e) => e.id),
+        id,
+        dir
+      ),
+    }));
   };
 
   // Workout timer — keeps running during rest (the rest bar no longer blocks).
@@ -227,7 +347,9 @@ const CoachWorkoutDetail = () => {
     });
     setExerciseStates(map);
     setActiveExerciseId(resumeSnapshot.activeExerciseId);
-    if (resumeSnapshot.orderIds?.length) setOrderIds(resumeSnapshot.orderIds);
+    if (resumeSnapshot.orderIds?.length) {
+      updatePlan((prev) => ({ ...prev, order: resumeSnapshot.orderIds as string[] }));
+    }
     startedAtRef.current = resumeSnapshot.startedAt;
     pausedTotalRef.current = resumeSnapshot.pausedTotal;
     pausedAtRef.current = null;
@@ -282,8 +404,8 @@ const CoachWorkoutDetail = () => {
       pausedAtRef.current = null;
       pausedTotalRef.current = 0;
       setWorkoutStarted(true);
-      if (routineDay?.exercises.length) {
-        setActiveExerciseId(routineDay.exercises[0].id);
+      if (sessionExercises.length) {
+        setActiveExerciseId(sessionExercises[0].id);
       }
       toast.success("¡Entrenamiento iniciado!");
     }
@@ -323,7 +445,9 @@ const CoachWorkoutDetail = () => {
   ): Promise<boolean> => {
     if (!routineDay) return false;
 
-    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    // Buscamos en la lista de HOY (con los ajustes del alumno), no en la del
+    // coach: si no, un ejercicio cambiado o sumado no se encontraría.
+    const exercise = sessionExercises.find(e => e.id === exerciseId);
     if (!exercise) return false;
 
     // Persist to database
@@ -334,7 +458,8 @@ const CoachWorkoutDetail = () => {
         setNumber,
         weight,
         reps,
-        difficulty as DifficultyLevel
+        difficulty as DifficultyLevel,
+        !isCoachPrescribed(plan, exerciseId)
       );
       savedSuccessfully = result !== null;
     }
@@ -379,9 +504,9 @@ const CoachWorkoutDetail = () => {
         setShowRestTimer(true);
       } else {
         // Exercise completed - show celebration modal
-        const currentIndex = routineDay.exercises.findIndex(e => e.id === exerciseId);
-        const nextExercise = routineDay.exercises[currentIndex + 1];
-        const isLastExercise = currentIndex === routineDay.exercises.length - 1;
+        const currentIndex = sessionExercises.findIndex(e => e.id === exerciseId);
+        const nextExercise = sessionExercises[currentIndex + 1];
+        const isLastExercise = currentIndex === sessionExercises.length - 1;
         
         setCompletedExerciseInfo({
           id: exercise.id,
@@ -402,7 +527,7 @@ const CoachWorkoutDetail = () => {
     });
 
     return savedSuccessfully;
-  }, [routineDay, session, persistSet]);
+  }, [routineDay, sessionExercises, plan, session, persistSet]);
 
   // Editar una serie ya cargada (modificar kg/reps sobre la marcha)
   const handleUpdateSet = useCallback(async (
@@ -412,7 +537,7 @@ const CoachWorkoutDetail = () => {
     reps: number
   ): Promise<boolean> => {
     if (!routineDay) return false;
-    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    const exercise = sessionExercises.find(e => e.id === exerciseId);
     if (!exercise) return false;
 
     let ok = true;
@@ -430,7 +555,7 @@ const CoachWorkoutDetail = () => {
     });
 
     return ok;
-  }, [routineDay, session, persistUpdateSet]);
+  }, [routineDay, sessionExercises, session, persistUpdateSet]);
 
   // Borrar una serie ya cargada (deshacer / volver atrás)
   const handleDeleteSet = useCallback(async (
@@ -438,7 +563,7 @@ const CoachWorkoutDetail = () => {
     setNumber: number
   ): Promise<boolean> => {
     if (!routineDay) return false;
-    const exercise = routineDay.exercises.find(e => e.id === exerciseId);
+    const exercise = sessionExercises.find(e => e.id === exerciseId);
     if (!exercise) return false;
 
     let ok = true;
@@ -459,7 +584,7 @@ const CoachWorkoutDetail = () => {
     });
 
     return ok;
-  }, [routineDay, session, persistDeleteSet]);
+  }, [routineDay, sessionExercises, session, persistDeleteSet]);
 
   // Sumar una serie extra (más allá de las prescritas). Si el ejercicio ya estaba
   // completado, lo reabre para que aparezca la nueva fila activa.
@@ -485,7 +610,7 @@ const CoachWorkoutDetail = () => {
       const state = newStates.get(exerciseId);
       if (!state || (state.extraSets || 0) <= 0) return prev;
       const extraSets = (state.extraSets || 0) - 1;
-      const exercise = routineDay?.exercises.find(e => e.id === exerciseId);
+      const exercise = sessionExercises.find(e => e.id === exerciseId);
       const target = (exercise?.sets || 0) + extraSets;
       newStates.set(exerciseId, {
         ...state,
@@ -498,7 +623,7 @@ const CoachWorkoutDetail = () => {
 
   // Saltar este ejercicio hoy: pasa al siguiente (respetando el orden elegido).
   const handleSkipExercise = useCallback((exerciseId: string) => {
-    const order = orderIds.length ? orderIds : (routineDay?.exercises.map(e => e.id) || []);
+    const order = sessionExercises.map((e) => e.id);
     const idx = order.indexOf(exerciseId);
     const nextId = order[idx + 1];
     if (nextId) {
@@ -507,7 +632,78 @@ const CoachWorkoutDetail = () => {
     } else {
       toast.info("Ya es el último ejercicio");
     }
-  }, [orderIds, routineDay]);
+  }, [sessionExercises]);
+
+  // ── Ajustes del alumno sobre los ejercicios del día ────────────────────────
+
+  /** Saca el ejercicio de hoy. Si era el activo, mueve el foco al siguiente. */
+  const handleRemoveExercise = useCallback(
+    (exerciseId: string) => {
+      const rest = sessionExercises.filter((e) => e.id !== exerciseId);
+      if (!rest.length) {
+        toast.error("Tiene que quedar al menos un ejercicio");
+        return;
+      }
+      const wasExtra = isExtraId(exerciseId);
+      updatePlan((prev) => removeFromPlan(prev, exerciseId));
+      if (activeExerciseId === exerciseId) {
+        const idx = sessionExercises.findIndex((e) => e.id === exerciseId);
+        setActiveExerciseId((sessionExercises[idx + 1] ?? rest[rest.length - 1]).id);
+      }
+      toast.success(wasExtra ? "Ejercicio quitado" : "Sacado de la sesión de hoy");
+    },
+    [sessionExercises, activeExerciseId, updatePlan]
+  );
+
+  /** Vuelve al ejercicio que había prescrito el coach. */
+  const handleUndoReplace = useCallback(
+    (exerciseId: string) => {
+      updatePlan((prev) => undoReplaceInPlan(prev, exerciseId));
+      toast.success("Volviste al ejercicio del coach");
+    },
+    [updatePlan]
+  );
+
+  /** Resultado del selector: reemplaza el ejercicio pedido o suma uno nuevo. */
+  const handlePickerSelect = useCallback(
+    (result: ExercisePickerResult) => {
+      const { exercise: lib } = result;
+      const picked = {
+        exerciseId: lib.id,
+        name: lib.name,
+        muscleGroup: lib.muscle,
+        equipment: lib.equipment,
+        videoUrl: lib.videoUrl,
+        thumbnail: lib.thumbnailUrl,
+      };
+
+      if (picker?.mode === "replace" && picker.exerciseId) {
+        updatePlan((prev) => replaceInPlan(prev, picker.exerciseId as string, picked));
+        toast.success(`Cambiado por ${lib.name}`);
+      } else {
+        const id = newExtraId();
+        updatePlan((prev) =>
+          addToPlan(prev, {
+            ...picked,
+            id,
+            sets: result.sets,
+            reps: result.reps,
+            restSeconds: result.restSeconds,
+          })
+        );
+        toast.success(`${lib.name} agregado al entreno`);
+      }
+      setPicker(null);
+    },
+    [picker, updatePlan]
+  );
+
+  /** Descarta todos los ajustes y vuelve a la rutina tal cual la armó el coach. */
+  const handleRestorePlan = useCallback(() => {
+    if (routineDayId) clearSessionPlan(sid, routineDayId, getLocalDateString());
+    setPlan(emptyPlan());
+    toast.success("Volviste a la rutina de tu coach");
+  }, [sid, routineDayId]);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
@@ -522,7 +718,7 @@ const CoachWorkoutDetail = () => {
     if (!routineDay || !completedExerciseInfo?.nextExercise) return;
     
     // Look up by ID to avoid duplicate-name bugs
-    const nextEx = routineDay.exercises.find(e => e.id === completedExerciseInfo.nextExercise?.id);
+    const nextEx = sessionExercises.find(e => e.id === completedExerciseInfo.nextExercise?.id);
     if (nextEx) {
       setActiveExerciseId(nextEx.id);
     }
@@ -556,7 +752,7 @@ const CoachWorkoutDetail = () => {
       });
     }
 
-    const exercises = routineDay?.exercises || [];
+    const exercises = sessionExercises;
     const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
     const completedSets = exercises.reduce((acc, e) => {
       const state = exerciseStates.get(e.id);
@@ -642,12 +838,9 @@ const CoachWorkoutDetail = () => {
     );
   }
 
-  // Aplica el orden elegido por el alumno (si está completo); si no, el del coach.
-  const orderedExercises = orderIds.length
-    ? (orderIds.map((id) => routineDay.exercises.find((e) => e.id === id)).filter(Boolean) as typeof routineDay.exercises)
-    : routineDay.exercises;
-  const exercises =
-    orderedExercises.length === routineDay.exercises.length ? orderedExercises : routineDay.exercises;
+  // La rutina del coach con los ajustes de hoy ya aplicados (ver sessionExercises).
+  const exercises = sessionExercises;
+  const hasPlanChanges = planHasChanges(plan);
   const exerciseGroups = computeExerciseGroups(exercises);
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
   const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
@@ -836,6 +1029,11 @@ const CoachWorkoutDetail = () => {
                     onAddSet={() => handleAddSet(exercise.id)}
                     onRemoveSet={() => handleRemoveSet(exercise.id)}
                     onSkipExercise={() => handleSkipExercise(exercise.id)}
+                    onReplaceExercise={() => setPicker({ mode: "replace", exerciseId: exercise.id })}
+                    onRemoveExercise={() => handleRemoveExercise(exercise.id)}
+                    onUndoReplace={() => handleUndoReplace(exercise.id)}
+                    isSubstituted={!!plan.replaced[exercise.id]}
+                    isExtra={isExtraId(exercise.id)}
                   />
                 );
               })()}
@@ -843,24 +1041,84 @@ const CoachWorkoutDetail = () => {
           </div>
         ) : (
           <>
-            {/* Reordenar ejercicios (solo antes de empezar) */}
-            {!workoutStarted && exercises.length > 1 && (
-              <div className="flex justify-end mb-2">
+            {/* Ajustes del día: reordenar y sumar ejercicios. Disponibles también
+                con el entreno en curso (la máquina ocupada aparece a mitad de sesión). */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              {hasPlanChanges ? (
                 <button
-                  onClick={() => setReorderMode((v) => !v)}
-                  className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                    reorderMode ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10"
-                  }`}
+                  type="button"
+                  onClick={handleRestorePlan}
+                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                  {reorderMode ? "Listo" : "Reordenar"}
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Volver a la rutina del coach
                 </button>
+              ) : (
+                <span />
+              )}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setPicker({ mode: "add" })}
+                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Agregar ejercicio
+                </button>
+                {exercises.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setReorderMode((v) => !v)}
+                    className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                      reorderMode ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10"
+                    }`}
+                  >
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    {reorderMode ? "Listo" : "Reordenar"}
+                  </button>
+                )}
               </div>
-            )}
+            </div>
 
             <div className={reorderMode ? "grid grid-cols-1 gap-3" : "grid grid-cols-1 lg:grid-cols-2 gap-3"}>
               {exercises.map((exercise, index) => {
                 const state = exerciseStates.get(exercise.id);
+
+                // El modo reordenar gana sobre el entreno en curso: si no, con la
+                // sesión empezada no se podría reacomodar nada.
+                if (reorderMode) {
+                  return (
+                    <div key={exercise.id} className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0 pointer-events-none">
+                        <CoachExerciseListItem
+                          exercise={exercise}
+                          index={index + 1}
+                          group={exerciseGroups.get(exercise.id)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => moveExercise(exercise.id, -1)}
+                          disabled={index === 0}
+                          aria-label="Subir ejercicio"
+                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                        >
+                          <ChevronUp className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveExercise(exercise.id, 1)}
+                          disabled={index === exercises.length - 1}
+                          aria-label="Bajar ejercicio"
+                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                        >
+                          <ChevronDown className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
                 if (workoutStarted) {
                   return (
@@ -876,41 +1134,16 @@ const CoachWorkoutDetail = () => {
                       onUpdateSet={handleUpdateSet}
                       onDeleteSet={handleDeleteSet}
                       onAddSet={() => handleAddSet(exercise.id)}
-                    onRemoveSet={() => handleRemoveSet(exercise.id)}
-                    onSkipExercise={() => handleSkipExercise(exercise.id)}
+                      onRemoveSet={() => handleRemoveSet(exercise.id)}
+                      onSkipExercise={() => handleSkipExercise(exercise.id)}
+                      onReplaceExercise={() =>
+                        setPicker({ mode: "replace", exerciseId: exercise.id })
+                      }
+                      onRemoveExercise={() => handleRemoveExercise(exercise.id)}
+                      onUndoReplace={() => handleUndoReplace(exercise.id)}
+                      isSubstituted={!!plan.replaced[exercise.id]}
+                      isExtra={isExtraId(exercise.id)}
                     />
-                  );
-                }
-
-                if (reorderMode) {
-                  return (
-                    <div key={exercise.id} className="flex items-center gap-2">
-                      <div className="flex-1 min-w-0 pointer-events-none">
-                        <CoachExerciseListItem
-                          exercise={exercise}
-                          index={index + 1}
-                          group={exerciseGroups.get(exercise.id)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1.5 shrink-0">
-                        <button
-                          onClick={() => moveExercise(exercise.id, -1)}
-                          disabled={index === 0}
-                          aria-label="Subir ejercicio"
-                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
-                        >
-                          <ChevronUp className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => moveExercise(exercise.id, 1)}
-                          disabled={index === exercises.length - 1}
-                          aria-label="Bajar ejercicio"
-                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
-                        >
-                          <ChevronDown className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
                   );
                 }
 
@@ -1006,6 +1239,24 @@ const CoachWorkoutDetail = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Selector para cambiar un ejercicio por otro o sumar uno al día */}
+      <ExercisePickerSheet
+        open={!!picker}
+        mode={picker?.mode ?? "add"}
+        currentName={
+          picker?.exerciseId
+            ? exercises.find((e) => e.id === picker.exerciseId)?.name
+            : undefined
+        }
+        suggestedMuscle={
+          picker?.exerciseId
+            ? exercises.find((e) => e.id === picker.exerciseId)?.muscleGroup
+            : null
+        }
+        onSelect={handlePickerSelect}
+        onClose={() => setPicker(null)}
+      />
     </motion.div>
   );
 };
