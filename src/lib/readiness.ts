@@ -53,6 +53,27 @@ export function getReadinessForDate(studentId: string, date: string): ReadinessE
   return read(studentId).find((e) => e.date === date) ?? null;
 }
 
+const skipKeyFor = (studentId: string) => `elevate_readiness_skipped_${studentId}`;
+
+/** Recuerda que hoy prefirió no contestarlo, para no volver a preguntárselo. */
+export function markReadinessSkipped(studentId: string, date: string) {
+  try {
+    localStorage.setItem(skipKeyFor(studentId), date);
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}
+
+/** ¿Ya lo contestó u omitió hoy? Se pregunta UNA vez por día, no por entreno. */
+export function wasReadinessHandled(studentId: string, date: string): boolean {
+  if (getReadinessForDate(studentId, date)) return true;
+  try {
+    return localStorage.getItem(skipKeyFor(studentId)) === date;
+  } catch {
+    return false;
+  }
+}
+
 export function getLatestReadiness(studentId: string): ReadinessEntry | null {
   const all = read(studentId);
   if (!all.length) return null;

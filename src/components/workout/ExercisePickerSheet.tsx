@@ -25,6 +25,12 @@ interface ExercisePickerSheetProps {
   currentName?: string;
   /** músculo del ejercicio actual: si viene, el sheet arranca filtrado por ese músculo (mode="replace") */
   suggestedMuscle?: string | null;
+  /**
+   * id de biblioteca del ejercicio que se está haciendo ahora: se saca de la
+   * lista. Si no, al cambiar por segunda vez aparece primero el que ya tenés
+   * puesto, lo tocás y no pasa nada — parece que el cambio no funciona.
+   */
+  excludeExerciseId?: string | null;
   onSelect: (result: ExercisePickerResult) => void;
   onClose: () => void;
 }
@@ -45,6 +51,7 @@ const ExercisePickerSheet = ({
   mode,
   currentName,
   suggestedMuscle,
+  excludeExerciseId,
   onSelect,
   onClose,
 }: ExercisePickerSheetProps) => {
@@ -91,6 +98,7 @@ const ExercisePickerSheet = ({
   const results = useMemo(() => {
     const q = norm(query.trim());
     const filtered = exercises.filter((e) => {
+      if (excludeExerciseId && e.id === excludeExerciseId) return false;
       if (muscleFilter && e.muscle !== muscleFilter) return false;
       if (q && !norm(e.name).includes(q)) return false;
       return true;
@@ -98,7 +106,7 @@ const ExercisePickerSheet = ({
     // Sin filtros la lista completa marea: mostramos una muestra corta hasta que busque
     const hasFilter = !!q || !!muscleFilter;
     return filtered.slice(0, hasFilter ? 40 : 12);
-  }, [exercises, query, muscleFilter]);
+  }, [exercises, query, muscleFilter, excludeExerciseId]);
 
   const handleRowClick = (ex: LibraryExercise) => {
     // En "replace" la prescripción la manda el coach, así que resolvemos en un solo toque

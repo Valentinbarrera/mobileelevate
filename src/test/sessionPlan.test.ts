@@ -75,6 +75,13 @@ describe("mutadores", () => {
     expect(plan.removed).toEqual([]);
   });
 
+  it("un ejercicio ya cambiado se puede volver a cambiar", () => {
+    let plan = replaceInPlan(emptyPlan(), "coach-1", PICKED);
+    plan = replaceInPlan(plan, "coach-1", { exerciseId: "lib-42", name: "Hack squat" });
+    expect(plan.replaced["coach-1"].name).toBe("Hack squat");
+    expect(Object.keys(plan.replaced)).toHaveLength(1); // pisa, no acumula
+  });
+
   it("cambiar un ejercicio se puede deshacer", () => {
     let plan = replaceInPlan(emptyPlan(), "coach-1", PICKED);
     expect(plan.replaced["coach-1"].name).toBe("Prensa 45°");

@@ -23,7 +23,12 @@ import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import ReadinessCheck from "@/components/workout/ReadinessCheck";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
-import { saveReadiness, type ReadinessData } from "@/lib/readiness";
+import {
+  saveReadiness,
+  wasReadinessHandled,
+  markReadinessSkipped,
+  type ReadinessData,
+} from "@/lib/readiness";
 import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
 import { hydrateExerciseNotes } from "@/lib/exerciseNotes";
 import ExercisePickerSheet, {
@@ -375,6 +380,8 @@ const CoachWorkoutDetail = () => {
   };
 
   // Tocar "Empezar" abre primero el readiness (¿cómo te sentís hoy?), omitible.
+  // Es UNA vez por día: si ya lo contestó (otro entreno, o volvió a entrar a
+  // este), se saltea y arranca derecho — si no, se siente repetido.
   const handleStartWorkout = () => {
     if (!isAuthenticated) {
       toast.error("Debés iniciar sesión para entrenar", {
@@ -383,6 +390,10 @@ const CoachWorkoutDetail = () => {
           onClick: () => navigate("/auth"),
         },
       });
+      return;
+    }
+    if (wasReadinessHandled(sid, getLocalDateString())) {
+      beginWorkout();
       return;
     }
     setShowReadiness(true);
@@ -1202,7 +1213,10 @@ const CoachWorkoutDetail = () => {
       <ReadinessCheck
         open={showReadiness}
         onComplete={handleReadinessComplete}
-        onSkip={beginWorkout}
+        onSkip={() => {
+          markReadinessSkipped(sid, getLocalDateString());
+          beginWorkout();
+        }}
       />
 
       {/* Exercise Completed Modal */}
@@ -1249,9 +1263,18 @@ const CoachWorkoutDetail = () => {
             ? exercises.find((e) => e.id === picker.exerciseId)?.name
             : undefined
         }
+        /* El músculo sale del ejercicio ORIGINAL del coach: si tomáramos el del
+           sustituto, cada cambio iría corriendo el filtro y el alumno se alejaría
+           del estímulo que le pidieron. */
         suggestedMuscle={
           picker?.exerciseId
-            ? exercises.find((e) => e.id === picker.exerciseId)?.muscleGroup
+            ? (routineDay.exercises.find((e) => e.id === picker.exerciseId)?.muscleGroup ??
+              exercises.find((e) => e.id === picker.exerciseId)?.muscleGroup)
+            : null
+        }
+        excludeExerciseId={
+          picker?.exerciseId
+            ? exercises.find((e) => e.id === picker.exerciseId)?.exerciseId
             : null
         }
         onSelect={handlePickerSelect}
