@@ -12,9 +12,12 @@ interface CoachWorkoutCardProps {
   routineDay: TodayRoutineDay;
   routineInfo: ActiveRoutineInfo;
   inProgress?: boolean;
+  /** Si es el día de hoy (badge "Hoy" + CTA "Comenzar"). En el carrusel del
+   *  plan, los otros días van con isToday=false. */
+  isToday?: boolean;
 }
 
-const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: CoachWorkoutCardProps) => {
+const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false, isToday = true }: CoachWorkoutCardProps) => {
   const navigate = useNavigate();
 
   const handleStart = () => {
@@ -54,10 +57,12 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: Coach
           <span className="bg-white/5 backdrop-blur-sm text-foreground text-[11px] font-medium px-2 py-1 rounded-lg border border-white/10 truncate max-w-[40%]">
             {routineInfo.name}
           </span>
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-primary uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            {inProgress ? "En curso" : "Hoy"}
-          </span>
+          {isToday && (
+            <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-primary uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              {inProgress ? "En curso" : "Hoy"}
+            </span>
+          )}
         </div>
 
         {/* Meta */}
@@ -101,7 +106,11 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: Coach
             <Play className="w-4 h-4 text-primary-foreground fill-current ml-0.5" />
           </div>
           <span className="text-primary-foreground font-black text-[15px] tracking-wide uppercase">
-            {inProgress ? "Continuar entrenamiento" : "Comenzar entrenamiento"}
+            {isToday
+              ? inProgress
+                ? "Continuar entrenamiento"
+                : "Comenzar entrenamiento"
+              : "Entrenar este día"}
           </span>
         </motion.button>
       </div>

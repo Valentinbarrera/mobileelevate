@@ -10,7 +10,7 @@ import OwnPlanCard from "@/components/home/OwnPlanCard";
 import { loadActivePlan, nextProgramDay } from "@/lib/activePlan";
 import { getMyProgram, loadMyPrograms } from "@/lib/myPrograms";
 import RestDayCard from "@/components/home/RestDayCard";
-import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
+import HeroDaysScroller from "@/components/home/HeroDaysScroller";
 import CoachCard from "@/components/home/CoachCard";
 import QuickActions from "@/components/home/QuickActions";
 import RescheduleSheet from "@/components/home/RescheduleSheet";
@@ -149,11 +149,20 @@ const Index = () => {
     </motion.div>
   ) : hasWorkoutToday ? (
     <motion.div variants={fadeUp}>
-      <CoachWorkoutCard
-        routineDay={todayRoutineDay!}
-        routineInfo={activeRoutine!}
-        inProgress={inProgress}
-      />
+      {allDays.length > 1 ? (
+        <HeroDaysScroller
+          days={allDays}
+          todayId={todayRoutineDay?.id ?? null}
+          routineInfo={activeRoutine!}
+          inProgress={inProgress}
+        />
+      ) : (
+        <CoachWorkoutCard
+          routineDay={todayRoutineDay!}
+          routineInfo={activeRoutine!}
+          inProgress={inProgress}
+        />
+      )}
     </motion.div>
   ) : (
     <motion.div variants={fadeUp}>
@@ -289,14 +298,6 @@ const Index = () => {
     </motion.button>
   );
 
-  const planDays = activeRoutine && allDays.length > 0 && (
-    <PlanDaysCarousel
-      days={allDays}
-      todayId={todayRoutineDay?.id ?? null}
-      routineId={activeRoutine.id}
-    />
-  );
-
   const coachCard = <CoachCard />;
 
   const rescheduleSheet = (
@@ -338,7 +339,6 @@ const Index = () => {
                 </div>
                 {/* Accesos rápidos — pegados al entreno de hoy */}
                 {quickActions}
-                {planDays}
               </div>
 
               {/* Rail derecho — glance: entrenar libre, aprender, coach */}
@@ -389,10 +389,7 @@ const Index = () => {
             {/* 4c. Acceso a la sección educativa "Aprendé" */}
             {learnCard}
 
-            {/* 5. Carrusel del plan */}
-            {planDays}
-
-            {/* 6. Card del coach — el diferenciador coach→alumno */}
+            {/* 5. Card del coach — el diferenciador coach→alumno */}
             {coachCard}
           </div>
 
