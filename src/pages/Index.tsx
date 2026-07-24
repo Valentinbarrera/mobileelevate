@@ -10,7 +10,6 @@ import OwnPlanCard from "@/components/home/OwnPlanCard";
 import { loadActivePlan, nextProgramDay } from "@/lib/activePlan";
 import { getMyProgram, loadMyPrograms } from "@/lib/myPrograms";
 import RestDayCard from "@/components/home/RestDayCard";
-import WeeklyGoalCard from "@/components/home/WeeklyGoalCard";
 import PlanDaysCarousel from "@/components/home/PlanDaysCarousel";
 import CoachCard from "@/components/home/CoachCard";
 import QuickActions from "@/components/home/QuickActions";
@@ -20,7 +19,6 @@ import AppShell from "@/components/layout/AppShell";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
-import { useCoachWeeklyProgress } from "@/hooks/useCoachWorkoutSession";
 import { useProgressData } from "@/hooks/useProgressData";
 import { useSessionOverrides } from "@/hooks/useSessionOverrides";
 import { localISODate } from "@/lib/routineSession";
@@ -41,9 +39,7 @@ const Index = () => {
     allDays,
     loading: coachLoading
   } = useCoachHomeData();
-  const { getWeeklyProgress } = useCoachWeeklyProgress();
-  const { currentStreak, sessionsThisWeek, personalBestTonnage } = useProgressData();
-  const [completedDates, setCompletedDates] = useState<string[]>([]);
+  const { currentStreak } = useProgressData();
 
   const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
   const { setForDate } = useSessionOverrides(overrideSid);
@@ -109,23 +105,18 @@ const Index = () => {
     setShowReschedule(false);
   };
 
-  useEffect(() => {
-    getWeeklyProgress().then(result => {
-      const dates = (result.sessions || []).map((s: { date: string }) => s.date);
-      setCompletedDates(dates);
-    });
-  }, [getWeeklyProgress]);
-
   const userName = student?.full_name || user?.email?.split('@')[0] || "Atleta";
   const displayName = userName.split(' ')[0];
 
-  // Línea contextual y motivadora (complementa al héroe del entreno de hoy)
-  const weeklyGoal = allDays.length || 5;
-  const remaining = Math.max(0, weeklyGoal - (sessionsThisWeek || 0));
+  // Línea motivadora neutra. El objetivo semanal ya NO vive en el Home
+  // (se muestra en Progreso); acá va un mensaje según el momento del día.
+  const hour = new Date().getHours();
   const contextLine =
-    remaining > 0
-      ? `Te faltan ${remaining} ${remaining === 1 ? "entreno" : "entrenos"} para tu meta`
-      : "¡Meta semanal cumplida! 🔥";
+    hour < 12
+      ? "Un día más para tu mejor versión 💪"
+      : hour < 19
+        ? "Dale que hoy suma"
+        : "Cerrá el día fuerte 🔥";
 
   // ¿Entreno de hoy ya empezado? → CTA "Continuar"
   const todayExerciseIds = todayRoutineDay?.exercises.map((e) => e.id) ?? [];
@@ -141,15 +132,6 @@ const Index = () => {
 
   // ── Fragmentos reutilizables (mismo elemento, se monta en UN solo layout) ──
   const greeting = <Greeting userName={displayName} contextLine={contextLine} />;
-
-  const weeklyGoalCard = (
-    <WeeklyGoalCard
-      completedDates={completedDates}
-      goal={weeklyGoal}
-      streak={currentStreak}
-      bestTonnage={personalBestTonnage}
-    />
-  );
 
   const hasWorkoutToday = !!(todayRoutineDay && activeRoutine);
 
@@ -359,9 +341,8 @@ const Index = () => {
                 {planDays}
               </div>
 
-              {/* Rail derecho — glance: meta, entrenar libre, coach */}
+              {/* Rail derecho — glance: entrenar libre, aprender, coach */}
               <div className="col-span-12 xl:col-span-5 space-y-6">
-                {weeklyGoalCard}
                 {trainWithElevateCard}
                 {learnCard}
                 {coachCard}
@@ -402,10 +383,7 @@ const Index = () => {
             {/* 3. Accesos rápidos — atajos directos, pegados al entreno de hoy */}
             {quickActions}
 
-            {/* 4. Objetivo semanal — resumen tipo dashboard (glance) */}
-            {weeklyGoalCard}
-
-            {/* 4b. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
+            {/* 4. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
             {trainWithElevateCard}
 
             {/* 4c. Acceso a la sección educativa "Aprendé" */}

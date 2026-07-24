@@ -100,7 +100,7 @@ const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) =
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Alimento. Ej: Pechuga de pollo"
-                className="flex-[2] min-w-0 h-12 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
+                className="flex-[2] min-w-0 h-12 rounded-xl bg-secondary border border-border px-3 text-lg font-semibold text-foreground placeholder:text-muted-foreground/60 placeholder:font-normal focus:border-primary focus:outline-none"
               />
               <input
                 value={qty}

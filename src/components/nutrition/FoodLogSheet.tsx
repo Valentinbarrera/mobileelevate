@@ -144,7 +144,7 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="¿Qué comiste? Ej: Pollo con arroz"
-              className="w-full min-w-0 h-12 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none mb-3"
+              className="w-full min-w-0 h-12 rounded-xl bg-secondary border border-border px-3 text-lg font-semibold text-foreground placeholder:text-muted-foreground/60 placeholder:font-normal focus:border-primary focus:outline-none mb-3"
             />
 
             {/* Calorías */}
