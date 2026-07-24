@@ -14,7 +14,7 @@ const Privacy = () => {
         <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 pb-4 header-safe-lg">
           <button
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl card-elevated flex items-center justify-center active:opacity-80"
+            className="w-11 h-11 rounded-xl card-elevated flex items-center justify-center active:opacity-80"
             aria-label="Volver"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -23,8 +23,8 @@ const Privacy = () => {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-6 space-y-6 leading-relaxed text-sm text-muted-foreground pb-16">
-        <p className="text-xs">Última actualización: {UPDATED}</p>
+      <main className="max-w-2xl mx-auto px-5 py-6 space-y-6 leading-relaxed text-base text-foreground/70 pb-16">
+        <p className="text-sm">Última actualización: {UPDATED}</p>
 
         <p>
           En <strong className="text-foreground">Elevate</strong> cuidamos tu información. Esta política

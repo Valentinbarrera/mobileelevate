@@ -25,13 +25,13 @@ const OwnPlanCard = ({ program, day, index }: OwnPlanCardProps) => {
     <div className="card-hero rounded-2xl p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">
             Tu plan · {program.name}
           </p>
           <h2 className="text-2xl font-black text-foreground leading-tight mt-1 truncate">
             {day.name}
           </h2>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Día {index + 1} de {program.days.length} ·{" "}
             {exerciseCount} {exerciseCount === 1 ? "ejercicio" : "ejercicios"}
           </p>
@@ -46,13 +46,13 @@ const OwnPlanCard = ({ program, day, index }: OwnPlanCardProps) => {
           {day.exercises.slice(0, 3).map((e, i) => (
             <span
               key={`${e.name}-${i}`}
-              className="text-[11px] font-semibold text-muted-foreground bg-secondary/60 border border-white/[0.06] rounded-full px-2.5 py-1 truncate max-w-[45%]"
+              className="text-sm font-semibold text-muted-foreground bg-secondary/60 border border-white/[0.06] rounded-full px-2.5 py-1 truncate max-w-[45%]"
             >
               {e.name}
             </span>
           ))}
           {exerciseCount > 3 && (
-            <span className="text-[11px] font-semibold text-muted-foreground/70 px-1 py-1">
+            <span className="text-sm font-semibold text-muted-foreground/70 px-1 py-1">
               +{exerciseCount - 3}
             </span>
           )}
@@ -71,9 +71,9 @@ const OwnPlanCard = ({ program, day, index }: OwnPlanCardProps) => {
 
       <button
         onClick={() => navigate(`/programa/${program.id}`)}
-        className="w-full mt-2 inline-flex items-center justify-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors py-1"
+        className="w-full mt-2 inline-flex items-center justify-center gap-1 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors py-2.5 min-h-11"
       >
-        Ver el programa completo <ChevronRight className="w-3.5 h-3.5" />
+        Ver el programa completo <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );

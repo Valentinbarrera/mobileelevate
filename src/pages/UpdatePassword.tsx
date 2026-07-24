@@ -71,7 +71,7 @@ const UpdatePassword = () => {
     <div className="min-h-screen bg-background flex flex-col px-6 pt-16">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-2">Nueva contraseña</h1>
-        <p className="text-muted-foreground text-sm mb-8">Ingresá tu nueva contraseña.</p>
+        <p className="text-foreground/70 text-base mb-8">Ingresá tu nueva contraseña.</p>
 
         <form onSubmit={handleUpdate} className="space-y-4">
           <div className="relative rounded-2xl border border-border/50 bg-card/50">

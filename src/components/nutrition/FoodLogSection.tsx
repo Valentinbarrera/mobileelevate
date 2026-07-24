@@ -47,8 +47,8 @@ const FoodLogSection = ({ foods, totalCalories, onAdd, onRemove }: FoodLogSectio
           className="w-full flex flex-col items-center gap-2 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-primary/40 text-muted-foreground transition-colors"
         >
           <Utensils className="w-7 h-7 text-primary" />
-          <span className="text-sm font-bold text-foreground">Registrá lo que comiste</span>
-          <span className="text-xs">Sumá comidas dentro o fuera del plan</span>
+          <span className="text-base font-bold text-foreground">Registrá lo que comiste</span>
+          <span className="text-sm">Sumá comidas dentro o fuera del plan</span>
         </button>
       ) : (
         <div className="space-y-3">
@@ -64,25 +64,25 @@ const FoodLogSection = ({ foods, totalCalories, onAdd, onRemove }: FoodLogSectio
                     className="flex items-center gap-3 rounded-xl bg-secondary/40 border border-white/[0.05] px-3 py-2"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{f.name}</p>
+                      <p className="text-base font-semibold text-foreground truncate">{f.name}</p>
                       {(f.protein > 0 || f.carbs > 0 || f.fats > 0) && (
-                        <p className="text-[11px] text-muted-foreground tabular-nums">
+                        <p className="text-sm text-muted-foreground tabular-nums">
                           {f.protein > 0 && <span className="text-blue-400">P {f.protein}</span>}
                           {f.carbs > 0 && <span className="text-amber-400"> · C {f.carbs}</span>}
                           {f.fats > 0 && <span className="text-rose-400"> · G {f.fats}</span>}
                         </p>
                       )}
                     </div>
-                    <span className="text-sm font-black text-foreground tabular-nums shrink-0">
+                    <span className="text-base font-black text-foreground tabular-nums shrink-0">
                       {Math.round(f.calories)}
-                      <span className="text-[10px] font-bold text-muted-foreground"> kcal</span>
+                      <span className="text-xs font-bold text-muted-foreground"> kcal</span>
                     </span>
                     <button
                       onClick={() => onRemove(f.id)}
                       aria-label="Eliminar"
-                      className="text-muted-foreground/60 hover:text-destructive p-1 shrink-0"
+                      className="text-muted-foreground/60 hover:text-destructive w-11 h-11 flex items-center justify-center shrink-0"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
@@ -92,9 +92,9 @@ const FoodLogSection = ({ foods, totalCalories, onAdd, onRemove }: FoodLogSectio
 
           <button
             onClick={onAdd}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
+            className="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
           >
-            <Plus className="w-4 h-4 text-primary" /> Agregar comida
+            <Plus className="w-5 h-5 text-primary" /> Agregar comida
           </button>
         </div>
       )}

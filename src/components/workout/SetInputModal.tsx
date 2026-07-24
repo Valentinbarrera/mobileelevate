@@ -113,9 +113,9 @@ const SetInputModal = ({
               </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center"
               >
-                <X className="w-5 h-5 text-muted-foreground" />
+                <X className="w-5 h-5 text-foreground/70" />
               </button>
             </div>
 
@@ -145,7 +145,7 @@ const SetInputModal = ({
 
             {/* Weight Input */}
             <div className="mb-6">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-3">
+              <label className="text-sm text-foreground/70 uppercase tracking-wider block mb-3">
                 Peso (kg)
               </label>
               <div className="flex items-center justify-center gap-4">
@@ -159,7 +159,7 @@ const SetInputModal = ({
                   <span className="text-5xl font-black text-foreground tabular-nums">
                     {weight}
                   </span>
-                  <span className="text-lg text-muted-foreground ml-1">kg</span>
+                  <span className="text-lg text-foreground/70 ml-1">kg</span>
                 </div>
                 <button
                   onClick={() => adjustWeight(2.5)}
@@ -172,7 +172,7 @@ const SetInputModal = ({
 
             {/* Reps Input */}
             <div className="mb-6">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-3">
+              <label className="text-sm text-foreground/70 uppercase tracking-wider block mb-3">
                 Repeticiones
               </label>
               <div className="flex items-center justify-center gap-4">
@@ -186,7 +186,7 @@ const SetInputModal = ({
                   <span className="text-5xl font-black text-foreground tabular-nums">
                     {reps}
                   </span>
-                  <span className="text-lg text-muted-foreground ml-1">reps</span>
+                  <span className="text-lg text-foreground/70 ml-1">reps</span>
                 </div>
                 <button
                   onClick={() => adjustReps(1)}
@@ -199,7 +199,7 @@ const SetInputModal = ({
 
             {/* Difficulty Selector */}
             <div className="mb-8">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-3">
+              <label className="text-sm text-foreground/70 uppercase tracking-wider block mb-3">
                 ¿Cómo se sintió?
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -216,7 +216,7 @@ const SetInputModal = ({
                     <Flame className={`w-5 h-5 mx-auto mb-1 ${
                       difficulty === level ? "" : "opacity-50"
                     }`} />
-                    <span className="text-[10px] font-semibold block">
+                    <span className="text-xs font-semibold block">
                       {difficultyLabels[level]}
                     </span>
                   </button>

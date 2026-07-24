@@ -6,7 +6,7 @@ const NotFound = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
       <h1 className="text-6xl font-black text-foreground mb-2">404</h1>
-      <p className="text-muted-foreground mb-6">Página no encontrada</p>
+      <p className="text-base text-foreground/70 mb-6">Página no encontrada</p>
       <button
         onClick={() => navigate("/")}
         className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold"

@@ -28,8 +28,8 @@ const Questionnaires = () => {
         <motion.header variants={fadeUp} className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
           {/* header-safe-lg suma el env(safe-area-inset-top) (antes py-3 quedaba bajo la isla) */}
           <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 pb-3 header-safe-lg">
-            <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-card/60 border border-border/40 flex items-center justify-center">
-              <ArrowLeft className="w-4.5 h-4.5 text-foreground" />
+            <button onClick={() => navigate(-1)} className="w-11 h-11 -ml-2 rounded-xl bg-card/60 border border-border/40 flex items-center justify-center" aria-label="Volver">
+              <ArrowLeft className="w-6 h-6 text-foreground" />
             </button>
             <div>
               <div className="flex items-center gap-2">
@@ -52,17 +52,17 @@ const Questionnaires = () => {
               <ClipboardList className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-foreground">Perfil de entrenamiento</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-base font-black text-foreground">Perfil de entrenamiento</p>
+              <p className="text-sm text-foreground/70 mt-0.5">
                 {intakeDone ? "Completo · tocá para editar" : "Contale a tu coach quién sos y qué buscás"}
               </p>
             </div>
             {intakeDone ? (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 shrink-0">
+              <span className="flex items-center gap-1 text-sm font-bold text-emerald-400 shrink-0">
                 <Check className="w-4 h-4" /> Listo
               </span>
             ) : (
-              <span className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
+              <span className="text-[11px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
                 Pendiente
               </span>
             )}
@@ -83,10 +83,10 @@ const Questionnaires = () => {
                 <q.icon className="w-6 h-6 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground">{q.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{q.desc}</p>
+                <p className="text-base font-bold text-foreground">{q.title}</p>
+                <p className="text-sm text-foreground/70 mt-0.5">{q.desc}</p>
               </div>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 py-1 rounded-md bg-secondary border border-white/[0.06] shrink-0">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 py-1 rounded-md bg-secondary border border-white/[0.06] shrink-0">
                 Próximamente
               </span>
             </motion.div>

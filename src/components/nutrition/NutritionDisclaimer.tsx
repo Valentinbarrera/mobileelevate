@@ -27,7 +27,7 @@ const NutritionDisclaimer = () => (
     <div className="flex items-start gap-2.5">
       <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-sm text-foreground/70 leading-relaxed">
           Los planes y recomendaciones de esta sección son orientativos y los personaliza tu coach.
           No sustituyen la consulta con un médico o nutricionista matriculado. Ante cualquier
           condición de salud, consultá a un profesional antes de cambiar tu alimentación.
@@ -42,9 +42,9 @@ const NutritionDisclaimer = () => (
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary active:opacity-70"
+                className="inline-flex items-center gap-1.5 min-h-11 py-1.5 text-sm font-semibold text-primary active:opacity-70"
               >
-                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                <ExternalLink className="w-4 h-4 shrink-0" />
                 <span className="underline underline-offset-2">{s.label}</span>
               </a>
             </li>

@@ -64,7 +64,7 @@ const MacroTrendChart = ({ days }: MacroTrendChartProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
-          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+          <p className="text-sm text-muted-foreground mb-1">{label}</p>
           <p className="text-lg font-bold text-foreground">
             {payload[0].value} {metric.unit}
           </p>
@@ -92,7 +92,7 @@ const MacroTrendChart = ({ days }: MacroTrendChartProps) => {
           <button
             key={m.key}
             onClick={() => setMetricKey(m.key)}
-            className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+            className={`flex-1 px-2 min-h-11 py-2.5 rounded-lg text-sm font-bold transition-colors ${
               m.key === metricKey ? "bg-gradient-primary text-primary-foreground" : "text-muted-foreground"
             }`}
           >
@@ -102,7 +102,7 @@ const MacroTrendChart = ({ days }: MacroTrendChartProps) => {
       </div>
 
       {chartData.length < 2 ? (
-        <p className="text-xs text-muted-foreground text-center py-10">
+        <p className="text-sm text-muted-foreground text-center py-10">
           Registrá comidas al menos 2 días para ver tu tendencia 📈
         </p>
       ) : (

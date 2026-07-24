@@ -64,9 +64,9 @@ const MacroPill = ({
   <div className="flex flex-col items-center gap-0.5">
     <span className={`text-lg font-black tabular-nums ${color}`}>{Math.round(value)}</span>
     {target && (
-      <span className="text-[10px] text-muted-foreground tabular-nums">/ {target}g</span>
+      <span className="text-sm text-muted-foreground tabular-nums">/ {target}g</span>
     )}
-    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">
+    <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">
       {label}
     </span>
   </div>
@@ -100,13 +100,13 @@ const MealCard = ({
         <button
           onClick={onToggle}
           aria-label={checked ? "Marcar como no comida" : "Marcar como comida"}
-          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+          className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
             checked
               ? "bg-emerald-500 border-emerald-500 text-white"
               : "border-white/15 text-transparent active:bg-white/5"
           }`}
         >
-          <Check className="w-4 h-4" strokeWidth={3} />
+          <Check className="w-5 h-5" strokeWidth={3} />
         </button>
 
         {/* Cabecera expandible */}
@@ -117,17 +117,17 @@ const MealCard = ({
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-xl">{icon}</span>
             <div className="text-left min-w-0">
-              <p className={`text-sm font-semibold truncate ${checked ? "text-emerald-400" : "text-foreground"}`}>
+              <p className={`text-base font-semibold truncate ${checked ? "text-emerald-400" : "text-foreground"}`}>
                 {label}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-foreground/70">
                 {Math.round(meal.totalCalories)} kcal &middot; {meal.foods.length} alimento
                 {meal.foods.length !== 1 ? "s" : ""}
               </p>
             </div>
           </div>
           <ChevronRight
-            className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${
+            className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform ${
               expanded ? "rotate-90" : ""
             }`}
           />
@@ -143,8 +143,8 @@ const MealCard = ({
               className="flex items-center justify-between px-4 py-2.5"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground truncate">{food.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-base text-foreground truncate">{food.name}</p>
+                <p className="text-sm text-foreground/70">
                   {food.quantity * food.serving_size}
                   {food.serving_unit}
                   {food.notes && (
@@ -153,10 +153,10 @@ const MealCard = ({
                 </p>
               </div>
               <div className="flex items-baseline gap-1 ml-3">
-                <span className="text-sm font-bold text-foreground">
+                <span className="text-base font-bold text-foreground">
                   {Math.round(food.calories * food.quantity)}
                 </span>
-                <span className="text-xs text-muted-foreground">kcal</span>
+                <span className="text-sm text-muted-foreground">kcal</span>
               </div>
             </div>
           ))}
@@ -164,14 +164,14 @@ const MealCard = ({
       )}
 
       {expanded && meal.foods.length === 0 && (
-        <p className="px-4 pb-3 text-xs text-muted-foreground">
+        <p className="px-4 pb-3 text-sm text-foreground/70">
           Sin alimentos cargados
         </p>
       )}
 
       {meal.notes && (
         <div className="px-4 pb-3 pt-1 border-t border-white/[0.04]">
-          <p className="text-xs text-primary/80 italic">📝 {meal.notes}</p>
+          <p className="text-sm text-primary/80 italic">📝 {meal.notes}</p>
         </div>
       )}
     </motion.div>
@@ -196,20 +196,20 @@ const DaySelector = ({
       <button
         onClick={() => onChange(Math.max(0, currentIndex - 1))}
         disabled={currentIndex === 0}
-        className="p-1 rounded-lg disabled:opacity-30"
+        className="w-11 h-11 flex items-center justify-center rounded-lg disabled:opacity-30"
       >
         <ChevronLeft className="w-5 h-5 text-foreground" />
       </button>
       <div className="text-center">
-        <p className="text-sm font-bold text-foreground">{day.day_name}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-base font-bold text-foreground">{day.day_name}</p>
+        <p className="text-sm text-foreground/70">
           Día {day.day_number} de {days.length}
         </p>
       </div>
       <button
         onClick={() => onChange(Math.min(days.length - 1, currentIndex + 1))}
         disabled={currentIndex === days.length - 1}
-        className="p-1 rounded-lg disabled:opacity-30"
+        className="w-11 h-11 flex items-center justify-center rounded-lg disabled:opacity-30"
       >
         <ChevronRight className="w-5 h-5 text-foreground" />
       </button>
@@ -246,13 +246,13 @@ const WaterTracker = ({
             key={i}
             onClick={() => onChange(glasses === i + 1 ? i : i + 1)}
             aria-label={`${i + 1} vasos`}
-            className={`flex-1 h-10 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
+            className={`flex-1 h-11 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
               filled
                 ? "bg-blue-500/80 border border-blue-400/50"
                 : "bg-secondary/50 border border-white/[0.05]"
             }`}
           >
-            <Droplets className={`w-4 h-4 ${filled ? "text-white" : "text-muted-foreground/40"}`} />
+            <Droplets className={`w-5 h-5 ${filled ? "text-white" : "text-muted-foreground/40"}`} />
           </button>
         );
       })}
@@ -294,7 +294,7 @@ export default function Nutrition() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Mi dieta</p>
-        <p className="text-sm font-semibold text-foreground">Diseñá tu propio plan</p>
+        <p className="text-base font-semibold text-foreground">Diseñá tu propio plan</p>
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
     </motion.button>
@@ -312,7 +312,7 @@ export default function Nutrition() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Calorías</p>
-        <p className="text-sm font-semibold text-foreground">Completá tu perfil para calcularlas solas</p>
+        <p className="text-base font-semibold text-foreground">Completá tu perfil para calcularlas solas</p>
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
     </motion.button>
@@ -334,7 +334,7 @@ export default function Nutrition() {
           <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
             Tu estimación · Harris-Benedict
           </p>
-          <p className="text-sm font-semibold text-foreground tabular-nums">
+          <p className="text-base font-semibold text-foreground tabular-nums">
             {autoGoal} kcal{" "}
             <span className="text-muted-foreground font-normal">· mantenimiento {autoResult.tdee}</span>
           </p>
@@ -356,7 +356,7 @@ export default function Nutrition() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Historial</p>
-        <p className="text-sm font-semibold text-foreground">Qué venís comiendo + macros</p>
+        <p className="text-base font-semibold text-foreground">Qué venís comiendo + macros</p>
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
     </motion.button>
@@ -407,7 +407,7 @@ export default function Nutrition() {
         >
           <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
             <div className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
-              <p className="text-sm text-foreground/80">
+              <p className="text-base text-foreground/80">
                 Tu coach todavía no te asignó un plan, pero podés diseñar tu dieta y registrar lo que comés. 🍽️
               </p>
             </div>
@@ -431,7 +431,7 @@ export default function Nutrition() {
                       <CountUp value={autoGoal} />
                       <span className="text-sm font-bold text-muted-foreground"> kcal</span>
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-sm text-foreground/70 mt-0.5">
                       Según tu perfil · mantenimiento{" "}
                       <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
                     </p>
@@ -447,7 +447,7 @@ export default function Nutrition() {
                     ].map((m) => (
                       <div key={m.l} className="text-center">
                         <p className={`text-base font-black tabular-nums ${m.c}`}>{m.v}g</p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">
                           {m.l}
                         </p>
                       </div>
@@ -510,7 +510,7 @@ export default function Nutrition() {
               <p className="text-sm text-destructive">No pudimos cargar tu plan.</p>
               <button
                 onClick={() => refetch()}
-                className="shrink-0 px-3 py-1.5 rounded-lg bg-destructive/20 text-destructive text-xs font-bold active:scale-95 transition-transform"
+                className="shrink-0 px-4 min-h-11 flex items-center rounded-lg bg-destructive/20 text-destructive text-sm font-bold active:scale-95 transition-transform"
               >
                 Reintentar
               </button>
@@ -540,7 +540,7 @@ export default function Nutrition() {
                       / {plan.calories_target} kcal
                     </span>
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+                  <p className="text-sm text-foreground/70 mt-0.5 tabular-nums">
                     {checkedCount}/{totalMeals} comidas registradas
                   </p>
                 </div>
@@ -589,7 +589,7 @@ export default function Nutrition() {
               <p className="font-semibold text-foreground mb-1">
                 Plan sin días configurados
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-foreground/70">
                 Tu coach todavía está armando tu plan
               </p>
             </motion.div>
@@ -600,10 +600,10 @@ export default function Nutrition() {
               variants={fadeUp}
               className="bg-primary/5 border border-primary/20 rounded-2xl px-4 py-3"
             >
-              <p className="text-xs text-primary font-semibold mb-1">
+              <p className="text-sm text-primary font-semibold mb-1">
                 Nota del coach
               </p>
-              <p className="text-sm text-foreground/80">{currentDay.notes}</p>
+              <p className="text-base text-foreground/80">{currentDay.notes}</p>
             </motion.div>
           );
 
@@ -615,7 +615,7 @@ export default function Nutrition() {
                     <span className="accent-bar" />
                     <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 ml-3">
+                  <p className="text-sm text-foreground/70 mt-1 ml-3">
                     Tocá el ✓ cuando comas una — se suma a tu día y queda en tu historial.
                   </p>
                 </motion.div>

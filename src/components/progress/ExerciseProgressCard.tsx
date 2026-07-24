@@ -76,10 +76,10 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
-          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+          <p className="text-sm text-foreground/70 mb-1">{label}</p>
           <p className="text-lg font-bold text-foreground">
             {payload[0].value} kg
-            <span className="text-xs font-medium text-muted-foreground"> · {payload[0].payload.reps} reps</span>
+            <span className="text-sm font-medium text-muted-foreground"> · {payload[0].payload.reps} reps</span>
           </p>
         </div>
       );
@@ -105,7 +105,7 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
           <button
             key={ex.name}
             onClick={() => setSelected(i)}
-            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+            className={`shrink-0 inline-flex items-center px-3.5 min-h-11 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${
               i === idx
                 ? "bg-gradient-primary text-primary-foreground"
                 : "bg-secondary/40 border border-white/[0.06] text-muted-foreground"
@@ -122,19 +122,19 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
           <span className="text-2xl font-black text-foreground tabular-nums">{latest}</span>
           <span className="text-sm text-muted-foreground">kg</span>
           {gain > 0 && (
-            <span className="ml-2 flex items-center gap-0.5 text-xs font-bold text-emerald-500">
-              <TrendingUp className="w-3.5 h-3.5" />+{gain}kg
+            <span className="ml-2 flex items-center gap-0.5 text-sm font-bold text-emerald-500">
+              <TrendingUp className="w-4 h-4" />+{gain}kg
             </span>
           )}
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/10 border border-amber-400/20">
-          <Trophy className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-xs font-bold text-amber-400">PR {current.pr}kg</span>
+          <Trophy className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-bold text-amber-400">PR {current.pr}kg</span>
         </div>
       </div>
 
       {current.points.length < 2 ? (
-        <p className="text-xs text-muted-foreground text-center py-8">
+        <p className="text-sm text-muted-foreground text-center py-8">
           Cargá este ejercicio en otra sesión para ver tu evolución 📈
         </p>
       ) : (

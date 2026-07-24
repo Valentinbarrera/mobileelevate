@@ -47,19 +47,19 @@ const WorkoutCard = React.forwardRef<HTMLDivElement, WorkoutCardProps>(({
         
         {/* Tags superiores */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-          <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg">
+          <span className="bg-primary text-primary-foreground text-[11px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg">
             {label}
           </span>
           
           <div className="flex items-center gap-2 bg-background/70 backdrop-blur-md rounded-lg px-2.5 py-1.5">
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-foreground text-xs font-medium">{duration}</span>
+              <span className="text-foreground text-sm font-medium">{duration}</span>
             </div>
             <div className="w-px h-3 bg-border" />
             <div className="flex items-center gap-1">
               <Zap className="w-3.5 h-3.5 text-primary" />
-              <span className="text-foreground text-xs font-medium">{intensity}</span>
+              <span className="text-foreground text-sm font-medium">{intensity}</span>
             </div>
           </div>
         </div>

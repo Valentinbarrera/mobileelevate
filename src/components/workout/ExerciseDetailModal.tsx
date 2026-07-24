@@ -11,7 +11,7 @@ import type { LibraryExercise } from "@/hooks/useExerciseLibrary";
 
 const Chip = ({ label, value }: { label: string; value: string }) => (
   <div className="rounded-xl bg-secondary/50 border border-white/[0.06] px-3 py-2">
-    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
+    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
     <p className="text-sm font-bold text-foreground capitalize truncate">{value}</p>
   </div>
 );
@@ -40,7 +40,7 @@ const ExerciseDetailModal = ({
               <button
                 onClick={onClose}
                 aria-label="Cerrar"
-                className="shrink-0 w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
+                className="shrink-0 w-11 h-11 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -68,7 +68,7 @@ const ExerciseDetailModal = ({
                     </div>
                   </div>
                 ) : (
-                  <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-background/80 text-xs font-bold text-muted-foreground">
+                  <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-background/80 text-sm font-bold text-foreground/70">
                     Sin video
                   </span>
                 )}
@@ -90,7 +90,7 @@ const ExerciseDetailModal = ({
                   {exercise.secondaryMuscles.map((m) => (
                     <span
                       key={m}
-                      className="px-2 py-1 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-semibold text-foreground capitalize"
+                      className="px-2 py-1 rounded-lg bg-secondary/60 border border-white/[0.06] text-sm font-semibold text-foreground capitalize"
                     >
                       {m}
                     </span>
@@ -102,7 +102,7 @@ const ExerciseDetailModal = ({
               <TechniqueBlock description={exercise.description} instructions={exercise.instructions} />
 
               {!exercise.description && (!exercise.instructions || exercise.instructions.length === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-foreground/70 text-center py-4">
                   Este ejercicio todavía no tiene descripción cargada.
                 </p>
               )}

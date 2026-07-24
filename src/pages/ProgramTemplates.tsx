@@ -40,7 +40,7 @@ const LEVEL_STYLES: Record<string, string> = {
 
 const LevelChip = ({ level }: { level: string }) => (
   <span
-    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+    className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
       LEVEL_STYLES[level] ?? "bg-secondary/60 text-muted-foreground border-white/[0.06]"
     }`}
   >
@@ -76,10 +76,10 @@ export default function ProgramTemplates() {
         left={
           <button
             onClick={() => navigate(-1)}
-            className="text-muted-foreground -ml-1 p-1"
+            className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
             aria-label="Volver"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -97,7 +97,7 @@ export default function ProgramTemplates() {
             className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3 flex items-start gap-2.5"
           >
             <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-            <p className="text-xs text-foreground/80 leading-relaxed">
+            <p className="text-sm text-foreground/80 leading-relaxed">
               Estos programas son <span className="font-bold text-primary">orientativos</span> y están
               armados sobre la literatura de entrenamiento de fuerza (frecuencia, volumen y rangos de
               reps/descanso). Podés usarlos como punto de partida, pero no reemplazan el consejo de tu
@@ -128,10 +128,10 @@ export default function ProgramTemplates() {
                           </h3>
                           <LevelChip level={t.level} />
                         </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-sm text-foreground/70 leading-relaxed">
                           {t.description}
                         </p>
-                        <div className="flex items-center gap-3 mt-2.5 text-xs font-semibold text-muted-foreground">
+                        <div className="flex items-center gap-3 mt-2.5 text-sm font-semibold text-foreground/70">
                           <span className="inline-flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5 text-primary" />
                             {t.daysPerWeek} días/sem
@@ -168,7 +168,7 @@ export default function ProgramTemplates() {
                                 <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
                                   <Dumbbell className="w-3.5 h-3.5 text-primary" />
                                   <span className="text-sm font-bold text-foreground">{day.name}</span>
-                                  <span className="ml-auto text-[11px] font-semibold text-muted-foreground">
+                                  <span className="ml-auto text-sm font-semibold text-foreground/70">
                                     {day.exercises.length} ejercicios
                                   </span>
                                 </div>
@@ -183,12 +183,12 @@ export default function ProgramTemplates() {
                                           {e.name}
                                         </p>
                                         {e.muscleGroup && (
-                                          <p className="text-[11px] text-muted-foreground">
+                                          <p className="text-sm text-foreground/70">
                                             {e.muscleGroup}
                                           </p>
                                         )}
                                       </div>
-                                      <span className="text-xs font-bold text-foreground tabular-nums shrink-0">
+                                      <span className="text-sm font-bold text-foreground tabular-nums shrink-0">
                                         {e.sets}×{e.reps}
                                       </span>
                                     </div>
@@ -204,7 +204,7 @@ export default function ProgramTemplates() {
                               <FlaskConical className="w-3.5 h-3.5" />
                               Por qué está armado así
                             </p>
-                            <p className="text-xs text-foreground/80 leading-relaxed">
+                            <p className="text-sm text-foreground/80 leading-relaxed">
                               {t.rationale}
                             </p>
                           </div>
@@ -215,7 +215,7 @@ export default function ProgramTemplates() {
                               <BookText className="w-3.5 h-3.5" />
                               Fuente
                             </p>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-sm text-foreground/70 leading-relaxed">
                               {t.citation}
                             </p>
                           </div>
@@ -225,7 +225,7 @@ export default function ProgramTemplates() {
                             onClick={() => useTemplate(t)}
                             className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
                           >
-                            <Check className="w-4 h-4" /> Usar este programa
+                            <Check className="w-5 h-5" /> Usar este programa
                           </button>
                         </div>
                       </motion.div>

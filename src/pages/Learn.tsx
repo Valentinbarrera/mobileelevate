@@ -128,13 +128,13 @@ const AccordionItem = ({
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <Icon className="w-4 h-4 text-primary" />
         </div>
-        <span className="flex-1 text-sm font-bold text-foreground">{title}</span>
+        <span className="flex-1 text-base font-bold text-foreground">{title}</span>
         <ChevronDown
-          className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <p className="px-3.5 pb-3.5 text-[13px] leading-relaxed text-muted-foreground">
+        <p className="px-3.5 pb-3.5 text-sm leading-relaxed text-foreground/70">
           {body}
         </p>
       )}
@@ -214,20 +214,20 @@ const RMCalculator = () => {
                     <span className="text-sm font-bold text-foreground tabular-nums">{pct}%</span>
                     <span className="text-sm font-black text-foreground tabular-nums">
                       {formatWeight(kg)}
-                      <span className="text-[10px] font-bold text-muted-foreground"> kg</span>
+                      <span className="text-sm font-bold text-muted-foreground"> kg</span>
                     </span>
                   </div>
                 );
               })}
             </div>
           </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Es una estimación (fórmulas Brzycki / Epley). Sirve como referencia para elegir cargas,
             no como una marca exacta. Ante la duda, empezá conservador.
           </p>
         </>
       ) : (
-        <p className="text-[13px] text-muted-foreground text-center py-2">
+        <p className="text-sm text-muted-foreground text-center py-2">
           Ingresá el peso y las repeticiones de una serie exigente para estimar tu 1RM.
         </p>
       )}
@@ -252,10 +252,10 @@ export default function Learn() {
         left={
           <button
             onClick={() => navigate(-1)}
-            className="text-muted-foreground -ml-1 p-1"
+            className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
             aria-label="Volver"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -268,7 +268,7 @@ export default function Learn() {
       >
         <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 lg:px-8 pt-5 space-y-4">
           {/* Intro */}
-          <motion.p variants={fadeUp} className="text-sm text-muted-foreground leading-relaxed">
+          <motion.p variants={fadeUp} className="text-base text-foreground/70 leading-relaxed">
             Todo lo que necesitás para sacarle el máximo a tus entrenamientos: cómo funciona la app,
             conceptos clave y herramientas rápidas.
           </motion.p>
@@ -284,7 +284,7 @@ export default function Learn() {
 
           {/* 2. Calentamiento */}
           <Capsule icon={Flame} title="Calentamiento (Warm Up)">
-            <div className="space-y-4 text-[13px] leading-relaxed text-muted-foreground">
+            <div className="space-y-4 text-sm leading-relaxed text-foreground/70">
               <p>
                 Un buen calentamiento prepara articulaciones y músculos, mejora tu técnica y baja el
                 riesgo de lesión. Dedicale 8 a 12 minutos antes de entrenar.
@@ -320,7 +320,7 @@ export default function Learn() {
                   ))}
                 </ul>
               </div>
-              <p className="text-[11px] text-foreground/70">
+              <p className="text-sm text-foreground/70">
                 Las aproximaciones no deberían fatigarte: descansá poco entre ellas y llegá fresco a
                 tu primera serie efectiva.
               </p>
@@ -329,7 +329,7 @@ export default function Learn() {
 
           {/* 3. Escala RPE / RIR */}
           <Capsule icon={Gauge} title="Escala RPE / RIR">
-            <p className="text-[13px] leading-relaxed text-muted-foreground mb-4">
+            <p className="text-sm leading-relaxed text-foreground/70 mb-4">
               Son dos formas de medir cuán duro fue una serie. El{" "}
               <span className="font-bold text-foreground">RIR</span> (Reps In Reserve) es cuántas
               repeticiones te quedaban antes del fallo. El{" "}
@@ -338,16 +338,16 @@ export default function Learn() {
             </p>
             <div className="rounded-2xl bg-secondary/40 border border-white/[0.06] overflow-hidden">
               <div className="grid grid-cols-[3rem_3rem_1fr] gap-2 px-3.5 py-2.5 border-b border-white/[0.06]">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">RIR</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">RPE</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Qué significa</span>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">RIR</span>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">RPE</span>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Qué significa</span>
               </div>
               <div className="divide-y divide-white/[0.04]">
                 {RPE_SCALE.map((row) => (
                   <div key={row.rir} className="grid grid-cols-[3rem_3rem_1fr] gap-2 px-3.5 py-2.5 items-center">
                     <span className="text-sm font-black text-primary tabular-nums">{row.rir}</span>
                     <span className="text-sm font-black text-foreground tabular-nums">{row.rpe}</span>
-                    <span className="text-[12px] leading-snug text-muted-foreground">{row.meaning}</span>
+                    <span className="text-sm leading-snug text-foreground/70">{row.meaning}</span>
                   </div>
                 ))}
               </div>
@@ -356,7 +356,7 @@ export default function Learn() {
 
           {/* 4. Calculadora de RM */}
           <Capsule icon={Calculator} title="Calculadora de RM">
-            <p className="text-[13px] leading-relaxed text-muted-foreground mb-4">
+            <p className="text-sm leading-relaxed text-foreground/70 mb-4">
               Estimá tu repetición máxima (1RM) a partir de una serie y obtené los pesos por
               porcentaje para planificar tus cargas.
             </p>
@@ -380,7 +380,7 @@ export default function Learn() {
                       href={mat.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/25 text-xs font-bold text-primary active:scale-95 transition-transform"
+                      className="px-4 min-h-11 flex items-center rounded-lg bg-primary/10 border border-primary/25 text-sm font-bold text-primary active:scale-95 transition-transform"
                     >
                       Abrir
                     </a>
@@ -395,7 +395,7 @@ export default function Learn() {
                 <p className="text-sm font-bold text-foreground mb-1">
                   Tu coach todavía no subió material
                 </p>
-                <p className="text-[13px] text-muted-foreground max-w-xs mx-auto">
+                <p className="text-sm text-foreground/70 max-w-xs mx-auto">
                   Cuando tu coach comparta PDFs, guías o planes, van a aparecer acá para que los
                   abras cuando quieras.
                 </p>

@@ -4,11 +4,11 @@ import {
   TrendingUp,
   Ruler,
   Camera,
-  ChevronRight,
   CalendarCheck,
   CalendarDays,
   Dumbbell,
   CheckCircle2,
+  Apple,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
@@ -21,6 +21,7 @@ import WeightStats from "@/components/progress/WeightStats";
 import PersonalRecords from "@/components/progress/PersonalRecords";
 import ExerciseProgressCard from "@/components/progress/ExerciseProgressCard";
 import WorkoutHistoryList from "@/components/progress/WorkoutHistoryList";
+import QuickActions from "@/components/home/QuickActions";
 import CountUp from "@/components/ui/count-up";
 import PageLoading from "@/components/ui/page-loading";
 import { useProgressData } from "@/hooks/useProgressData";
@@ -347,21 +348,17 @@ const Progress = () => {
             </motion.div>
           );
 
-          const photosEntry = (
-            <motion.button
-              variants={fadeUp}
-              onClick={() => navigate("/progress/photos")}
-              className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
-            >
-              <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-                <Camera className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Progreso visual</p>
-                <p className="text-sm font-semibold text-foreground">Fotos mes a mes</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-            </motion.button>
+          // Accesos directos a las secciones de progreso (reusa QuickActions)
+          const quickActionsRow = (
+            <QuickActions
+              title="Accesos rápidos"
+              actions={[
+                { icon: Camera, label: "Fotos", to: "/progress/photos" },
+                { icon: Ruler, label: "Medidas", to: "/measurements" },
+                { icon: CalendarDays, label: "Actividad", to: "/progress/activity" },
+                { icon: Apple, label: "Nutrición", to: "/nutrition/history" },
+              ]}
+            />
           );
 
           // Desktop: gráficos a la izquierda, métricas/registro/PRs en rail derecho.
@@ -371,6 +368,7 @@ const Progress = () => {
                 <div className="grid grid-cols-12 gap-5 items-start">
                   <div className="col-span-8 space-y-5">
                     {metricsStrip}
+                    {quickActionsRow}
                     {weightStats}
                     {bodySection}
                     {exerciseProgressCard}
@@ -379,7 +377,6 @@ const Progress = () => {
                   </div>
                   <div className="col-span-4 space-y-5">
                     {streak}
-                    {photosEntry}
                     {weightLog}
                     {prs}
                     {energyDaily}
@@ -394,8 +391,8 @@ const Progress = () => {
           return (
             <div className="max-w-5xl mx-auto px-5 lg:px-8 pt-5 space-y-5">
               {metricsStrip}
+              {quickActionsRow}
               {streak}
-              {photosEntry}
               {weightLog}
               {weightStats}
               {bodySection}

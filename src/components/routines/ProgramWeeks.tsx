@@ -57,7 +57,7 @@ const WeekSessionCard = ({
     <div className="rounded-xl bg-secondary/30 border border-white/[0.05] overflow-hidden">
       <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-3 px-3.5 py-3 text-left">
         <span
-          className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
+          className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black ${
             done
               ? "bg-emerald-500/90 text-white"
               : isToday
@@ -70,17 +70,17 @@ const WeekSessionCard = ({
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{dayTitle(day)}</p>
-          <p className="text-[11px] text-muted-foreground capitalize">
+          <p className="text-sm text-foreground/70 capitalize">
             {date ? fmtDate(date) : `${exercises.length} ejercicios`}
             {isToday && <span className="text-primary font-bold"> · Hoy</span>}
           </p>
         </div>
 
-        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-muted-foreground tabular-nums">
+        <span className="shrink-0 text-sm font-bold uppercase tracking-wide text-foreground/70 tabular-nums">
           ~{estimateSessionMinutes(day)}′
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -142,12 +142,12 @@ const WeekAccordion = ({
           <div className="flex items-center gap-2">
             <p className="font-black text-foreground">Semana {week}</p>
             {isCurrent && (
-              <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25">
+              <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25">
                 En curso
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+          <p className="text-sm text-foreground/70 mt-0.5 tabular-nums">
             {doneCount}/{total} sesiones hechas
           </p>
         </div>
@@ -220,8 +220,8 @@ const ProgramWeeks = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-        <CalendarDays className="w-3.5 h-3.5 text-primary" />
+      <div className="flex items-center gap-2 px-1 text-sm text-foreground/70">
+        <CalendarDays className="w-4 h-4 text-primary" />
         <span className="font-semibold">{weeks.length} semanas agendadas</span>
       </div>
       {weeks.map((w) => (

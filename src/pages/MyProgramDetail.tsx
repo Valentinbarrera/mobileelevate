@@ -137,10 +137,10 @@ export default function MyProgramDetail() {
           left={
             <button
               onClick={() => navigate(-1)}
-              className="text-muted-foreground -ml-1 p-1"
+              className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
               aria-label="Volver"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-6 h-6" />
             </button>
           }
         />
@@ -150,14 +150,14 @@ export default function MyProgramDetail() {
               <FolderOpen className="w-8 h-8 text-primary" />
             </div>
             <p className="text-lg font-black text-foreground mb-1">No encontramos este programa</p>
-            <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
+            <p className="text-base text-foreground/70 mb-5 max-w-xs mx-auto">
               Puede que lo hayas eliminado o que el enlace no sea válido.
             </p>
             <button
               onClick={() => navigate("/routines")}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
             >
-              <ArrowLeft className="w-4 h-4" /> Volver a mis rutinas
+              <ArrowLeft className="w-5 h-5" /> Volver a mis rutinas
             </button>
           </div>
         </div>
@@ -195,10 +195,10 @@ export default function MyProgramDetail() {
         left={
           <button
             onClick={() => navigate(-1)}
-            className="text-muted-foreground -ml-1 p-1"
+            className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
             aria-label="Volver"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -214,20 +214,20 @@ export default function MyProgramDetail() {
           <motion.div variants={fadeUp} className="card-hero rounded-2xl p-4">
             <div className="mb-3">
               <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${STATUS_STYLES[status]}`}
+                className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${STATUS_STYLES[status]}`}
               >
                 {PROGRAM_STATUS_LABEL[status]}
               </span>
             </div>
             {program.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              <p className="text-base text-foreground/70 leading-relaxed mb-3">
                 {program.description}
               </p>
             )}
             <div className="flex items-center gap-2 flex-wrap">
               {program.level && (
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                  className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                     LEVEL_STYLES[program.level] ??
                     "bg-secondary/60 text-muted-foreground border-white/[0.06]"
                   }`}
@@ -236,13 +236,13 @@ export default function MyProgramDetail() {
                 </span>
               )}
               {program.daysPerWeek != null && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/70">
+                  <Calendar className="w-4 h-4 text-primary" />
                   {program.daysPerWeek} días/sem
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <Dumbbell className="w-3.5 h-3.5 text-primary" />
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/70">
+                <Dumbbell className="w-4 h-4 text-primary" />
                 {program.days.length} {program.days.length === 1 ? "día" : "días"}
               </span>
             </div>
@@ -251,7 +251,7 @@ export default function MyProgramDetail() {
                 a la vez, así no hay dos respuestas a "¿qué hago hoy?". */}
             {isFinished ? (
               <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-3">
-                <p className="text-xs font-bold text-emerald-400">
+                <p className="text-sm font-bold text-emerald-400">
                   <CheckCircle2 className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
                   Terminado el{" "}
                   {new Date(program.completedAt as string).toLocaleDateString("es-AR")}
@@ -260,20 +260,20 @@ export default function MyProgramDetail() {
                   type="button"
                   onClick={handleReopen}
                   aria-label="Reabrir programa"
-                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 min-h-11 px-1 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors shrink-0"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> Reabrir
+                  <RotateCcw className="w-4 h-4" /> Reabrir
                 </button>
               </div>
             ) : isActive ? (
               <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-primary/10 border border-primary/25 px-3.5 py-3">
-                <p className="text-xs font-bold text-primary">
+                <p className="text-sm font-bold text-primary">
                   <CheckCircle2 className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
                   Es tu plan activo
                 </p>
                 <button
                   onClick={handleDeactivate}
-                  className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  className="min-h-11 px-1 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors shrink-0"
                 >
                   Volver al de mi coach
                 </button>
@@ -283,7 +283,7 @@ export default function MyProgramDetail() {
                 onClick={handleActivate}
                 className="w-full mt-4 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
               >
-                <CheckCircle2 className="w-4 h-4" /> Usar como mi plan
+                <CheckCircle2 className="w-5 h-5" /> Usar como mi plan
               </button>
             )}
 
@@ -291,15 +291,15 @@ export default function MyProgramDetail() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => navigate(`/programa/${program.id}/editar`)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 min-h-11 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
               >
-                <Pencil className="w-4 h-4 text-primary" /> Editar
+                <Pencil className="w-5 h-5 text-primary" /> Editar
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-destructive/10 border border-destructive/25 text-sm font-bold text-destructive active:scale-[0.99] transition-transform"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-11 rounded-xl bg-destructive/10 border border-destructive/25 text-sm font-bold text-destructive active:scale-[0.99] transition-transform"
               >
-                <Trash2 className="w-4 h-4" /> Eliminar
+                <Trash2 className="w-5 h-5" /> Eliminar
               </button>
             </div>
 
@@ -309,9 +309,9 @@ export default function MyProgramDetail() {
                 type="button"
                 onClick={() => setConfirmFinish(true)}
                 aria-label="Terminar programa"
-                className="w-full mt-2 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-secondary/40 border border-white/[0.06] text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
+                className="w-full mt-2 inline-flex items-center justify-center gap-1.5 py-2.5 min-h-11 rounded-xl bg-secondary/40 border border-white/[0.06] text-sm font-bold text-foreground/70 hover:text-foreground hover:bg-secondary/60 transition-all"
               >
-                <Flag className="w-3.5 h-3.5" /> Terminar programa
+                <Flag className="w-4 h-4" /> Terminar programa
               </button>
             )}
           </motion.div>
@@ -339,7 +339,7 @@ export default function MyProgramDetail() {
                   <h3 className="flex-1 text-sm font-black text-foreground tracking-tight truncate">
                     {day.name}
                   </h3>
-                  <span className="text-[11px] font-semibold text-muted-foreground">
+                  <span className="text-sm font-semibold text-foreground/70">
                     {day.exercises.length} {day.exercises.length === 1 ? "ejercicio" : "ejercicios"}
                   </span>
                 </div>
@@ -353,21 +353,21 @@ export default function MyProgramDetail() {
                             {e.name}
                           </p>
                           {e.muscleGroup && (
-                            <p className="text-[11px] text-muted-foreground">{e.muscleGroup}</p>
+                            <p className="text-sm text-foreground/70">{e.muscleGroup}</p>
                           )}
                         </div>
                         <span className="text-sm font-black text-foreground tabular-nums shrink-0">
                           {e.sets}×{e.reps}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] font-semibold text-muted-foreground tabular-nums">
+                      <div className="flex items-center gap-3 mt-1 text-sm font-semibold text-foreground/70 tabular-nums">
                         <span className="inline-flex items-center gap-1">
-                          <Timer className="w-3 h-3" />
+                          <Timer className="w-4 h-4" />
                           {e.restSeconds}s descanso
                         </span>
                         {e.rir != null && (
                           <span className="inline-flex items-center gap-1">
-                            <Gauge className="w-3 h-3" />
+                            <Gauge className="w-4 h-4" />
                             RIR {e.rir}
                           </span>
                         )}
@@ -375,7 +375,7 @@ export default function MyProgramDetail() {
                     </div>
                   ))}
                   {day.exercises.length === 0 && (
-                    <p className="px-4 py-3 text-xs text-muted-foreground">Sin ejercicios todavía</p>
+                    <p className="px-4 py-3 text-sm text-foreground/70">Sin ejercicios todavía</p>
                   )}
                 </div>
 
@@ -386,7 +386,7 @@ export default function MyProgramDetail() {
                     disabled={day.exercises.length === 0}
                     className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform disabled:opacity-40 disabled:active:scale-100"
                   >
-                    <Play className="w-4 h-4" /> Entrenar {day.name}
+                    <Play className="w-5 h-5" /> Entrenar {day.name}
                   </button>
                 </div>
               </motion.div>

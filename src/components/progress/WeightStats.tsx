@@ -26,7 +26,7 @@ const Delta = ({ value }: { value: number | null }) => {
       <Icon className="w-4 h-4" />
       {v > 0 ? "+" : ""}
       {v}
-      <span className="text-xs font-bold">kg</span>
+      <span className="text-sm font-bold">kg</span>
     </span>
   );
 };
@@ -86,9 +86,9 @@ const WeightStats = ({
                 setVal(String(current.value));
                 setLogging(true);
               }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/12 border border-primary/25 text-primary text-xs font-bold active:scale-95 transition-transform shrink-0"
+              className="flex items-center gap-1 px-3 min-h-11 rounded-lg bg-primary/12 border border-primary/25 text-primary text-sm font-bold active:scale-95 transition-transform shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               Registrar
             </button>
           )}
@@ -112,7 +112,7 @@ const WeightStats = ({
             onClick={save}
             className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
           >
-            <Check className="w-4 h-4" />
+            <Check className="w-5 h-5" />
             Guardar
           </button>
         </div>
@@ -120,15 +120,15 @@ const WeightStats = ({
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Desde inicio</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Desde inicio</p>
           <Delta value={sinceStart} />
         </div>
         <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Último mes</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Último mes</p>
           <Delta value={lastMonth} />
         </div>
         <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Rango</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Rango</p>
           <p className="text-sm font-black text-foreground tabular-nums leading-tight">
             {round1(min)}
             <span className="text-muted-foreground font-bold"> – </span>

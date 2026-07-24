@@ -40,7 +40,7 @@ const ExerciseListItem = ({ exercise, index }: ExerciseListItemProps) => {
           <h3 className="font-semibold text-foreground text-base truncate">
             {exercise.name}
           </h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-foreground/70 mt-0.5">
             {exercise.sets} series × {exercise.reps}
           </p>
         </div>
@@ -48,7 +48,7 @@ const ExerciseListItem = ({ exercise, index }: ExerciseListItemProps) => {
         {/* Weight Badge */}
         {exercise.weight && (
           <div className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <span className="text-xs font-semibold text-primary">{exercise.weight}</span>
+            <span className="text-sm font-semibold text-primary">{exercise.weight}</span>
           </div>
         )}
 
@@ -90,8 +90,8 @@ const ExerciseListItem = ({ exercise, index }: ExerciseListItemProps) => {
                       <MessageSquare className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-primary mb-1">Nota del Coach</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-sm font-semibold text-primary mb-1">Nota del Coach</p>
+                      <p className="text-sm text-foreground/70 leading-relaxed">
                         {exercise.notes}
                       </p>
                     </div>
@@ -100,7 +100,7 @@ const ExerciseListItem = ({ exercise, index }: ExerciseListItemProps) => {
               )}
 
               {/* Rest Time Info */}
-              <div className="flex items-center justify-between text-sm text-muted-foreground px-1">
+              <div className="flex items-center justify-between text-sm text-foreground/70 px-1">
                 <span>Descanso recomendado</span>
                 <span className="font-medium text-foreground">{exercise.restSeconds}s</span>
               </div>

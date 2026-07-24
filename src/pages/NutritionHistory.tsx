@@ -33,9 +33,9 @@ const StatCard = ({
     <div className="flex items-center gap-1.5 mb-1 text-primary">{icon}</div>
     <p className="text-xl font-black text-foreground tabular-nums leading-none">
       {value}
-      {unit && <span className="text-xs font-bold text-muted-foreground ml-0.5">{unit}</span>}
+      {unit && <span className="text-sm font-bold text-muted-foreground ml-0.5">{unit}</span>}
     </p>
-    <p className="text-[11px] text-muted-foreground font-medium mt-1">{label}</p>
+    <p className="text-sm text-foreground/70 font-medium mt-1">{label}</p>
   </div>
 );
 
@@ -100,8 +100,8 @@ export default function NutritionHistory() {
         title="Historial"
         maxWidth="max-w-4xl lg:max-w-6xl"
         left={
-          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center" aria-label="Volver">
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />

@@ -30,7 +30,7 @@ const WorkoutExerciseList = ({
         <h2 className="text-[11px] font-bold text-primary uppercase tracking-wider">
           Lista de Ejercicios
         </h2>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm text-foreground/70">
           {exercises.length} ejercicios
         </span>
       </motion.div>

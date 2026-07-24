@@ -47,7 +47,7 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
             <span className="text-foreground font-bold text-sm">{userName.charAt(0).toUpperCase()}</span>
           </div>
           <motion.span 
-            className="absolute -bottom-1 -right-0.5 text-[6px] bg-gradient-primary text-primary-foreground px-1.5 py-px rounded-full font-black uppercase shadow-lg"
+            className="absolute -bottom-1 -right-0.5 text-[9px] bg-gradient-primary text-primary-foreground px-1.5 py-px rounded-full font-black uppercase shadow-lg"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 500, delay: 0.3 }}
@@ -63,7 +63,7 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
             <Flame className="w-4 h-4 text-primary" />
           </motion.div>
           <span className="text-foreground text-sm font-bold tabular-nums">{streakDays}</span>
-          <span className="text-muted-foreground text-[10px] font-semibold uppercase">días</span>
+          <span className="text-muted-foreground text-[11px] font-semibold uppercase">días</span>
         </div>
       </motion.button>
       
@@ -71,12 +71,12 @@ const Header = ({ userName, streakDays }: HeaderProps) => {
       <motion.button
         onClick={() => navigate("/messages")}
         aria-label="Mensajes del coach"
-        className="w-10 h-10 rounded-full card-elevated flex items-center justify-center relative"
+        className="w-11 h-11 rounded-full card-elevated flex items-center justify-center relative"
         whileTap={{ scale: 0.93 }}
       >
-        <Bell className="w-[18px] h-[18px] text-muted-foreground" />
+        <Bell className="w-5 h-5 text-muted-foreground" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center ring-2 ring-background">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[11px] font-black flex items-center justify-center ring-2 ring-background">
             {unread > 9 ? "9+" : unread}
           </span>
         )}

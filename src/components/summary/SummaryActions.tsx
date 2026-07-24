@@ -16,7 +16,7 @@ const SummaryActions = ({ onShare, onGoHome }: SummaryActionsProps) => {
     >
       {/* Share Buttons */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 text-center">
+        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 text-center">
           Compartir logro
         </p>
         <div className="flex justify-center gap-3">

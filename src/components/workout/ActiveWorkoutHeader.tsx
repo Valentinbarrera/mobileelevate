@@ -71,7 +71,7 @@ const ActiveWorkoutHeader = ({
             <div className="flex items-center gap-2 min-w-0">
               <motion.button
                 onClick={handleExit}
-                className="w-9 h-9 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
+                className="w-11 h-11 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
                 whileTap={{ scale: 0.95 }}
               >
                 <X className="w-5 h-5" />
@@ -81,7 +81,7 @@ const ActiveWorkoutHeader = ({
                 <span className="text-xl font-black text-foreground tabular-nums tracking-tight">
                   {elapsedTime}
                 </span>
-                <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none">
                   Tiempo activo
                 </p>
               </div>
@@ -91,7 +91,7 @@ const ActiveWorkoutHeader = ({
                 <motion.button
                   onClick={onOpenVideo}
                   aria-label={`Ver video de ${activeExerciseName || "el ejercicio"}`}
-                  className="w-9 h-9 shrink-0 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary touch-target"
+                  className="w-11 h-11 shrink-0 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary touch-target"
                   whileTap={{ scale: 0.95 }}
                 >
                   <Video className="w-5 h-5" />
@@ -105,24 +105,24 @@ const ActiveWorkoutHeader = ({
               <div className="text-center">
                 <div className="flex items-center gap-0.5">
                   <span className="text-base font-bold text-foreground tabular-nums">{completedSets}</span>
-                  <span className="text-xs text-muted-foreground">/{totalSets}</span>
+                  <span className="text-sm text-foreground/70">/{totalSets}</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Series</p>
+                <p className="text-[11px] text-muted-foreground">Series</p>
               </div>
 
               {/* Exercises Counter */}
               <div className="text-center">
                 <div className="flex items-center gap-0.5">
                   <span className="text-base font-bold text-primary tabular-nums">{completedExercises}</span>
-                  <span className="text-xs text-muted-foreground">/{totalExercises}</span>
+                  <span className="text-sm text-foreground/70">/{totalExercises}</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Ejercicios</p>
+                <p className="text-[11px] text-muted-foreground">Ejercicios</p>
               </div>
 
               {/* Pause Button */}
               <motion.button
                 onClick={onPauseToggle}
-                className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center transition-colors touch-target ${
+                className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center transition-colors touch-target ${
                   isPaused
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -141,10 +141,10 @@ const ActiveWorkoutHeader = ({
                 <motion.button
                   onClick={onFinish}
                   aria-label="Finalizar entrenamiento"
-                  className="h-10 px-2.5 sm:px-3.5 shrink-0 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-1.5 touch-target"
+                  className="h-11 px-2.5 sm:px-3.5 shrink-0 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-1.5 touch-target"
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Check className="w-4 h-4" strokeWidth={3} />
+                  <Check className="w-5 h-5" strokeWidth={3} />
                   {/* En pantallas angostas el ícono alcanza: si no, se sale del header */}
                   <span className="hidden sm:inline">Finalizar</span>
                 </motion.button>

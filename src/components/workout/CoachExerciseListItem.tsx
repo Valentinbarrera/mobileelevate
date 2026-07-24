@@ -101,7 +101,7 @@ const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItem
               {exercise.muscleGroup && (
                 <>
                   <span className="text-muted-foreground/50">•</span>
-                  <span className="text-xs text-primary capitalize truncate">{exercise.muscleGroup}</span>
+                  <span className="text-sm text-primary capitalize truncate">{exercise.muscleGroup}</span>
                 </>
               )}
             </div>
@@ -157,7 +157,7 @@ const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItem
                       <span className="text-center text-sm font-bold text-foreground tabular-nums">
                         {exercise.reps}
                       </span>
-                      <span className="text-center text-sm text-muted-foreground tabular-nums">
+                      <span className="text-center text-sm text-foreground/70 tabular-nums">
                         {exercise.restSeconds ? `${exercise.restSeconds}s` : "—"}
                       </span>
                     </div>
@@ -175,7 +175,7 @@ const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItem
 
                 {/* Equipo */}
                 {exercise.equipment && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-foreground/70">
                     <span className="font-semibold">Equipo:</span> <span className="capitalize">{exercise.equipment}</span>
                   </p>
                 )}
@@ -184,9 +184,9 @@ const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItem
                 {exercise.videoUrl && (
                   <button
                     onClick={() => setShowVideo(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                    className="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
                   >
-                    <Play className="w-4 h-4 text-primary fill-current" />
+                    <Play className="w-5 h-5 text-primary fill-current" />
                     Ver técnica
                   </button>
                 )}

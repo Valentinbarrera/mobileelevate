@@ -31,7 +31,7 @@ const WorkoutHeader = ({
         {/* Back Button */}
         <button
           onClick={onBack}
-          className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
+          className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -39,7 +39,7 @@ const WorkoutHeader = ({
         {/* Title */}
         <div className="text-center flex-1 mx-4">
           <h1 className="text-lg font-bold text-foreground truncate">{title}</h1>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-sm text-foreground/70">{subtitle}</p>
         </div>
 
         {/* Timer / Pause */}
@@ -53,8 +53,8 @@ const WorkoutHeader = ({
             </div>
             <button
               onClick={onPauseToggle}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                isPaused 
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+                isPaused
                   ? "bg-primary text-primary-foreground" 
                   : "bg-secondary text-foreground hover:bg-secondary/80"
               }`}
@@ -67,7 +67,7 @@ const WorkoutHeader = ({
             </button>
           </div>
         ) : (
-          <div className="w-10" /> 
+          <div className="w-11" />
         )}
       </div>
     </motion.header>

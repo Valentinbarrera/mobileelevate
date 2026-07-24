@@ -74,14 +74,14 @@ const WeeklyGoalCard = ({ completedDates, goal }: WeeklyGoalCardProps) => {
           return (
             <div key={i} className="flex flex-col items-center gap-1">
               <span
-                className={`text-[9px] font-bold uppercase ${
+                className={`text-[11px] font-bold uppercase ${
                   isToday ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 {DAY_LABELS[i]}
               </span>
               <div
-                className={`w-full aspect-square max-w-[2.25rem] rounded-xl flex items-center justify-center text-xs font-bold tabular-nums ${
+                className={`w-full aspect-square max-w-[2.25rem] rounded-xl flex items-center justify-center text-sm font-bold tabular-nums ${
                   done
                     ? "bg-gradient-primary text-primary-foreground"
                     : isToday

@@ -121,11 +121,11 @@ const ExerciseTrackingCard = ({
               {exercise.exercise?.name}
             </h3>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-foreground/70">
                 {exercise.sets} series × {exercise.target_reps}
               </span>
               {exercise.target_weight && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                <span className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
                   {exercise.target_weight}kg
                 </span>
               )}
@@ -169,9 +169,9 @@ const ExerciseTrackingCard = ({
                   <div className="space-y-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowVideo(!showVideo); }}
-                      className="flex items-center gap-2 text-sm text-primary font-medium hover:text-primary/80 transition-colors"
+                      className="flex items-center gap-2 min-h-11 text-sm text-primary font-medium hover:text-primary/80 transition-colors"
                     >
-                      <Play className="w-4 h-4" />
+                      <Play className="w-5 h-5" />
                       {showVideo ? "Ocultar video" : "Ver video demostrativo"}
                     </button>
                     <AnimatePresence>
@@ -219,8 +219,8 @@ const ExerciseTrackingCard = ({
                       Progreso de Series
                     </span>
                     <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-xs">{exercise.rest_seconds}s descanso</span>
+                      <Clock className="w-4 h-4" />
+                      <span className="text-sm">{exercise.rest_seconds}s descanso</span>
                     </div>
                   </div>
 
@@ -268,7 +268,7 @@ const ExerciseTrackingCard = ({
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-sm text-foreground/70">
                               {exercise.target_reps} reps
                             </span>
                           )}
@@ -286,8 +286,8 @@ const ExerciseTrackingCard = ({
                         <MessageSquare className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-primary mb-1">Nota del Profe</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-sm font-semibold text-primary mb-1">Nota del Profe</p>
+                        <p className="text-sm text-foreground/70 leading-relaxed">
                           {exercise.notes}
                         </p>
                       </div>

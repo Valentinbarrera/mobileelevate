@@ -138,7 +138,7 @@ const MeasurementSheet = ({
                 <h2 className="text-xl font-black text-foreground">Registrar medición</h2>
                 <p className="text-sm text-muted-foreground">Cargá los valores que quieras, todos son opcionales.</p>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground w-11 h-11 -mr-2 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -161,7 +161,7 @@ const MeasurementSheet = ({
             <div className="grid grid-cols-2 gap-3 mb-5">
               {FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  <label className="block text-sm font-semibold text-foreground/70 mb-1.5">
                     {f.label}
                   </label>
                   <div className="relative">
@@ -172,7 +172,7 @@ const MeasurementSheet = ({
                       placeholder="—"
                       className="w-full h-12 pl-3 pr-10 rounded-2xl bg-secondary border border-border text-foreground font-bold tabular-nums focus:border-primary focus:outline-none"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground pointer-events-none">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground pointer-events-none">
                       {f.unit}
                     </span>
                   </div>

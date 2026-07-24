@@ -61,7 +61,7 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false }: Coach
         </div>
 
         {/* Meta */}
-        <div className="flex items-center gap-2.5 mb-2 text-xs">
+        <div className="flex items-center gap-2.5 mb-2 text-sm">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Clock className="w-3.5 h-3.5" />
             <span className="font-medium">{routineDay.estimatedDuration} min</span>

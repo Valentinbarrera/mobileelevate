@@ -39,7 +39,7 @@ const ProfileAvatar = ({
           </h2>
 
           <span
-            className={`inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+            className={`inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
               isPro
                 ? "bg-primary/15 border border-primary/25 text-primary"
                 : "bg-secondary border border-white/[0.06] text-muted-foreground"

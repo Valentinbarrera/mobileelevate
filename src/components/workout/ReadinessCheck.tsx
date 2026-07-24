@@ -86,7 +86,7 @@ const ReadinessCheck = ({ open, onComplete, onSkip }: Props) => {
               </div>
               <p className="text-[11px] font-bold text-primary uppercase tracking-[0.16em]">Readiness express</p>
               <h1 className="text-2xl font-black text-foreground leading-tight mt-1">¿Cómo te sentís hoy?</h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-foreground/70 mt-1">
                 Respondé las 5 preguntas para conocer tu nivel de vitalidad. Podés omitirlo.
               </p>
             </div>
@@ -108,8 +108,8 @@ const ReadinessCheck = ({ open, onComplete, onSkip }: Props) => {
                     </div>
                     <Scale value={answers[q.key] ?? null} onChange={(n) => set(q.key, n)} />
                     <div className="flex justify-between mt-1.5 px-0.5">
-                      <span className="text-[10px] text-muted-foreground">{q.low}</span>
-                      <span className="text-[10px] text-muted-foreground">{q.high}</span>
+                      <span className="text-sm text-foreground/70">{q.low}</span>
+                      <span className="text-sm text-foreground/70">{q.high}</span>
                     </div>
                   </motion.div>
                 );
@@ -131,7 +131,7 @@ const ReadinessCheck = ({ open, onComplete, onSkip }: Props) => {
               </button>
               <button
                 onClick={skip}
-                className="w-full py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                className="w-full min-h-11 py-2.5 text-sm font-semibold text-foreground/70 hover:text-foreground transition-colors"
               >
                 Omitir y empezar
               </button>

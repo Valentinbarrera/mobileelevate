@@ -100,7 +100,7 @@ const NavItem = ({
     </motion.div>
 
     <span
-      className={`relative text-[10.5px] leading-none tracking-tight transition-colors duration-200 ${
+      className={`relative text-[11px] leading-none tracking-tight transition-colors duration-200 ${
         active ? "text-primary font-bold" : "text-muted-foreground/55 font-semibold"
       }`}
     >
@@ -131,7 +131,7 @@ const NavFab = ({
     <span className="block w-[25px] h-[25px]" aria-hidden />
 
     <span
-      className={`text-[10.5px] leading-none tracking-tight font-bold transition-colors duration-200 ${
+      className={`text-[11px] leading-none tracking-tight font-bold transition-colors duration-200 ${
         open ? "text-primary" : "text-muted-foreground/55"
       }`}
     >

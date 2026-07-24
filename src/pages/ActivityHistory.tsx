@@ -113,8 +113,8 @@ export default function ActivityHistory() {
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
           <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 py-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
-              <ArrowLeft className="w-5 h-5" />
+            <button onClick={() => navigate(-1)} className="-ml-2 w-11 h-11 flex items-center justify-center text-muted-foreground" aria-label="Volver">
+              <ArrowLeft className="w-6 h-6" />
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
@@ -150,22 +150,22 @@ export default function ActivityHistory() {
                 {/* Stats: días entrenados · mejor racha */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                       Días entrenados
                     </p>
-                    <p className="text-lg font-black text-foreground tabular-nums leading-none">
+                    <p className="text-xl font-black text-foreground tabular-nums leading-none">
                       {m.trainedDays}
-                      <span className="text-xs font-bold text-muted-foreground">/{m.denominator}</span>
+                      <span className="text-sm font-bold text-muted-foreground">/{m.denominator}</span>
                     </p>
                   </div>
                   <div className="rounded-xl bg-secondary/40 border border-white/[0.05] p-3">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                       Mejor racha
                     </p>
-                    <p className="flex items-center gap-1 text-lg font-black text-foreground tabular-nums leading-none">
-                      <Flame className="w-4 h-4 text-primary fill-primary/30" />
+                    <p className="flex items-center gap-1 text-xl font-black text-foreground tabular-nums leading-none">
+                      <Flame className="w-5 h-5 text-primary fill-primary/30" />
                       {m.bestStreak}
-                      <span className="text-xs font-bold text-muted-foreground">
+                      <span className="text-sm font-bold text-muted-foreground">
                         {m.bestStreak === 1 ? "día" : "días"}
                       </span>
                     </p>
@@ -215,7 +215,7 @@ function MonthGrid({
     <div>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DOW.map((d, i) => (
-          <span key={i} className="text-center text-[9px] font-bold uppercase text-muted-foreground">
+          <span key={i} className="text-center text-[11px] font-bold uppercase text-muted-foreground">
             {d}
           </span>
         ))}
@@ -236,7 +236,7 @@ function MonthGrid({
               {activeSet.has(day) ? (
                 <Flame className="w-3 h-3 fill-current" />
               ) : (
-                <span className="text-[10px] font-semibold tabular-nums">{day}</span>
+                <span className="text-[11px] font-semibold tabular-nums">{day}</span>
               )}
             </div>
           )

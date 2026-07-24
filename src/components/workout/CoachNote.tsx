@@ -29,7 +29,7 @@ const CoachNote = ({ coachName, message }: CoachNoteProps) => {
                 Tu profe
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground/70 leading-relaxed">
               {message}
             </p>
           </div>
@@ -38,7 +38,7 @@ const CoachNote = ({ coachName, message }: CoachNoteProps) => {
         {/* Reply hint */}
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-primary/10">
           <MessageCircle className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Tocá para enviar un mensaje</span>
+          <span className="text-sm text-foreground/70">Tocá para enviar un mensaje</span>
         </div>
       </div>
     </motion.div>

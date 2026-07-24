@@ -127,8 +127,8 @@ export default function MyDiet() {
         title="Mi dieta"
         maxWidth="max-w-4xl"
         left={
-          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center" aria-label="Volver">
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -159,7 +159,7 @@ export default function MyDiet() {
                   <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Total del plan</p>
                   <p className="text-2xl font-black text-foreground tabular-nums leading-tight">
                     <CountUp value={Math.round(totals.calories)} />
-                    <span className="text-sm font-bold text-muted-foreground">
+                    <span className="text-sm font-bold text-foreground/70">
                       {effectiveGoal ? ` / ${effectiveGoal}` : ""} kcal
                     </span>
                   </p>
@@ -175,10 +175,10 @@ export default function MyDiet() {
                         onFocus={(e) => e.target.select()}
                         placeholder="kcal meta"
                         autoFocus
-                        className="w-28 min-w-0 h-9 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+                        className="w-28 min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
                       />
-                      <button onClick={saveGoal} className="h-9 px-3 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold">
-                        <Check className="w-4 h-4" />
+                      <button onClick={saveGoal} className="h-11 px-4 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold flex items-center">
+                        <Check className="w-5 h-5" />
                       </button>
                     </div>
                   ) : (
@@ -188,17 +188,17 @@ export default function MyDiet() {
                           setGoalInput(calorieGoal ? String(calorieGoal) : "");
                           setEditingGoal(true);
                         }}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                        className="flex items-center gap-1.5 min-h-11 text-sm font-semibold text-primary"
                       >
-                        <Target className="w-3.5 h-3.5" />
+                        <Target className="w-5 h-5" />
                         {calorieGoal ? "Editar meta" : "Definí tu meta"}
                       </button>
                       <span className="w-px h-3.5 bg-white/10" />
                       <button
                         onClick={() => setCalcOpen(true)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                        className="flex items-center gap-1.5 min-h-11 text-sm font-semibold text-primary"
                       >
-                        <Calculator className="w-3.5 h-3.5" />
+                        <Calculator className="w-5 h-5" />
                         Calcular
                       </button>
                     </div>
@@ -218,7 +218,7 @@ export default function MyDiet() {
                     ].map((m) => (
                       <div key={m.l} className="text-center">
                         <p className={`text-base font-black tabular-nums ${m.c}`}>{Math.round(m.v)}g</p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{m.l}</p>
+                        <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">{m.l}</p>
                       </div>
                     ))}
                   </div>
@@ -238,17 +238,17 @@ export default function MyDiet() {
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-foreground leading-tight">
+                  <p className="text-base font-black text-foreground leading-tight">
                     Meta calculada según tu perfil
                   </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-sm text-foreground/70 mt-0.5">
                     Harris-Benedict · mantenimiento{" "}
                     <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
                     {" → "}
                     <span className="font-bold text-primary tabular-nums">{autoResult.target} kcal</span>
                   </p>
                   {autoMacros && (
-                    <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
+                    <p className="text-sm text-foreground/70 tabular-nums mt-1">
                       <span className="text-blue-400 font-bold">P {autoMacros.protein}g</span>
                       {" · "}
                       <span className="text-amber-400 font-bold">C {autoMacros.carbs}g</span>
@@ -258,9 +258,9 @@ export default function MyDiet() {
                   )}
                   <button
                     onClick={() => setCalcOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary mt-2.5"
+                    className="inline-flex items-center gap-1.5 min-h-11 text-sm font-semibold text-primary mt-2.5"
                   >
-                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <SlidersHorizontal className="w-5 h-5" />
                     Ajustar
                   </button>
                 </div>
@@ -279,10 +279,10 @@ export default function MyDiet() {
                 <UserPlus className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-black text-foreground leading-tight">
+                <p className="text-base font-black text-foreground leading-tight">
                   Completá tu perfil para calcular tus calorías
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <p className="text-sm text-foreground/70 mt-0.5">
                   Con tu sexo, edad, altura, peso y actividad estimamos tu meta sola.
                 </p>
               </div>
@@ -296,7 +296,7 @@ export default function MyDiet() {
                 <Soup className="w-8 h-8 text-primary" />
               </div>
               <p className="text-lg font-black text-foreground mb-1">Diseñá tu propia dieta</p>
-              <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
+              <p className="text-base text-foreground/70 mb-5 max-w-xs mx-auto">
                 Armá tus comidas con sus alimentos y macros. Vos tenés el control.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
@@ -304,13 +304,13 @@ export default function MyDiet() {
                   onClick={seedDefault}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
                 >
-                  <Plus className="w-4 h-4" /> Empezar con 4 comidas
+                  <Plus className="w-5 h-5" /> Empezar con 4 comidas
                 </button>
                 <button
                   onClick={() => setCalcOpen(true)}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-secondary/60 border border-white/[0.06] text-foreground font-bold active:scale-95 transition-transform"
                 >
-                  <Calculator className="w-4 h-4 text-primary" /> Calcular mis calorías
+                  <Calculator className="w-5 h-5 text-primary" /> Calcular mis calorías
                 </button>
               </div>
             </motion.div>
@@ -322,8 +322,8 @@ export default function MyDiet() {
               variants={fadeUp}
               className="rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3 flex items-start gap-2.5"
             >
-              <CalendarPlus className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              <p className="text-xs text-foreground/80">
+              <CalendarPlus className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <p className="text-sm text-foreground/80">
                 Diseñá tus comidas acá. Cuando comas una, tocá{" "}
                 <span className="font-bold text-primary">"Comer hoy"</span> y se suma a tu registro del
                 día — cuenta en tus macros y queda en tu historial.
@@ -338,16 +338,16 @@ export default function MyDiet() {
             return (
               <motion.div key={meal.id} variants={fadeUp} className="card-elevated rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-                  <h3 className="flex-1 text-sm font-black text-foreground tracking-tight truncate">{meal.name}</h3>
-                  <span className="text-xs font-bold text-muted-foreground tabular-nums">
+                  <h3 className="flex-1 text-base font-black text-foreground tracking-tight truncate">{meal.name}</h3>
+                  <span className="text-sm font-bold text-foreground/70 tabular-nums">
                     {Math.round(mt.calories)} kcal
                   </span>
                   <button
                     onClick={() => removeMeal(meal.id)}
                     aria-label="Eliminar comida"
-                    className="text-muted-foreground/50 hover:text-destructive p-1"
+                    className="text-muted-foreground/50 hover:text-destructive w-11 h-11 flex items-center justify-center shrink-0"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -356,33 +356,33 @@ export default function MyDiet() {
                   {meal.foods.map((f) => (
                     <div key={f.id} className="flex items-center gap-3 px-4 py-2.5">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
+                        <p className="text-base font-semibold text-foreground truncate">
                           {f.name}
                           {f.qty && <span className="text-muted-foreground font-normal"> · {f.qty}</span>}
                         </p>
                         {(f.protein > 0 || f.carbs > 0 || f.fats > 0) && (
-                          <p className="text-[11px] tabular-nums">
+                          <p className="text-sm tabular-nums">
                             <span className="text-blue-400">P {f.protein}</span>
                             <span className="text-amber-400"> · C {f.carbs}</span>
                             <span className="text-rose-400"> · G {f.fats}</span>
                           </p>
                         )}
                       </div>
-                      <span className="text-sm font-black text-foreground tabular-nums shrink-0">
+                      <span className="text-base font-black text-foreground tabular-nums shrink-0">
                         {Math.round(f.calories)}
-                        <span className="text-[10px] font-bold text-muted-foreground"> kcal</span>
+                        <span className="text-sm font-bold text-muted-foreground"> kcal</span>
                       </span>
                       <button
                         onClick={() => removeFood(meal.id, f.id)}
                         aria-label="Eliminar alimento"
-                        className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
+                        className="text-muted-foreground/50 hover:text-destructive w-11 h-11 flex items-center justify-center shrink-0"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
                   ))}
                   {meal.foods.length === 0 && (
-                    <p className="px-4 py-3 text-xs text-muted-foreground">Sin alimentos todavía</p>
+                    <p className="px-4 py-3 text-sm text-foreground/70">Sin alimentos todavía</p>
                   )}
                 </div>
 
@@ -390,16 +390,16 @@ export default function MyDiet() {
                 <div className="flex gap-2 p-3">
                   <button
                     onClick={() => setFoodSheetMeal({ id: meal.id, name: meal.name })}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 min-h-11 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] hover:bg-secondary transition-all"
                   >
-                    <Plus className="w-4 h-4 text-primary" /> Alimento
+                    <Plus className="w-5 h-5 text-primary" /> Alimento
                   </button>
                   {meal.foods.length > 0 && (
                     <button
                       onClick={() => eatToday(meal.name, meal.foods)}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/25 text-sm font-bold text-primary active:scale-[0.99] transition-transform"
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-11 rounded-xl bg-primary/10 border border-primary/25 text-sm font-bold text-primary active:scale-[0.99] transition-transform"
                     >
-                      <CalendarPlus className="w-4 h-4" /> Comer hoy
+                      <CalendarPlus className="w-5 h-5" /> Comer hoy
                     </button>
                   )}
                 </div>
@@ -427,14 +427,14 @@ export default function MyDiet() {
                     autoFocus
                     className="flex-1 min-w-0 h-11 rounded-xl bg-secondary border border-border px-3 text-base font-medium text-foreground focus:border-primary focus:outline-none"
                   />
-                  <button onClick={confirmAddMeal} className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold">
-                    <Check className="w-4 h-4" />
+                  <button onClick={confirmAddMeal} className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center">
+                    <Check className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => { setAddingMeal(false); setNewMeal(""); }}
-                    className="h-11 px-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-muted-foreground"
+                    className="h-11 px-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-muted-foreground flex items-center"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 </motion.div>
               ) : (
@@ -446,7 +446,7 @@ export default function MyDiet() {
                   onClick={() => setAddingMeal(true)}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
                 >
-                  <Plus className="w-4 h-4 text-primary" /> Agregar comida
+                  <Plus className="w-5 h-5 text-primary" /> Agregar comida
                 </motion.button>
               )}
             </AnimatePresence>

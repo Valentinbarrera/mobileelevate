@@ -25,15 +25,15 @@ const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | nul
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{ex.exercise?.name || ex.name}</p>
         {(rest || ex.rir != null || ex.tempo) && (
-          <div className="flex items-center gap-2.5 mt-0.5 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-0.5 text-sm text-foreground/70">
             {rest && (
               <span className="flex items-center gap-0.5">
-                <Timer className="w-3 h-3" /> {rest}
+                <Timer className="w-3.5 h-3.5" /> {rest}
               </span>
             )}
             {ex.rir != null && (
               <span className="flex items-center gap-0.5">
-                <Target className="w-3 h-3" /> RIR {ex.rir}
+                <Target className="w-3.5 h-3.5" /> RIR {ex.rir}
               </span>
             )}
             {ex.tempo && <span className="tabular-nums">Tempo {ex.tempo}</span>}
@@ -47,7 +47,7 @@ const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | nul
           <span className="text-muted-foreground font-bold"> × </span>
           {ex.reps}
         </p>
-        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">series × reps</p>
+        <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">series × reps</p>
       </div>
     </div>
   );

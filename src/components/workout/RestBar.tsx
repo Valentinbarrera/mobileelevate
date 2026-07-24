@@ -136,17 +136,17 @@ const RestBar = ({ duration, onComplete, onSkip, enableVibration = true }: RestB
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setView("bar")}
-                  className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground"
+                  className="w-11 h-11 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground"
                   aria-label="Achicar cronómetro"
                 >
-                  <Minimize2 className="w-4 h-4" />
+                  <Minimize2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setView("mini")}
-                  className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground"
+                  className="w-11 h-11 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground"
                   aria-label="Ocultar cronómetro"
                 >
-                  <ChevronDown className="w-5 h-5" />
+                  <ChevronDown className="w-6 h-6" />
                 </button>
               </div>
             </div>
@@ -207,52 +207,49 @@ const RestBar = ({ duration, onComplete, onSkip, enableVibration = true }: RestB
           />
         </div>
 
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5">
+        <div className="flex items-center gap-1.5 px-2.5 py-2">
           {/* Cluster tocable → agranda el cronómetro */}
           <button
             onClick={() => setView("big")}
-            className="flex items-center gap-2.5 active:scale-95 transition-transform"
+            className="flex items-center gap-2 min-h-11 active:scale-95 transition-transform"
             aria-label="Agrandar cronómetro"
           >
-            <Timer className={`w-4 h-4 shrink-0 ${isLow ? "text-red-400" : "text-primary"}`} />
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Descanso
-            </span>
+            <Timer className={`w-5 h-5 shrink-0 ${isLow ? "text-red-400" : "text-primary"}`} />
             <span className={`text-lg font-black tabular-nums ${isLow ? "text-red-400" : "text-foreground"}`}>
               {fmt(timeLeft)}
             </span>
-            <Maximize2 className="w-3.5 h-3.5 text-muted-foreground/70" />
+            <Maximize2 className="w-4 h-4 text-muted-foreground/70" />
           </button>
 
           <div className="flex-1" />
 
           <button
             onClick={() => addTime(-15)}
-            className="w-8 h-8 rounded-lg bg-secondary/70 border border-border flex items-center justify-center text-foreground active:scale-90 transition-transform"
+            className="w-11 h-11 rounded-lg bg-secondary/70 border border-border flex items-center justify-center text-foreground active:scale-90 transition-transform"
             aria-label="Restar 15 segundos"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
           <button
             onClick={() => addTime(15)}
-            className="w-8 h-8 rounded-lg bg-secondary/70 border border-border flex items-center justify-center text-foreground active:scale-90 transition-transform"
+            className="w-11 h-11 rounded-lg bg-secondary/70 border border-border flex items-center justify-center text-foreground active:scale-90 transition-transform"
             aria-label="Sumar 15 segundos"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
           <button
             onClick={onSkip}
-            className="h-8 px-3 rounded-lg bg-gradient-primary text-primary-foreground text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
+            className="h-11 px-3.5 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
           >
-            <SkipForward className="w-3.5 h-3.5" />
+            <SkipForward className="w-4 h-4" />
             Saltar
           </button>
           <button
             onClick={() => setView("mini")}
-            className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground active:scale-90 transition-transform"
+            className="w-11 h-11 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground active:scale-90 transition-transform"
             aria-label="Ocultar cronómetro"
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-5 h-5" />
           </button>
         </div>
       </div>

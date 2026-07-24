@@ -41,14 +41,14 @@ const SessionRow = ({ session }: { session: SessionDetail }) => {
         {/* Tile de fecha */}
         <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0 leading-none">
           <span className="text-base font-black text-foreground tabular-nums">{dayNumber(session.date)}</span>
-          <span className="text-[9px] font-bold text-primary uppercase tracking-wide mt-0.5">
+          <span className="text-[11px] font-bold text-primary uppercase tracking-wide mt-0.5">
             {weekdayShort(session.date)}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{session.name}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-foreground/70">
             {session.exerciseCount > 0 ? `${session.exerciseCount} ejercicios` : "Entreno"}
             {session.setCount > 0 && ` · ${session.setCount} series`}
           </p>
@@ -60,12 +60,12 @@ const SessionRow = ({ session }: { session: SessionDetail }) => {
               <p className="text-sm font-bold text-foreground tabular-nums leading-none">
                 {Math.round(session.tonnage).toLocaleString("es-AR")}
               </p>
-              <p className="text-[10px] text-muted-foreground font-medium">kg vol.</p>
+              <p className="text-[11px] text-muted-foreground font-medium">kg vol.</p>
             </div>
           )}
           {hasDetail && (
             <ChevronDown
-              className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+              className={`w-5 h-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
             />
           )}
         </div>
@@ -86,13 +86,13 @@ const SessionRow = ({ session }: { session: SessionDetail }) => {
                 return (
                   <div key={ex.name} className="rounded-lg bg-background/50 border border-white/[0.05] p-2.5">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <p className="text-xs font-bold text-foreground truncate">{ex.name}</p>
+                      <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
                       {bodyweight ? (
-                        <span className="shrink-0 text-[10px] font-bold text-sky-400 bg-sky-400/10 border border-sky-400/20 rounded-md px-1.5 py-0.5">
+                        <span className="shrink-0 text-[11px] font-bold text-sky-400 bg-sky-400/10 border border-sky-400/20 rounded-md px-1.5 py-0.5">
                           Peso corporal
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-amber-400">
+                        <span className="flex items-center gap-1 shrink-0 text-[11px] font-bold text-amber-400">
                           <Trophy className="w-3 h-3" />
                           {ex.topWeight} kg
                         </span>
@@ -101,19 +101,19 @@ const SessionRow = ({ session }: { session: SessionDetail }) => {
 
                     {bodyweight ? (
                       // Sin peso → tabla SERIE · REPS
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px]">
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Serie</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider text-right">Reps</span>
+                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Serie</span>
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Reps</span>
                         {ex.sets.map((set, i) => (
                           <BodyweightRow key={i} index={i + 1} reps={set.reps} />
                         ))}
                       </div>
                     ) : (
                       // Con peso → tabla SERIE · KG · REPS
-                      <div className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 text-[11px]">
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Serie</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider text-right">Kg</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider text-right">Reps</span>
+                      <div className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 text-sm">
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Serie</span>
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Kg</span>
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Reps</span>
                         {ex.sets.map((set, i) => (
                           <FragmentRow key={i} index={i + 1} weight={set.weight} reps={set.reps} />
                         ))}
@@ -198,7 +198,7 @@ const WorkoutHistoryList = ({ sessions }: WorkoutHistoryListProps) => {
         <span className="accent-bar" />
         <History className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-black tracking-tight text-foreground">Entrenos hechos</h3>
-        <span className="ml-auto text-xs font-bold text-muted-foreground tabular-nums">{sessions.length}</span>
+        <span className="ml-auto text-sm font-bold text-foreground/70 tabular-nums">{sessions.length}</span>
       </div>
 
       <div className="space-y-4">
@@ -223,7 +223,7 @@ const WorkoutHistoryList = ({ sessions }: WorkoutHistoryListProps) => {
       {sessions.length > 8 && (
         <button
           onClick={() => setShowAll((v) => !v)}
-          className="w-full mt-4 py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 border border-primary/20 active:scale-[0.99] transition-transform"
+          className="w-full mt-4 py-3 rounded-xl text-sm font-bold text-primary bg-primary/10 border border-primary/20 active:scale-[0.99] transition-transform"
         >
           {showAll ? "Ver menos" : `Ver los ${sessions.length} entrenos`}
         </button>

@@ -143,7 +143,7 @@ const ExercisePickerSheet = ({
                 <h2 className="text-xl font-black text-foreground leading-tight">
                   {mode === "replace" ? "Cambiar ejercicio" : "Agregar ejercicio"}
                 </h2>
-                <p className="text-sm text-muted-foreground leading-snug mt-0.5">
+                <p className="text-sm text-foreground/70 leading-snug mt-0.5">
                   {mode === "replace"
                     ? `En lugar de "${currentName ?? ""}". Se mantienen las series y reps que puso tu coach.`
                     : "Se suma al final del día, solo por hoy."}
@@ -153,7 +153,7 @@ const ExercisePickerSheet = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Cerrar"
-                className="text-muted-foreground p-1 -mr-1 shrink-0"
+                className="w-11 h-11 -mr-2 flex items-center justify-center text-muted-foreground shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -174,9 +174,9 @@ const ExercisePickerSheet = ({
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label="Limpiar búsqueda"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -190,7 +190,7 @@ const ExercisePickerSheet = ({
                     setMuscleFilter(null);
                     setPresuggested(false);
                   }}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                  className={`shrink-0 px-3 py-2.5 rounded-full text-sm font-bold whitespace-nowrap border transition-colors ${
                     !muscleFilter
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -206,7 +206,7 @@ const ExercisePickerSheet = ({
                       setMuscleFilter((cur) => (cur === m ? null : m));
                       setPresuggested(false);
                     }}
-                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap capitalize border transition-colors ${
+                    className={`shrink-0 px-3 py-2.5 rounded-full text-sm font-bold whitespace-nowrap capitalize border transition-colors ${
                       muscleFilter === m
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -220,7 +220,7 @@ const ExercisePickerSheet = ({
 
             {/* Aviso de que el filtro no lo puso el alumno, sino nosotros */}
             {presuggested && muscleFilter && (
-              <p className="mt-2 text-[11px] font-semibold text-primary capitalize">
+              <p className="mt-2 text-sm font-semibold text-primary capitalize">
                 Alternativas de {muscleFilter}
               </p>
             )}
@@ -234,13 +234,13 @@ const ExercisePickerSheet = ({
               )}
 
               {!loading && error && (
-                <p className="text-xs text-muted-foreground px-1 py-6 text-center">
+                <p className="text-sm text-foreground/70 px-1 py-6 text-center">
                   No pudimos cargar la biblioteca. Probá de nuevo en un rato.
                 </p>
               )}
 
               {!loading && !error && results.length === 0 && (
-                <p className="text-xs text-muted-foreground px-1 py-6 text-center">
+                <p className="text-sm text-foreground/70 px-1 py-6 text-center">
                   No encontramos ejercicios con ese nombre
                 </p>
               )}
@@ -269,7 +269,7 @@ const ExercisePickerSheet = ({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-sm text-foreground truncate">{ex.name}</p>
-                        <p className="text-[11px] text-muted-foreground capitalize truncate">
+                        <p className="text-sm text-foreground/70 capitalize truncate">
                           {[ex.muscle, ex.equipment].filter(Boolean).join(" · ") || "Sin datos"}
                         </p>
                       </div>
@@ -293,18 +293,18 @@ const ExercisePickerSheet = ({
                       type="button"
                       aria-label="Quitar una serie"
                       onClick={() => setSets((s) => clamp(s - 1, 1, 10))}
-                      className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
+                      className="w-11 h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-5 h-5" />
                     </button>
                     <span className="w-8 text-center font-black tabular-nums text-foreground">{sets}</span>
                     <button
                       type="button"
                       aria-label="Agregar una serie"
                       onClick={() => setSets((s) => clamp(s + 1, 1, 10))}
-                      className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
+                      className="w-11 h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -319,7 +319,7 @@ const ExercisePickerSheet = ({
                     enterKeyHint="done"
                     placeholder="8-12"
                     aria-label="Repeticiones"
-                    className="w-28 h-9 rounded-lg bg-secondary border border-border px-3 text-sm font-bold text-center text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                    className="w-28 h-11 rounded-lg bg-secondary border border-border px-3 text-base font-bold text-center text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
                   />
                 </div>
 
@@ -330,9 +330,9 @@ const ExercisePickerSheet = ({
                       type="button"
                       aria-label="Menos descanso"
                       onClick={() => setRestSeconds((r) => clamp(r - REST_STEP, 15, 300))}
-                      className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
+                      className="w-11 h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-5 h-5" />
                     </button>
                     <span className="w-12 text-center font-black tabular-nums text-foreground">
                       {fmtRest(restSeconds)}
@@ -341,9 +341,9 @@ const ExercisePickerSheet = ({
                       type="button"
                       aria-label="Más descanso"
                       onClick={() => setRestSeconds((r) => clamp(r + REST_STEP, 15, 300))}
-                      className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
+                      className="w-11 h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground active:opacity-70"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5" />
                     </button>
                   </div>
                 </div>

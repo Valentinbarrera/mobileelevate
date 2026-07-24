@@ -65,7 +65,7 @@ const PageHeader = ({
             {title}
           </h1>
           {subtitle && (
-            <p className="text-[13px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
+            <p className="text-sm text-foreground/70 truncate mt-0.5">{subtitle}</p>
           )}
         </div>
 

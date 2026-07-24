@@ -38,10 +38,10 @@ const OnboardingLayout = ({ currentStep, totalSteps, children, onBack }: Onboard
         <div className="flex items-center justify-between mb-2.5">
           <motion.button
             onClick={handleBack}
-            className="w-9 h-9 rounded-xl bg-card/60 border border-border/40 flex items-center justify-center"
+            className="w-11 h-11 rounded-xl bg-card/60 border border-border/40 flex items-center justify-center"
             whileTap={{ scale: 0.9 }}
           >
-            <ArrowLeft className="w-[18px] h-[18px] text-foreground" />
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </motion.button>
 
           <div className="flex items-baseline gap-1">
@@ -76,11 +76,11 @@ const OnboardingLayout = ({ currentStep, totalSteps, children, onBack }: Onboard
             key={encouragement(currentStep, totalSteps)}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs font-bold text-foreground/90"
+            className="text-sm font-bold text-foreground/90"
           >
             {encouragement(currentStep, totalSteps)}
           </motion.span>
-          <span className="text-[11px] font-bold text-muted-foreground/60 tabular-nums">
+          <span className="text-sm font-bold text-muted-foreground/60 tabular-nums">
             Paso {currentStep} de {totalSteps}
           </span>
         </div>

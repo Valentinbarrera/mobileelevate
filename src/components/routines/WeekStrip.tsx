@@ -39,7 +39,7 @@ const WeekStrip = ({ days, onSelectDay }: WeekStripProps) => {
               </span>
 
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-colors ${
+                className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${
                   isToday
                     ? "bg-gradient-primary text-primary-foreground shadow-lg"
                     : d.status === "past" && d.hasSession
@@ -56,7 +56,7 @@ const WeekStrip = ({ days, onSelectDay }: WeekStripProps) => {
                 }`}
               >
                 {d.status === "past" && d.hasSession ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-5 h-5" />
                 ) : (
                   d.dayNum
                 )}

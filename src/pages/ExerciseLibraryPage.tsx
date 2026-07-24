@@ -26,9 +26,9 @@ export default function ExerciseLibraryPage() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Volver"
-            className="w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
+            className="w-11 h-11 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />

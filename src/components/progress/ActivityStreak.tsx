@@ -115,7 +115,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
           </div>
           <motion.p
             key={motivationalCopy(currentStreak)}
-            className="text-xs font-semibold text-primary mt-1"
+            className="text-sm font-semibold text-primary mt-1"
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -135,7 +135,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
       <div className="mb-4">
         <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
           <span className="text-muted-foreground uppercase tracking-wider">Próxima meta</span>
-          <span className="text-foreground tabular-nums">
+          <span className="text-sm text-foreground tabular-nums">
             {currentStreak}<span className="text-muted-foreground">/{nextMilestone} días</span>
           </span>
         </div>
@@ -156,7 +156,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
         </span>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-[11px] font-bold text-primary active:scale-95 transition-transform"
+          className="text-sm font-bold text-primary active:scale-95 transition-transform min-h-11 px-2 -mr-2 inline-flex items-center"
         >
           {expanded ? "Ver menos" : "Ver todo"}
         </button>
@@ -177,7 +177,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
               {DOW.map((d, i) => (
                 <span
                   key={i}
-                  className="text-center text-[10px] font-bold uppercase text-muted-foreground"
+                  className="text-center text-[11px] font-bold uppercase text-muted-foreground"
                 >
                   {d}
                 </span>
@@ -202,7 +202,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
                     {isActive ? (
                       <Flame className="w-3.5 h-3.5 fill-current" />
                     ) : (
-                      <span className="text-[11px] font-semibold tabular-nums">{day}</span>
+                      <span className="text-sm font-semibold tabular-nums">{day}</span>
                     )}
                   </div>
                 );
@@ -226,14 +226,14 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
               return (
                 <div key={i} className="flex flex-col items-center gap-1">
                   <span
-                    className={`text-[10px] font-bold uppercase ${
+                    className={`text-[11px] font-bold uppercase ${
                       isToday ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
                     {DOW[d.getDay()]}
                   </span>
                   <motion.div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center ${
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : isToday
@@ -247,7 +247,7 @@ const ActivityStreak = ({ currentStreak, month, year, activeDays, onOpenHistory 
                     {isActive ? (
                       <Flame className="w-4 h-4 fill-current" />
                     ) : (
-                      <span className="text-xs font-semibold">{d.getDate()}</span>
+                      <span className="text-sm font-semibold">{d.getDate()}</span>
                     )}
                   </motion.div>
                 </div>

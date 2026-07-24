@@ -60,7 +60,7 @@ export const ChoiceCard = ({
     )}
     <div className="flex-1 min-w-0">
       <p className={`font-bold ${selected ? "text-primary" : "text-foreground"}`}>{label}</p>
-      {desc && <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</p>}
+      {desc && <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{desc}</p>}
     </div>
     <motion.span
       className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
@@ -88,7 +88,7 @@ export const Chip = ({
     type="button"
     onClick={onClick}
     whileTap={{ scale: 0.95 }}
-    className={`px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+    className={`inline-flex items-center px-4 py-2.5 min-h-11 rounded-xl text-sm font-bold border transition-colors ${
       selected
         ? "bg-gradient-primary text-primary-foreground border-transparent"
         : "bg-secondary/50 text-muted-foreground border-white/[0.06]"
@@ -220,11 +220,11 @@ export const Stepper = ({
         <button
           type="button"
           onClick={() => onChange(Math.max(min, v - 1))}
-          className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-foreground active:scale-90 transition-transform disabled:opacity-40"
+          className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center text-foreground active:scale-90 transition-transform disabled:opacity-40"
           disabled={v <= min}
           aria-label="Restar"
         >
-          <Minus className="w-4 h-4" />
+          <Minus className="w-5 h-5" />
         </button>
         <span className="min-w-[3.5rem] text-center text-xl font-black tabular-nums text-foreground">
           {value == null ? "—" : `${value}${suffix ? ` ${suffix}` : ""}`}
@@ -232,11 +232,11 @@ export const Stepper = ({
         <button
           type="button"
           onClick={() => onChange(Math.min(max, v + 1))}
-          className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-foreground active:scale-90 transition-transform disabled:opacity-40"
+          className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center text-foreground active:scale-90 transition-transform disabled:opacity-40"
           disabled={v >= max}
           aria-label="Sumar"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
         </button>
       </div>
     </div>

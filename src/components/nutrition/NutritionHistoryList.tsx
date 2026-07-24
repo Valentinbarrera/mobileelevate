@@ -70,16 +70,16 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
         {/* Tile de fecha */}
         <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0 leading-none">
           <span className="text-base font-black text-foreground tabular-nums">{dayNumber(day.date)}</span>
-          <span className="text-[9px] font-bold text-primary uppercase tracking-wide mt-0.5">
+          <span className="text-[11px] font-bold text-primary uppercase tracking-wide mt-0.5">
             {weekdayShort(day.date)}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-1">
-            <span className="text-sm font-black text-foreground tabular-nums">{Math.round(calories)}</span>
+            <span className="text-base font-black text-foreground tabular-nums">{Math.round(calories)}</span>
             <span className="text-[11px] font-bold text-muted-foreground">kcal</span>
-            <span className="text-[11px] text-muted-foreground ml-1 truncate">
+            <span className="text-sm text-muted-foreground ml-1 truncate">
               · P {Math.round(protein)} · C {Math.round(carbs)} · G {Math.round(fats)}
             </span>
           </div>
@@ -87,7 +87,7 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
             {protein + carbs + fats > 0 ? (
               <MacroBar p={protein} c={carbs} f={fats} />
             ) : (
-              <span className="text-[11px] text-muted-foreground">Sin macros cargados</span>
+              <span className="text-sm text-muted-foreground">Sin macros cargados</span>
             )}
           </div>
         </div>
@@ -95,11 +95,11 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
         <div className="flex items-center gap-2 shrink-0">
           {goalPct != null && calories > 0 ? (
             <ProgressRing progress={goalPct} size={42} stroke={4} gradientId={`ring-${day.date}`}>
-              <span className="text-[10px] font-black text-foreground tabular-nums leading-none">{goalPct}%</span>
+              <span className="text-xs font-black text-foreground tabular-nums leading-none">{goalPct}%</span>
             </ProgressRing>
           ) : (
             day.water > 0 && (
-              <span className="flex items-center gap-0.5 text-[11px] font-bold text-sky-400">
+              <span className="flex items-center gap-0.5 text-sm font-bold text-sky-400">
                 <Droplet className="w-3.5 h-3.5" />
                 {day.water}
               </span>
@@ -107,7 +107,7 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
           )}
           {hasFoods && (
             <ChevronDown
-              className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+              className={`w-5 h-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
             />
           )}
         </div>
@@ -130,10 +130,10 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
                   </p>
                   <div className="space-y-1">
                     {g.items.map((fd) => (
-                      <div key={fd.id} className="flex items-center gap-2 text-[12px]">
+                      <div key={fd.id} className="flex items-center gap-2 text-sm">
                         <span className="flex-1 min-w-0 truncate text-foreground">{fd.name}</span>
                         {(fd.protein > 0 || fd.carbs > 0 || fd.fats > 0) && (
-                          <span className="text-[10px] tabular-nums shrink-0">
+                          <span className="text-xs tabular-nums shrink-0">
                             <span className="text-blue-400">P{fd.protein}</span>{" "}
                             <span className="text-amber-400">C{fd.carbs}</span>{" "}
                             <span className="text-rose-400">G{fd.fats}</span>
@@ -141,7 +141,7 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
                         )}
                         <span className="font-bold text-foreground tabular-nums shrink-0">
                           {Math.round(fd.calories)}
-                          <span className="text-[10px] font-medium text-muted-foreground"> kcal</span>
+                          <span className="text-xs font-medium text-muted-foreground"> kcal</span>
                         </span>
                       </div>
                     ))}
@@ -151,14 +151,14 @@ const DayRow = ({ day, calorieGoal }: { day: NutritionDay; calorieGoal?: number 
 
               <div className="flex items-center gap-3 px-0.5">
                 {day.water > 0 && (
-                  <span className="flex items-center gap-1 text-[11px] text-sky-400 font-semibold">
-                    <Droplet className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1 text-sm text-sky-400 font-semibold">
+                    <Droplet className="w-4 h-4" />
                     {day.water} {day.water === 1 ? "vaso" : "vasos"} de agua
                   </span>
                 )}
                 {day.checkedMealsCount > 0 && (
-                  <span className="flex items-center gap-1 text-[11px] text-emerald-500 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1 text-sm text-emerald-500 font-semibold">
+                    <CheckCircle2 className="w-4 h-4" />
                     {day.checkedMealsCount} {day.checkedMealsCount === 1 ? "comida del plan" : "comidas del plan"}
                   </span>
                 )}
@@ -218,7 +218,7 @@ const NutritionHistoryList = ({ days, calorieGoal }: NutritionHistoryListProps) 
         <span className="accent-bar" />
         <History className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-black tracking-tight text-foreground">Días registrados</h3>
-        <span className="ml-auto text-xs font-bold text-muted-foreground tabular-nums">{days.length}</span>
+        <span className="ml-auto text-sm font-bold text-muted-foreground tabular-nums">{days.length}</span>
       </div>
 
       <div className="space-y-4">
@@ -226,7 +226,7 @@ const NutritionHistoryList = ({ days, calorieGoal }: NutritionHistoryListProps) 
           <div key={g.label}>
             <div className="flex items-center gap-2 mb-2 px-0.5">
               <span className="text-[11px] font-black text-foreground/80 uppercase tracking-wider">{g.label}</span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 {g.items.length} {g.items.length === 1 ? "día" : "días"}
               </span>
               <span className="flex-1 h-px bg-white/[0.06]" />
@@ -243,7 +243,7 @@ const NutritionHistoryList = ({ days, calorieGoal }: NutritionHistoryListProps) 
       {days.length > 8 && (
         <button
           onClick={() => setShowAll((v) => !v)}
-          className="w-full mt-4 py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 border border-primary/20 active:scale-[0.99] transition-transform"
+          className="w-full mt-4 min-h-11 py-2 rounded-xl text-sm font-bold text-primary bg-primary/10 border border-primary/20 active:scale-[0.99] transition-transform"
         >
           {showAll ? "Ver menos" : `Ver los ${days.length} días`}
         </button>

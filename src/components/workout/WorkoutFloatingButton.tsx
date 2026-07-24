@@ -69,7 +69,7 @@ const WorkoutFloatingButton = React.forwardRef<HTMLDivElement, WorkoutFloatingBu
               <span className="text-primary-foreground font-bold text-lg tracking-wide">
                 EMPEZAR
               </span>
-              <span className="text-primary-foreground/80 text-xs font-medium">
+              <span className="text-primary-foreground/80 text-sm font-medium">
                 ENTRENAMIENTO
               </span>
             </div>

@@ -50,7 +50,7 @@ const PlanDaysCarousel = ({ days, todayId, routineId }: PlanDaysCarouselProps) =
           <span className="accent-bar" />
           <h3 className="text-sm font-black text-foreground tracking-tight">Tu plan</h3>
         </div>
-        <span className="text-xs text-muted-foreground">{days.length} días</span>
+        <span className="text-sm text-muted-foreground">{days.length} días</span>
       </div>
 
       <div ref={containerRef} className="overflow-hidden">
@@ -99,14 +99,14 @@ const PlanDaysCarousel = ({ days, todayId, routineId }: PlanDaysCarouselProps) =
 
                 <div className="relative flex items-center justify-between mb-7">
                   <span
-                    className={`text-[10px] font-black uppercase tracking-wider ${
+                    className={`text-[11px] font-black uppercase tracking-wider ${
                       isToday ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
                     Día {day.dayNumber}
                   </span>
                   {isToday ? (
-                    <span className="text-[9px] font-black text-primary-foreground bg-gradient-primary px-1.5 py-0.5 rounded-md uppercase tracking-wide shadow-sm">
+                    <span className="text-[11px] font-black text-primary-foreground bg-gradient-primary px-1.5 py-0.5 rounded-md uppercase tracking-wide shadow-sm">
                       Hoy
                     </span>
                   ) : (
@@ -120,7 +120,7 @@ const PlanDaysCarousel = ({ days, todayId, routineId }: PlanDaysCarouselProps) =
                   {day.name}
                 </p>
                 <p
-                  className={`relative text-[11px] capitalize truncate ${
+                  className={`relative text-sm capitalize truncate ${
                     isToday ? "text-primary/90 font-semibold" : "text-muted-foreground"
                   }`}
                 >
@@ -128,11 +128,11 @@ const PlanDaysCarousel = ({ days, todayId, routineId }: PlanDaysCarouselProps) =
                 </p>
 
                 <div className="relative flex items-center gap-3 mt-3 pt-3 border-t border-white/[0.06]">
-                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground tabular-nums">
                     <Dumbbell className="w-3 h-3" />
                     {day.totalExercises}
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground tabular-nums">
                     <Clock className="w-3 h-3" />~{day.estimatedDuration}m
                   </span>
                   <ChevronRight

@@ -36,13 +36,13 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 pt-16">
-      <button onClick={() => navigate(-1)} className="mb-8 text-muted-foreground">
-        <ArrowLeft className="w-5 h-5" />
+      <button onClick={() => navigate(-1)} className="mb-8 -ml-2 w-11 h-11 flex items-center justify-center text-muted-foreground" aria-label="Volver">
+        <ArrowLeft className="w-6 h-6" />
       </button>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-2">Recuperar contraseña</h1>
-        <p className="text-muted-foreground text-sm mb-8">
+        <p className="text-foreground/70 text-base mb-8">
           {sent
             ? "Te enviamos un email con instrucciones para cambiar tu contraseña."
             : "Ingresá tu email y te enviaremos un enlace para restablecer tu contraseña."}

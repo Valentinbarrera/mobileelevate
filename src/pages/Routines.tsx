@@ -246,13 +246,13 @@ const Routines = () => {
             <p className="text-sm font-black text-foreground truncate">
               {p.name || "Programa sin nombre"}
             </p>
-            <p className="text-[11px] text-muted-foreground truncate">
+            <p className="text-sm text-foreground/70 truncate">
               {p.days.length} {p.days.length === 1 ? "día" : "días"}/sem
               {p.weeks ? ` · ${p.weeks} sem` : ""}
               {p.origin === "template" ? " · template" : ""}
             </p>
             <span
-              className={`mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${PROGRAM_STATUS_STYLES[status]}`}
+              className={`mt-1 inline-block text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${PROGRAM_STATUS_STYLES[status]}`}
             >
               {PROGRAM_STATUS_LABEL[status]}
             </span>
@@ -265,9 +265,9 @@ const Routines = () => {
               <span
                 aria-label="Es tu plan activo"
                 title="Es tu plan activo"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-primary bg-primary/10"
+                className="w-11 h-11 rounded-lg flex items-center justify-center text-primary bg-primary/10"
               >
-                <Check className="w-4 h-4" />
+                <Check className="w-5 h-5" />
               </span>
             ) : (
               <button
@@ -275,26 +275,26 @@ const Routines = () => {
                 onClick={(e) => pickOwnPlan(p, e)}
                 aria-label="Usar como mi plan"
                 title="Usar como mi plan"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                className="w-11 h-11 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
               >
-                <Target className="w-4 h-4" />
+                <Target className="w-5 h-5" />
               </button>
             ))}
           <button
             type="button"
             onClick={() => navigate(`/programa/${p.id}/editar`)}
             aria-label="Editar programa"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            className="w-11 h-11 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           >
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-5 h-5" />
           </button>
           <button
             type="button"
             onClick={() => handleDeleteProgram(p)}
             aria-label="Eliminar programa"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            className="w-11 h-11 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -310,7 +310,7 @@ const Routines = () => {
             <Dumbbell className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-lg font-bold text-foreground mb-2">Sin coach asignado</h2>
-          <p className="text-muted-foreground text-sm max-w-xs">
+          <p className="text-foreground/70 text-base max-w-xs">
             Pedile a tu entrenador que te agregue como alumno para ver tus rutinas
             personalizadas.
           </p>
@@ -352,7 +352,7 @@ const Routines = () => {
                 <Dumbbell className="w-7 h-7 text-destructive" />
               </div>
               <p className="text-destructive text-sm">Error al cargar rutinas</p>
-              <p className="text-muted-foreground text-xs mt-1">{(error as Error).message}</p>
+              <p className="text-foreground/70 text-sm mt-1">{(error as Error).message}</p>
             </div>
           )}
 
@@ -361,7 +361,7 @@ const Routines = () => {
             <div className="rounded-3xl card-elevated p-8 text-center">
               <Dumbbell className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="font-semibold text-foreground">Sin rutinas todavía</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-foreground/70 mt-1">
                 Tu coach aún no te asignó una rutina. Podés armar tu propio programa acá abajo.
               </p>
             </div>
@@ -415,7 +415,7 @@ const Routines = () => {
                     type="button"
                     onClick={backToCoachPlan}
                     aria-pressed={!activeOwn}
-                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                    className={`shrink-0 px-4 py-2.5 rounded-full text-sm font-bold whitespace-nowrap border transition-colors ${
                       !activeOwn
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -431,7 +431,7 @@ const Routines = () => {
                         type="button"
                         onClick={(e) => pickOwnPlan(p, e)}
                         aria-pressed={active}
-                        className={`shrink-0 max-w-[60%] truncate px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                        className={`shrink-0 max-w-[60%] truncate px-4 py-2.5 rounded-full text-sm font-bold whitespace-nowrap border transition-colors ${
                           active
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -446,7 +446,7 @@ const Routines = () => {
 
               {/* Qué plan manda ahora mismo (siempre visible, aunque no haya
                   entre qué elegir). */}
-              <p className="text-[11px] text-muted-foreground truncate px-0.5">
+              <p className="text-sm text-foreground/70 truncate px-0.5">
                 {activeOwn
                   ? `Tu plan: ${activeOwn.name || "Programa sin nombre"}`
                   : "Plan de tu coach"}
@@ -464,7 +464,7 @@ const Routines = () => {
                         <p className="text-sm font-black text-foreground truncate">
                           {activeOwn.name || "Programa sin nombre"}
                         </p>
-                        <p className="text-[11px] text-muted-foreground truncate">
+                        <p className="text-sm text-foreground/70 truncate">
                           {activeOwn.days.length}{" "}
                           {activeOwn.days.length === 1 ? "día" : "días"}
                           {activeOwn.weeks ? ` · ${activeOwn.weeks} sem` : ""}
@@ -474,9 +474,9 @@ const Routines = () => {
                     <button
                       type="button"
                       onClick={() => navigate(`/programa/${activeOwn.id}`)}
-                      className="w-full inline-flex items-center justify-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors py-1"
+                      className="w-full inline-flex items-center justify-center gap-1 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors min-h-11"
                     >
-                      Ver el programa completo <ChevronRight className="w-3.5 h-3.5" />
+                      Ver el programa completo <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
 
@@ -494,12 +494,12 @@ const Routines = () => {
                                 {d.name || `Día ${i + 1}`}
                               </p>
                               {ownNext?.day.id === d.id && (
-                                <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-primary-foreground bg-gradient-primary rounded-full px-2 py-0.5">
+                                <span className="shrink-0 text-[11px] font-black uppercase tracking-wider text-primary-foreground bg-gradient-primary rounded-full px-2 py-0.5">
                                   Te toca
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-muted-foreground truncate">
+                            <p className="text-sm text-foreground/70 truncate">
                               Día {i + 1} de {activeOwn.days.length} · {d.exercises.length}{" "}
                               {d.exercises.length === 1 ? "ejercicio" : "ejercicios"}
                             </p>
@@ -510,7 +510,7 @@ const Routines = () => {
                             onClick={() =>
                               navigate(`/programa/${activeOwn.id}/dia/${d.id}/entrenar`)
                             }
-                            className="shrink-0 px-3 py-2 rounded-xl bg-primary/10 border border-primary/25 text-primary text-xs font-bold hover:bg-primary/15 transition-colors"
+                            className="shrink-0 px-4 min-h-11 flex items-center rounded-xl bg-primary/10 border border-primary/25 text-primary text-sm font-bold hover:bg-primary/15 transition-colors"
                           >
                             Entrenar
                           </button>
@@ -546,9 +546,9 @@ const Routines = () => {
                         </div>
                         <button
                           onClick={() => setShowCalendar((v) => !v)}
-                          className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                          className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10 transition-colors"
                         >
-                          <CalendarDays className="w-3.5 h-3.5" />
+                          <CalendarDays className="w-5 h-5" />
                           {showCalendar ? "Ver semana" : "Ver mes"}
                         </button>
                       </div>
@@ -588,7 +588,7 @@ const Routines = () => {
                                 <button
                                   key={f}
                                   onClick={() => setProgramsFilter(f)}
-                                  className={`relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                                  className={`relative px-3.5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
                                     active ? "text-primary-foreground" : "text-muted-foreground"
                                   }`}
                                 >
@@ -621,7 +621,7 @@ const Routines = () => {
                         </div>
                       ) : (
                         <div className="rounded-2xl card-elevated p-6 text-center">
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-foreground/70">
                             {programsFilter === "completed"
                               ? "Todavía no completaste ningún programa."
                               : "No tenés programas activos."}
@@ -652,7 +652,7 @@ const Routines = () => {
                 whileTap={{ scale: 0.99 }}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Entreno libre
               </motion.button>
 
@@ -666,9 +666,9 @@ const Routines = () => {
                   {!atProgramLimit && (
                     <button
                       onClick={() => navigate("/programas/nuevo")}
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                      className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10 transition-colors"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-5 h-5" />
                       Crear
                     </button>
                   )}
@@ -680,21 +680,21 @@ const Routines = () => {
                     <span className="text-2xl font-black text-primary tabular-nums leading-none">
                       {openPrograms.length}
                     </span>
-                    <span className="text-sm font-bold text-muted-foreground tabular-nums leading-none">
+                    <span className="text-sm font-bold text-foreground/70 tabular-nums leading-none">
                       /{MAX_OWN_PROGRAMS}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
                       Programas activos
                     </p>
                     {atProgramLimit && (
-                      <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                      <p className="text-sm text-foreground/70 mt-1 leading-none">
                         Terminá o eliminá uno para crear otro.
                       </p>
                     )}
                     {!atProgramLimit && finishedPrograms.length > 0 && (
-                      <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                      <p className="text-sm text-foreground/70 mt-1 leading-none">
                         {finishedPrograms.length}{" "}
                         {finishedPrograms.length === 1 ? "terminado" : "terminados"} (no cuentan)
                       </p>
@@ -728,14 +728,14 @@ const Routines = () => {
                   </>
                 ) : (
                   <div className="rounded-2xl card-elevated p-6 text-center">
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-foreground/70 mb-3">
                       Todavía no armaste ningún programa propio.
                     </p>
                     <button
                       onClick={() => navigate("/programas/nuevo")}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5" />
                       Crear mi programa
                     </button>
                   </div>

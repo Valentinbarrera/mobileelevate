@@ -30,13 +30,13 @@ const WorkoutProgress = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              <span className="text-sm text-foreground/70 uppercase tracking-wider">
                 Ejercicios
               </span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold text-foreground">{completedExercises}</span>
-              <span className="text-muted-foreground">/ {totalExercises}</span>
+              <span className="text-foreground/70">/ {totalExercises}</span>
             </div>
             <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
               <motion.div
@@ -52,13 +52,13 @@ const WorkoutProgress = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Dumbbell className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              <span className="text-sm text-foreground/70 uppercase tracking-wider">
                 Series
               </span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold text-foreground">{completedSets}</span>
-              <span className="text-muted-foreground">/ {totalSets}</span>
+              <span className="text-foreground/70">/ {totalSets}</span>
             </div>
             <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
               <motion.div

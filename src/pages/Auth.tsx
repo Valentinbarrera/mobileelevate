@@ -94,7 +94,7 @@ const Auth = () => {
             <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-amber-500 mb-1">Cuenta no vinculada</p>
-              <p className="text-xs text-amber-500/80">{NOT_A_STUDENT_ERROR}</p>
+              <p className="text-sm text-amber-500/80">{NOT_A_STUDENT_ERROR}</p>
             </div>
           </motion.div>
         )}
@@ -121,7 +121,7 @@ const Auth = () => {
                 required
               />
             </div>
-            {errors.email && <p className="text-xs text-destructive pl-4">{errors.email}</p>}
+            {errors.email && <p className="text-sm text-destructive pl-4">{errors.email}</p>}
 
             <div className={`relative rounded-2xl border transition-all duration-300 ${
               focusedField === "password" ? "border-primary glow-primary-sm bg-card" : "border-border/50 bg-card/50"
@@ -138,12 +138,12 @@ const Auth = () => {
                 required
               />
             </div>
-            {errors.password && <p className="text-xs text-destructive pl-4">{errors.password}</p>}
+            {errors.password && <p className="text-sm text-destructive pl-4">{errors.password}</p>}
 
             <button
               type="button"
               onClick={() => navigate("/reset-password")}
-              className="text-sm text-muted-foreground text-center w-full hover:text-primary transition-colors"
+              className="text-sm text-foreground/70 text-center w-full min-h-11 py-2 hover:text-primary transition-colors"
             >
               ¿Olvidaste tu contraseña?
             </button>
@@ -166,7 +166,7 @@ const Auth = () => {
           transition={{ delay: 0.6 }}
         >
           <Shield className="w-4 h-4 text-primary" />
-          <span className="text-xs text-muted-foreground tracking-wider">AES-256 ENCRYPTED</span>
+          <span className="text-sm text-muted-foreground tracking-wider">AES-256 ENCRYPTED</span>
         </motion.div>
         </div>
       </div>

@@ -32,9 +32,9 @@ const PhotoLightbox = ({ photo, onClose, onDelete, deleting }: PhotoLightboxProp
           <div className="flex items-center justify-between px-5 py-4 shrink-0">
             <div>
               <p className="text-sm font-black text-foreground">{typeLabel}</p>
-              <p className="text-xs text-muted-foreground capitalize">{photo.date && fmtDate(photo.date)}</p>
+              <p className="text-sm text-foreground/70 capitalize">{photo.date && fmtDate(photo.date)}</p>
             </div>
-            <button onClick={onClose} aria-label="Cerrar" className="w-10 h-10 rounded-full card-elevated flex items-center justify-center">
+            <button onClick={onClose} aria-label="Cerrar" className="w-11 h-11 rounded-full card-elevated flex items-center justify-center">
               <X className="w-5 h-5 text-foreground" />
             </button>
           </div>
@@ -65,7 +65,7 @@ const PhotoLightbox = ({ photo, onClose, onDelete, deleting }: PhotoLightboxProp
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground text-center">Tu coach todavía no comentó esta foto.</p>
+              <p className="text-sm text-muted-foreground text-center">Tu coach todavía no comentó esta foto.</p>
             )}
 
             <button
@@ -73,7 +73,7 @@ const PhotoLightbox = ({ photo, onClose, onDelete, deleting }: PhotoLightboxProp
               disabled={deleting}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-destructive text-sm font-bold active:scale-[0.99] transition-transform disabled:opacity-50"
             >
-              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
               Eliminar foto
             </button>
           </div>

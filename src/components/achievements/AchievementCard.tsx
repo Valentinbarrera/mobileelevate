@@ -112,19 +112,19 @@ const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
         </motion.div>
 
         {/* Name */}
-        <h4 className={`font-bold text-sm mb-1 ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
+        <h4 className={`font-bold text-base mb-1 ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
           {achievement.name}
         </h4>
 
         {/* Description */}
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
           {achievement.description}
         </p>
 
         {/* Progress Bar (for locked achievements) */}
         {isLocked && achievement.progress !== undefined && achievement.maxProgress && (
           <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1">
+            <div className="flex justify-between text-sm mb-1">
               <span className="text-muted-foreground">Progreso</span>
               <span className="font-semibold text-foreground">
                 {achievement.progress}/{achievement.maxProgress}
@@ -143,16 +143,16 @@ const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
 
         {/* Footer */}
         <div className="flex items-center justify-between">
-          <span className={`text-[10px] font-bold uppercase tracking-wider ${rarity.labelColor}`}>
+          <span className={`text-[11px] font-bold uppercase tracking-wider ${rarity.labelColor}`}>
             {rarity.label}
           </span>
-          <span className="text-xs font-bold text-primary">+{achievement.xpReward} XP</span>
+          <span className="text-sm font-bold text-primary">+{achievement.xpReward} XP</span>
         </div>
 
         {/* Claim Button */}
         {isUnlocked && (
           <motion.button
-            className="w-full mt-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+            className="w-full mt-3 py-2.5 min-h-11 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -165,7 +165,7 @@ const AchievementCard = React.forwardRef<HTMLDivElement, AchievementCardProps>(
 
         {/* Unlocked Date */}
         {isClaimed && achievement.unlockedAt && (
-          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+          <p className="text-[11px] text-muted-foreground mt-2 text-center">
             Desbloqueado: {achievement.unlockedAt}
           </p>
         )}

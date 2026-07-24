@@ -73,7 +73,7 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
     color: string
   ) => (
     <label className="flex flex-col gap-1 min-w-0">
-      <span className={`text-[10px] font-bold uppercase tracking-wider px-1 ${color}`}>{label}</span>
+      <span className={`text-[11px] font-bold uppercase tracking-wider px-1 ${color}`}>{label}</span>
       <input
         type="number"
         inputMode="decimal"
@@ -114,7 +114,7 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
                   <p className="text-sm text-muted-foreground">Lo que comiste hoy</p>
                 </div>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onClose} aria-label="Cerrar" className="text-foreground/70 w-11 h-11 flex items-center justify-center -mr-2 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -127,7 +127,7 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
                   <button
                     key={t.key}
                     onClick={() => setMealType(t.key)}
-                    className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 border text-sm font-bold transition-colors ${
+                    className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 min-h-11 py-2 border text-sm font-bold transition-colors ${
                       active
                         ? "border-primary/50 bg-primary/10 text-primary"
                         : "border-white/[0.06] bg-secondary/40 text-muted-foreground"
@@ -149,7 +149,7 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
 
             {/* Calorías */}
             <label className="flex flex-col gap-1 min-w-0 mb-3">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">
                 Calorías (kcal)
               </span>
               <input

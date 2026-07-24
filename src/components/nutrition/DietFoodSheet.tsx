@@ -54,7 +54,7 @@ const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) =
 
   const macroInput = (label: string, value: string, set: (v: string) => void, color: string) => (
     <label className="flex flex-col gap-1 min-w-0">
-      <span className={`text-[10px] font-bold uppercase tracking-wider px-1 ${color}`}>{label}</span>
+      <span className={`text-[11px] font-bold uppercase tracking-wider px-1 ${color}`}>{label}</span>
       <input
         type="number"
         inputMode="decimal"
@@ -90,7 +90,7 @@ const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) =
                 <h2 className="text-xl font-black text-foreground leading-tight">Agregar alimento</h2>
                 <p className="text-sm text-muted-foreground truncate">a {mealName}</p>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onClose} aria-label="Cerrar" className="text-foreground/70 w-11 h-11 flex items-center justify-center -mr-2 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -111,7 +111,7 @@ const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) =
             </div>
 
             <label className="flex flex-col gap-1 min-w-0 mb-3">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">
                 Calorías (kcal)
               </span>
               <input

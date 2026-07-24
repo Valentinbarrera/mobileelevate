@@ -61,17 +61,17 @@ export default function Measurements() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Volver"
-            className="text-muted-foreground p-1 -ml-1"
+            className="text-muted-foreground w-11 h-11 -ml-2 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
         right={
           <button
             onClick={() => setSheetOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+            className="flex items-center gap-1.5 px-4 min-h-11 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             Registrar
           </button>
         }
@@ -87,7 +87,7 @@ export default function Measurements() {
           {/* Latest measurements grid */}
           {latest ? (
             <motion.div variants={fadeUp}>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">
+              <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold mb-3">
                 Última medición &middot; {new Date(latest.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -104,14 +104,14 @@ export default function Measurements() {
             <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-6 text-center">
               <Scale className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="font-semibold text-foreground mb-1">Registrá tu primera medición</p>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-base text-foreground/70 mb-4">
                 Cargá tu peso y medidas para seguir tu evolución. Tu coach también puede verlas.
               </p>
               <button
                 onClick={() => setSheetOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-11 rounded-2xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Registrar medición
               </button>
             </motion.div>
@@ -154,9 +154,9 @@ export default function Measurements() {
                       {new Date(entry.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                     <div className="flex gap-4 text-sm tabular-nums">
-                      {entry.weight_kg && <span className="text-muted-foreground">{entry.weight_kg} kg</span>}
-                      {entry.waist_cm && <span className="text-muted-foreground">{entry.waist_cm} cm</span>}
-                      {entry.body_fat && <span className="text-muted-foreground">{entry.body_fat}%</span>}
+                      {entry.weight_kg && <span className="text-foreground/70">{entry.weight_kg} kg</span>}
+                      {entry.waist_cm && <span className="text-foreground/70">{entry.waist_cm} cm</span>}
+                      {entry.body_fat && <span className="text-foreground/70">{entry.body_fat}%</span>}
                     </div>
                   </div>
                 ))}

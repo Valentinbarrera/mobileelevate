@@ -43,7 +43,7 @@ const MiniScale = ({
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          className={`h-9 rounded-lg text-xs font-black tabular-nums border transition-all active:scale-95 ${
+          className={`h-11 rounded-lg text-sm font-black tabular-nums border transition-all active:scale-95 ${
             active ? activeCls : "bg-secondary/60 border-white/[0.06] text-muted-foreground"
           }`}
         >
@@ -130,7 +130,7 @@ const ExerciseCompletedModal = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-sm text-muted-foreground mb-4"
+              className="text-sm text-foreground/70 mb-4"
             >
               Completaste <span className="text-foreground font-semibold">{completedExerciseName}</span>
             </motion.p>
@@ -161,7 +161,7 @@ const ExerciseCompletedModal = ({
                 </p>
                 <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
                   <p className="text-lg font-bold text-foreground">{nextExercise.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-foreground/70">
                     {nextExercise.sets} series × {nextExercise.reps}
                   </p>
                 </div>
@@ -177,7 +177,7 @@ const ExerciseCompletedModal = ({
                 <p className="text-sm font-semibold text-emerald-500">
                   ¡Último ejercicio completado!
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-foreground/70 mt-1">
                   Ya podés finalizar tu entrenamiento
                 </p>
               </motion.div>
@@ -196,15 +196,15 @@ const ExerciseCompletedModal = ({
                 </p>
                 <div className="text-left">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <Activity className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-bold text-foreground">Estímulo muscular</span>
+                    <Activity className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-bold text-foreground">Estímulo muscular</span>
                   </div>
                   <MiniScale value={stimulus} onChange={setStimulus} tone="primary" />
                 </div>
                 <div className="text-left">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-xs font-bold text-foreground">Dolor articular</span>
+                    <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    <span className="text-sm font-bold text-foreground">Dolor articular</span>
                   </div>
                   <MiniScale value={jointPain} onChange={setJointPain} tone="amber" />
                 </div>
@@ -238,7 +238,7 @@ const ExerciseCompletedModal = ({
               {nextExercise && !isLastExercise && (
                 <button
                   onClick={withFeedback(onClose)}
-                  className="w-full py-3 text-sm text-muted-foreground font-medium hover:text-foreground transition-colors"
+                  className="w-full min-h-11 py-3 text-sm text-foreground/70 font-medium hover:text-foreground transition-colors"
                 >
                   Quedarme aquí
                 </button>

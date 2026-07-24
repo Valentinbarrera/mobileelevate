@@ -202,7 +202,7 @@ const Index = () => {
     </motion.button>
   );
 
-  const quickActions = <QuickActions />;
+  const quickActions = <QuickActions title="Accesos rápidos" />;
 
   // Card destacada: entrenamiento autoguiado con la app (aparte del plan del coach)
   // Modo libre: además del acceso, lista los programas que el alumno se armó.
@@ -354,14 +354,15 @@ const Index = () => {
                   {heroExtras}
                   {rescheduleBtn}
                 </div>
+                {/* Accesos rápidos — pegados al entreno de hoy */}
+                {quickActions}
                 {planDays}
               </div>
 
-              {/* Rail derecho — glance: meta, atajos, coach */}
+              {/* Rail derecho — glance: meta, entrenar libre, coach */}
               <div className="col-span-12 xl:col-span-5 space-y-6">
                 {weeklyGoalCard}
                 {trainWithElevateCard}
-                {quickActions}
                 {learnCard}
                 {coachCard}
               </div>
@@ -398,16 +399,16 @@ const Index = () => {
               {rescheduleBtn}
             </div>
 
-            {/* 3. Objetivo semanal — resumen tipo dashboard (glance) */}
-            {weeklyGoalCard}
-
-            {/* 3b. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
-            {trainWithElevateCard}
-
-            {/* 4. Accesos rápidos — atajos compactos, no compiten con el héroe */}
+            {/* 3. Accesos rápidos — atajos directos, pegados al entreno de hoy */}
             {quickActions}
 
-            {/* 4b. Acceso a la sección educativa "Aprendé" */}
+            {/* 4. Objetivo semanal — resumen tipo dashboard (glance) */}
+            {weeklyGoalCard}
+
+            {/* 4b. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
+            {trainWithElevateCard}
+
+            {/* 4c. Acceso a la sección educativa "Aprendé" */}
             {learnCard}
 
             {/* 5. Carrusel del plan */}

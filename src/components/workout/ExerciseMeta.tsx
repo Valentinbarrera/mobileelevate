@@ -38,8 +38,8 @@ const Chip = ({
 }) => (
   <div className="flex items-center gap-1.5 rounded-lg bg-secondary/60 border border-white/[0.06] px-2 py-1.5">
     <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
-    <span className="text-xs font-black text-foreground tabular-nums">{value}</span>
+    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
+    <span className="text-sm font-black text-foreground tabular-nums">{value}</span>
   </div>
 );
 
@@ -57,7 +57,7 @@ export const PrescriptionStrip = ({ data }: { data: PrescriptionData }) => {
       {special && (
         <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 px-2 py-1.5">
           <Layers className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="text-xs font-black text-amber-400 capitalize">{data.method}</span>
+          <span className="text-sm font-black text-amber-400 capitalize">{data.method}</span>
         </div>
       )}
     </div>
@@ -77,11 +77,11 @@ export const SupersetTag = ({
   size: number;
 }) => (
   <div className="flex items-center gap-1.5">
-    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[10px] font-black text-amber-400 uppercase tracking-wider">
+    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[11px] font-black text-amber-400 uppercase tracking-wider">
       <Layers className="w-3 h-3 inline-block -mt-0.5 mr-1" />
       <span className="capitalize">{type}</span> {letter}
     </span>
-    <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
+    <span className="text-[11px] font-bold text-muted-foreground tabular-nums">
       {letter}
       {position}
       <span className="text-muted-foreground/50"> · {position}/{size}</span>

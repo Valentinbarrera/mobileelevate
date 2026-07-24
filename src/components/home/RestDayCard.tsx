@@ -63,7 +63,7 @@ const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
               <CalendarDays className="w-4 h-4 text-primary" />
             </div>
             <h3 className="text-lg font-black text-foreground leading-tight">{nextDay.name}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+            <p className="text-sm text-muted-foreground mt-0.5 tabular-nums">
               {nextDay.totalExercises} ejercicios · ~{nextDay.estimatedDuration} min
             </p>
 
@@ -85,18 +85,18 @@ const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
         <div className="flex gap-2 mb-3">
           <div className="flex-1 flex items-center gap-2 p-2.5 rounded-xl bg-secondary/40 border border-white/[0.04]">
             <Droplets className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-xs text-muted-foreground">2L de agua</span>
+            <span className="text-sm text-muted-foreground">2L de agua</span>
           </div>
           <div className="flex-1 flex items-center gap-2 p-2.5 rounded-xl bg-secondary/40 border border-white/[0.04]">
             <Sparkles className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-xs text-muted-foreground">10 min movilidad</span>
+            <span className="text-sm text-muted-foreground">10 min movilidad</span>
           </div>
         </div>
 
         {/* Link secundario (ya no es un botón gris feo) */}
         <button
           onClick={() => navigate("/routines")}
-          className="w-full flex items-center justify-center gap-1 py-2 text-sm font-bold text-primary active:opacity-70 transition-opacity"
+          className="w-full flex items-center justify-center gap-1 py-2.5 min-h-11 text-sm font-bold text-primary active:opacity-70 transition-opacity"
         >
           Ver mi rutina completa
           <ChevronRight className="w-4 h-4" />

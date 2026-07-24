@@ -47,8 +47,8 @@ const WeightLogCard = ({ current, previous, onLog }: WeightLogCardProps) => {
                 <p className="text-base text-muted-foreground">Sin registro</p>
               )}
               {delta != null && delta !== 0 && (
-                <span className={`flex items-center gap-0.5 text-xs font-bold ${trendColor}`}>
-                  <TrendIcon className="w-3.5 h-3.5" />
+                <span className={`flex items-center gap-0.5 text-sm font-bold ${trendColor}`}>
+                  <TrendIcon className="w-4 h-4" />
                   {delta > 0 ? "+" : ""}
                   {delta}
                 </span>
@@ -60,9 +60,9 @@ const WeightLogCard = ({ current, previous, onLog }: WeightLogCardProps) => {
         {!open && (
           <button
             onClick={() => setOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shrink-0"
+            className="flex items-center gap-1.5 px-4 min-h-11 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             Registrar
           </button>
         )}
@@ -85,7 +85,7 @@ const WeightLogCard = ({ current, previous, onLog }: WeightLogCardProps) => {
             onClick={save}
             className="h-11 px-4 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
           >
-            <Check className="w-4 h-4" />
+            <Check className="w-5 h-5" />
             Guardar
           </button>
         </div>

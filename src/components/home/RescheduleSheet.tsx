@@ -54,7 +54,7 @@ const RescheduleSheet = ({
               <h2 className="text-xl font-black text-foreground">Cambiar el día de hoy</h2>
               <p className="text-sm text-muted-foreground">Acomodá el plan a tu día.</p>
             </div>
-            <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+            <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground w-11 h-11 -mr-2 flex items-center justify-center">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -84,7 +84,7 @@ const RescheduleSheet = ({
                     <p className="text-sm font-bold text-foreground truncate">
                       Día {d.dayNumber} · {d.name}
                     </p>
-                    <p className="text-[11px] text-muted-foreground capitalize truncate">
+                    <p className="text-sm text-muted-foreground capitalize truncate">
                       {muscles || `${d.totalExercises} ejercicios`}
                     </p>
                   </div>

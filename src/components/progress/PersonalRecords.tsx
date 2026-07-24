@@ -52,13 +52,13 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{pr.exerciseName}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-foreground/70">
                 {pr.reps} reps &middot; {new Date(pr.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
               </p>
             </div>
             <div className="flex items-baseline gap-1 ml-3">
-              <span className="text-lg font-bold text-foreground">{pr.weight}</span>
-              <span className="text-xs text-muted-foreground">kg</span>
+              <span className="text-xl font-bold text-foreground">{pr.weight}</span>
+              <span className="text-sm text-muted-foreground">kg</span>
             </div>
           </motion.div>
         ))}

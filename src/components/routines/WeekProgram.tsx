@@ -96,7 +96,7 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
                 <button
                   key={d.id}
                   onClick={() => setSelectedDayId(d.id)}
-                  className={`shrink-0 px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                  className={`shrink-0 inline-flex items-center px-3.5 min-h-11 rounded-xl text-sm font-bold border transition-colors ${
                     selected
                       ? "bg-gradient-primary text-primary-foreground border-transparent"
                       : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
@@ -129,7 +129,7 @@ const WeekProgram = ({ assignments, onStart, onView }: WeekProgramProps) => {
                   </p>
                 )}
                 <h3 className="text-lg font-black text-foreground truncate">{dayTitle(day)}</h3>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-foreground/70">
                   <span className="flex items-center gap-1">
                     <Dumbbell className="w-3.5 h-3.5 text-primary" /> {exerciseCount(day)} ejercicios
                   </span>

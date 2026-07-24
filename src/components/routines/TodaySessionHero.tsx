@@ -86,7 +86,7 @@ const TodaySessionHero = ({
               <span className="text-sm font-semibold text-foreground">
                 {dayTitle(day)}
               </span>
-              <span className="text-xs text-muted-foreground">{minutes} min</span>
+              <span className="text-sm text-foreground/70">{minutes} min</span>
             </div>
             <button
               onClick={() => onStart(session)}
@@ -106,7 +106,7 @@ const TodaySessionHero = ({
                 {muscles.map((m) => (
                   <span
                     key={m}
-                    className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize"
+                    className="text-sm font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize"
                   >
                     {m}
                   </span>
@@ -143,7 +143,7 @@ const TodaySessionHero = ({
               {onToggleDone && (
                 <button
                   onClick={onToggleDone}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+                  className={`flex items-center gap-1.5 text-sm font-bold px-3 min-h-11 rounded-full border transition-colors ${
                     done
                       ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
                       : "bg-secondary/60 border-white/[0.06] text-muted-foreground"

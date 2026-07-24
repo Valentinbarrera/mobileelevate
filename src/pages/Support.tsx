@@ -13,7 +13,7 @@ const Support = () => {
         <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 pb-4 header-safe-lg">
           <button
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl card-elevated flex items-center justify-center active:opacity-80"
+            className="w-11 h-11 rounded-xl card-elevated flex items-center justify-center active:opacity-80"
             aria-label="Volver"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -22,7 +22,7 @@ const Support = () => {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-6 space-y-6 leading-relaxed text-sm text-muted-foreground pb-16">
+      <main className="max-w-2xl mx-auto px-5 py-6 space-y-6 leading-relaxed text-base text-foreground/70 pb-16">
         <p>
           <strong className="text-foreground">Elevate</strong> es la app con la que entrenás siguiendo las
           rutinas y el plan de nutrición que arma tu entrenador. Acá tenés cómo contactarnos y las
@@ -37,10 +37,10 @@ const Support = () => {
             href={`mailto:${CONTACT}`}
             className="inline-flex items-center gap-2 rounded-xl card-elevated px-4 py-3 text-foreground font-semibold active:opacity-80"
           >
-            <Mail className="w-4 h-4 text-primary" />
+            <Mail className="w-5 h-5 text-primary" />
             {CONTACT}
           </a>
-          <p className="text-xs">Respondemos dentro de las 48 horas hábiles.</p>
+          <p className="text-sm">Respondemos dentro de las 48 horas hábiles.</p>
         </Section>
 
         <Section title="¿Cómo empiezo a usar Elevate?">

@@ -56,7 +56,7 @@ const CoachCard = () => {
       <div className="relative w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
         <MessageCircle className="w-5 h-5 text-primary" />
         {unseen > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center ring-2 ring-card">
+          <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-[11px] font-black flex items-center justify-center ring-2 ring-card">
             {unseen > 9 ? "9+" : unseen}
           </span>
         )}

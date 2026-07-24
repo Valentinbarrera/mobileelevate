@@ -66,7 +66,7 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
                   {routine.name}
                 </h3>
                 {routine.description && (
-                  <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">
+                  <p className="text-foreground/70 text-sm mt-0.5 line-clamp-1">
                     {routine.description}
                   </p>
                 )}
@@ -75,20 +75,20 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
             </div>
 
             {/* Stats row */}
-            <div className="flex items-center gap-2.5 mt-2.5">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Calendar className="w-3 h-3" />
-                <span className="text-[11px] font-medium">{totalDays} días</span>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2.5">
+              <div className="flex items-center gap-1 text-foreground/70">
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="text-sm font-medium">{totalDays} días</span>
               </div>
               <div className="w-0.5 h-3 bg-border rounded-full" />
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Zap className="w-3 h-3" />
-                <span className="text-[11px] font-medium">{totalExercises} ejercicios</span>
+              <div className="flex items-center gap-1 text-foreground/70">
+                <Zap className="w-3.5 h-3.5" />
+                <span className="text-sm font-medium">{totalExercises} ejercicios</span>
               </div>
               {routine.difficulty && (
                 <>
                   <div className="w-0.5 h-3 bg-border rounded-full" />
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${diff.bg} ${diff.color}`}>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${diff.bg} ${diff.color}`}>
                     {diff.icon} {routine.difficulty}
                   </span>
                 </>
@@ -99,14 +99,14 @@ const AlumnoRoutineCard = ({ assignment, index }: AlumnoRoutineCardProps) => {
 
         {/* Footer */}
         <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            <Clock className="w-3 h-3" />
+          <span className="text-sm text-foreground/70 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
             {new Date(assignment.created_at).toLocaleDateString('es-AR', { 
               day: 'numeric', 
               month: 'short' 
             })}
           </span>
-          <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full ${
+          <span className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-full ${
             assignment.status === 'active' 
               ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' 
               : 'text-muted-foreground bg-muted border border-border'

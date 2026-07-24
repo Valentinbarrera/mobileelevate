@@ -329,7 +329,7 @@ const Welcome = () => {
         <div className="flex items-center gap-3">
           <StoryProgress count={slides.length} step={step} playing={!isLast} onComplete={advance} />
           {!isLast && (
-            <button onClick={() => navigate("/auth")} className="text-sm font-semibold text-muted-foreground active:text-foreground">
+            <button onClick={() => navigate("/auth")} className="text-sm font-semibold text-foreground/70 px-3 py-2 min-h-11 active:text-foreground">
               Saltar
             </button>
           )}

@@ -20,8 +20,8 @@ const WeeklyActivity = ({ sessionsThisWeek, goalMet }: WeeklyActivityProps) => {
           Actividad Semanal
         </span>
         {goalMet && (
-          <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold">
-            <CheckCircle2 className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 text-emerald-400 text-sm font-bold">
+            <CheckCircle2 className="w-4 h-4" />
             Meta
           </div>
         )}

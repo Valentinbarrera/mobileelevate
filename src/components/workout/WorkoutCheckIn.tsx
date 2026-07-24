@@ -77,11 +77,11 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
           >
             <div className="flex items-start justify-between mb-1">
               <h2 className="text-xl font-black text-foreground">¿Cómo te fue?</h2>
-              <button onClick={onSkip} aria-label="Saltar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onSkip} aria-label="Saltar" className="w-11 h-11 -mr-2 flex items-center justify-center text-muted-foreground shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-muted-foreground mb-5">
+            <p className="text-sm text-foreground/70 mb-5">
               Un segundo para que tu coach ajuste mejor tu plan.
             </p>
 
@@ -90,7 +90,7 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-bold text-foreground">Esfuerzo (RPE)</p>
                 {rpe > 0 && (
-                  <span className="text-xs font-bold text-primary">
+                  <span className="text-sm font-bold text-primary">
                     {rpe} · {rpeLabel(rpe)}
                   </span>
                 )}
@@ -103,7 +103,7 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
                     <button
                       key={v}
                       onClick={() => setRpe(v)}
-                      className={`h-9 rounded-lg text-xs font-bold transition-colors ${
+                      className={`h-11 rounded-lg text-sm font-bold transition-colors ${
                         on ? "bg-gradient-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                       }`}
                     >

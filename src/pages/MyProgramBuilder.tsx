@@ -91,7 +91,7 @@ const OptionTile = ({
     }`}
   >
     <span className="text-xl font-black tabular-nums">{label}</span>
-    {sub && <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70">{sub}</span>}
+    {sub && <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">{sub}</span>}
   </button>
 );
 
@@ -164,8 +164,8 @@ const MuscleExercisePicker = ({
           <LayoutGrid className="w-3.5 h-3.5" />
           {group ? group.label : "Elegí grupo muscular"}
         </p>
-        <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 active:text-foreground">
-          <X className="w-4 h-4" />
+        <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground -mr-1 w-11 h-11 flex items-center justify-center active:text-foreground">
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -195,9 +195,9 @@ const MuscleExercisePicker = ({
           <div className="flex items-center gap-2 mb-2.5">
             <button
               onClick={() => setGroup(null)}
-              className="shrink-0 flex items-center gap-1 text-xs font-bold text-primary px-2 py-1.5 rounded-lg bg-primary/10"
+              className="shrink-0 flex items-center gap-1 text-sm font-bold text-primary px-3 min-h-11 rounded-lg bg-primary/10"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Grupos
+              <ArrowLeft className="w-4 h-4" /> Grupos
             </button>
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -207,7 +207,7 @@ const MuscleExercisePicker = ({
                 onKeyDown={(e) => e.key === "Enter" && (results[0] ? addLibrary(results[0]) : addFreeText())}
                 enterKeyHint="done"
                 placeholder={`Buscar en ${group.label}…`}
-                className="w-full min-w-0 h-10 pl-10 pr-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+                className="w-full min-w-0 h-11 pl-10 pr-3 rounded-xl bg-secondary border border-border text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
               />
             </div>
           </div>
@@ -227,16 +227,16 @@ const MuscleExercisePicker = ({
                   )}
                 </div>
                 <p className="text-sm font-bold text-foreground truncate flex-1 min-w-0">{ex.name}</p>
-                <Plus className="w-4 h-4 text-primary shrink-0" />
+                <Plus className="w-5 h-5 text-primary shrink-0" />
               </button>
             ))}
 
             {libraryLoading && results.length === 0 && (
-              <p className="text-xs text-muted-foreground px-1 py-2">Cargando biblioteca…</p>
+              <p className="text-sm text-muted-foreground px-1 py-2">Cargando biblioteca…</p>
             )}
 
             {!libraryLoading && results.length === 0 && !term && (
-              <p className="text-xs text-muted-foreground px-1 py-2">
+              <p className="text-sm text-foreground/70 px-1 py-2">
                 No hay ejercicios de {group.label} en la biblioteca. Escribí uno abajo.
               </p>
             )}
@@ -248,7 +248,7 @@ const MuscleExercisePicker = ({
                 className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-primary/40 p-2 text-left active:opacity-70"
               >
                 <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-                  <Plus className="w-4 h-4 text-primary" />
+                  <Plus className="w-5 h-5 text-primary" />
                 </div>
                 <p className="text-sm font-bold text-foreground truncate">Agregar “{term.trim()}”</p>
               </button>
@@ -279,18 +279,18 @@ const ExerciseRow = ({
         <div className="min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
           {ex.muscleGroup && (
-            <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscleGroup}</p>
+            <p className="text-sm font-semibold text-primary capitalize truncate">{ex.muscleGroup}</p>
           )}
         </div>
       </div>
-      <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0">
-        <X className="w-4 h-4" />
+      <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground/50 hover:text-destructive -mr-1 w-11 h-11 flex items-center justify-center shrink-0">
+        <X className="w-5 h-5" />
       </button>
     </div>
 
     <div className="grid grid-cols-3 gap-2">
       <label className="flex flex-col gap-1 min-w-0">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Series</span>
+        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Series</span>
         <input
           type="number"
           inputMode="numeric"
@@ -298,22 +298,22 @@ const ExerciseRow = ({
           onChange={(e) => onChange({ sets: parseInt(e.target.value, 10) || 0 })}
           onFocus={(e) => e.target.select()}
           placeholder="3"
-          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+          className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
         />
       </label>
       <label className="flex flex-col gap-1 min-w-0">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Reps</span>
+        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">Reps</span>
         <input
           type="text"
           value={ex.reps}
           onChange={(e) => onChange({ reps: e.target.value })}
           onFocus={(e) => e.target.select()}
           placeholder="8-12"
-          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+          className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
         />
       </label>
       <label className="flex flex-col gap-1 min-w-0">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">RIR (0-5)</span>
+        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-0.5">RIR (0-5)</span>
         <input
           type="number"
           inputMode="numeric"
@@ -326,13 +326,13 @@ const ExerciseRow = ({
           }}
           onFocus={(e) => e.target.select()}
           placeholder="2"
-          className="w-full min-w-0 h-10 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+          className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
         />
       </label>
     </div>
 
     <div className="mt-2 flex items-center justify-center gap-2">
-      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Descanso</span>
+      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Descanso</span>
       <input
         type="number"
         inputMode="numeric"
@@ -340,9 +340,9 @@ const ExerciseRow = ({
         onChange={(e) => onChange({ restSeconds: parseInt(e.target.value, 10) || 0 })}
         onFocus={(e) => e.target.select()}
         placeholder="90"
-        className="w-16 h-8 rounded-lg bg-secondary border border-border text-center text-xs font-bold text-foreground focus:border-primary focus:outline-none"
+        className="w-16 h-11 rounded-lg bg-secondary border border-border text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
       />
-      <span className="text-[10px] font-semibold text-muted-foreground">seg</span>
+      <span className="text-sm font-semibold text-muted-foreground">seg</span>
     </div>
   </div>
 );
@@ -586,10 +586,10 @@ export default function MyProgramBuilder() {
         left={
           <button
             onClick={() => (step === "exercises" && !isEditing ? setStep("split") : step === "split" ? setStep("config") : navigate(-1))}
-            className="text-muted-foreground -ml-1 p-1"
+            className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
             aria-label="Volver"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -658,7 +658,7 @@ export default function MyProgramBuilder() {
           {/* ─────────── PASO 2: ELEGIR SPLIT ─────────── */}
           {step === "split" && (
             <motion.div variants={fadeUp} className="space-y-3">
-              <p className="text-sm text-muted-foreground px-1">
+              <p className="text-base text-foreground/70 px-1">
                 Elegí una estructura de {daysPerWeek} {daysPerWeek === 1 ? "día" : "días"} para empezar. Después la
                 editás como quieras.
               </p>
@@ -674,13 +674,13 @@ export default function MyProgramBuilder() {
                     {preset.tags.map((t, i) => (
                       <span
                         key={i}
-                        className="text-[10px] font-bold text-primary bg-primary/12 border border-primary/25 rounded-full px-2 py-0.5"
+                        className="text-[11px] font-bold text-primary bg-primary/12 border border-primary/25 rounded-full px-2 py-0.5"
                       >
                         {t}
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{preset.description}</p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">{preset.description}</p>
                 </button>
               ))}
 
@@ -688,7 +688,7 @@ export default function MyProgramBuilder() {
                 onClick={chooseBlank}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
               >
-                <Plus className="w-4 h-4 text-primary" /> Empezar de cero ({daysPerWeek} {daysPerWeek === 1 ? "día" : "días"} vacíos)
+                <Plus className="w-5 h-5 text-primary" /> Empezar de cero ({daysPerWeek} {daysPerWeek === 1 ? "día" : "días"} vacíos)
               </button>
             </motion.div>
           )}
@@ -710,7 +710,7 @@ export default function MyProgramBuilder() {
                         setPickerOpen(false);
                         setWeekMenuOpen(false);
                       }}
-                      className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-colors ${
+                      className={`shrink-0 px-3.5 min-h-11 inline-flex items-center rounded-xl text-sm font-black uppercase tracking-wider border transition-colors ${
                         active
                           ? "bg-primary/15 text-primary border-primary/40"
                           : "bg-secondary/50 text-muted-foreground border-white/[0.06]"
@@ -725,9 +725,9 @@ export default function MyProgramBuilder() {
                   type="button"
                   onClick={() => setWeekMenuOpen((v) => !v)}
                   aria-label="Agregar semana"
-                  className="shrink-0 w-9 h-9 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
+                  className="shrink-0 w-11 h-11 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
 
@@ -740,16 +740,16 @@ export default function MyProgramBuilder() {
                   <button
                     type="button"
                     onClick={() => addWeek(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 min-h-11 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
                   >
-                    <Copy className="w-4 h-4 text-primary" /> Duplicar semana {programWeekCount(program)}
+                    <Copy className="w-5 h-5 text-primary" /> Duplicar semana {programWeekCount(program)}
                   </button>
                   <button
                     type="button"
                     onClick={() => addWeek(false)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-white/10 text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 min-h-11 rounded-xl border-2 border-dashed border-white/10 text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
                   >
-                    <Plus className="w-4 h-4 text-primary" /> Empezar vacía
+                    <Plus className="w-5 h-5 text-primary" /> Empezar vacía
                   </button>
                 </div>
               )}
@@ -767,7 +767,7 @@ export default function MyProgramBuilder() {
                         setActiveDayId(d.id);
                         setPickerOpen(false);
                       }}
-                      className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                      className={`shrink-0 px-3.5 min-h-11 inline-flex items-center rounded-xl text-sm font-bold border transition-colors ${
                         active
                           ? "bg-primary/15 text-primary border-primary/40"
                           : "bg-secondary/50 text-muted-foreground border-white/[0.06]"
@@ -782,9 +782,9 @@ export default function MyProgramBuilder() {
                   type="button"
                   onClick={addExtraDay}
                   aria-label="Agregar día"
-                  className="shrink-0 w-9 h-9 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
+                  className="shrink-0 w-11 h-11 rounded-xl border border-dashed border-white/15 flex items-center justify-center text-primary active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
 
@@ -798,7 +798,7 @@ export default function MyProgramBuilder() {
                     value={activeDay.name}
                     onChange={(e) => patchDay(activeDay.id, { name: e.target.value })}
                     placeholder={`Día ${activeDayIdx + 1}`}
-                    className="flex-1 min-w-0 bg-transparent text-sm font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
+                    className="flex-1 min-w-0 bg-transparent text-base font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
                   />
                   {/* Stepper de semana al lado del nombre: mover el día sin salir del editor */}
                   <div className="flex items-center gap-0.5 shrink-0 rounded-lg bg-secondary/60 border border-white/[0.06] px-1 py-0.5">
@@ -807,29 +807,29 @@ export default function MyProgramBuilder() {
                       onClick={() => moveDayToWeek(activeDay.id, weekOf(activeDay) - 1)}
                       disabled={weekOf(activeDay) <= 1}
                       aria-label="Mover el día a la semana anterior"
-                      className="text-muted-foreground p-0.5 disabled:opacity-30 active:text-foreground"
+                      className="text-muted-foreground p-1.5 disabled:opacity-30 active:text-foreground"
                     >
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider tabular-nums px-0.5">
+                    <span className="text-[11px] font-bold text-primary uppercase tracking-wider tabular-nums px-0.5">
                       Sem {weekOf(activeDay)}
                     </span>
                     <button
                       type="button"
                       onClick={() => moveDayToWeek(activeDay.id, weekOf(activeDay) + 1)}
                       aria-label="Mover el día a la semana siguiente"
-                      className="text-muted-foreground p-0.5 active:text-foreground"
+                      className="text-muted-foreground p-1.5 active:text-foreground"
                     >
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeDay(activeDay.id)}
                     aria-label="Eliminar día"
-                    className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
+                    className="text-muted-foreground/50 hover:text-destructive -mr-1 w-11 h-11 flex items-center justify-center shrink-0"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -853,7 +853,7 @@ export default function MyProgramBuilder() {
                   </AnimatePresence>
 
                   {activeDay.exercises.length === 0 && !pickerOpen && (
-                    <p className="text-xs text-muted-foreground px-1 py-2">Sin ejercicios todavía en {activeDay.name}.</p>
+                    <p className="text-sm text-foreground/70 px-1 py-2">Sin ejercicios todavía en {activeDay.name}.</p>
                   )}
 
                   {pickerOpen ? (
@@ -867,9 +867,9 @@ export default function MyProgramBuilder() {
                   ) : (
                     <button
                       onClick={() => setPickerOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 min-h-11 rounded-xl border-2 border-dashed border-white/10 hover:border-primary/40 text-sm font-bold text-foreground transition-colors"
                     >
-                      <Plus className="w-4 h-4 text-primary" /> Agregar ejercicio
+                      <Plus className="w-5 h-5 text-primary" /> Agregar ejercicio
                     </button>
                   )}
 
@@ -877,16 +877,16 @@ export default function MyProgramBuilder() {
                   <div className="flex gap-2 pt-1">
                     <button
                       onClick={saveDayAsTemplate}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-bold text-foreground active:scale-95 transition-transform"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 min-h-11 rounded-lg bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-95 transition-transform"
                     >
-                      <BookMarked className="w-3.5 h-3.5 text-primary" /> Guardar plantilla
+                      <BookMarked className="w-4 h-4 text-primary" /> Guardar plantilla
                     </button>
                     <button
                       onClick={() => setShowTemplates((v) => !v)}
                       disabled={dayTemplates.length === 0}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-bold text-foreground active:scale-95 transition-transform disabled:opacity-40"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 min-h-11 rounded-lg bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-95 transition-transform disabled:opacity-40"
                     >
-                      <FolderOpen className="w-3.5 h-3.5 text-primary" /> Usar plantilla
+                      <FolderOpen className="w-4 h-4 text-primary" /> Usar plantilla
                     </button>
                   </div>
 
@@ -899,16 +899,16 @@ export default function MyProgramBuilder() {
                         >
                           <button onClick={() => applyDayTemplate(t)} className="flex-1 min-w-0 text-left active:opacity-70">
                             <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-sm text-foreground/70">
                               {t.exercises.length} {t.exercises.length === 1 ? "ejercicio" : "ejercicios"}
                             </p>
                           </button>
                           <button
                             onClick={() => removeDayTemplateById(t)}
                             aria-label="Borrar plantilla"
-                            className="text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
+                            className="text-muted-foreground/50 hover:text-destructive w-11 h-11 flex items-center justify-center shrink-0"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       ))}
@@ -930,7 +930,7 @@ export default function MyProgramBuilder() {
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground active:scale-[0.99] transition-transform"
                 >
                   Guardar día y siguiente
-                  <ArrowRight className="w-4 h-4 text-primary" />
+                  <ArrowRight className="w-5 h-5 text-primary" />
                 </button>
               ) : null}
             </motion.div>
@@ -966,7 +966,7 @@ export default function MyProgramBuilder() {
               </motion.button>
               <button
                 onClick={saveAndExit}
-                className="w-full py-2.5 rounded-xl text-sm font-bold text-muted-foreground active:text-foreground"
+                className="w-full py-2.5 min-h-11 rounded-xl text-sm font-bold text-foreground/70 active:text-foreground"
               >
                 Guardar y salir (continuar después)
               </button>

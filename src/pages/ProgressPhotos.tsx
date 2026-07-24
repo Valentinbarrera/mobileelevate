@@ -65,8 +65,8 @@ export default function ProgressPhotos() {
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
           <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 py-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
-              <ArrowLeft className="w-5 h-5" />
+            <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center" aria-label="Volver">
+              <ArrowLeft className="w-6 h-6" />
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
@@ -91,7 +91,7 @@ export default function ProgressPhotos() {
                   <button
                     key={k}
                     onClick={() => setMode(k)}
-                    className={`relative flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    className={`relative flex-1 py-2.5 min-h-11 rounded-xl text-sm font-semibold transition-colors ${
                       active ? "text-primary-foreground" : "text-muted-foreground"
                     }`}
                   >
@@ -114,7 +114,7 @@ export default function ProgressPhotos() {
             <div className="card-elevated rounded-2xl p-6 text-center">
               <ImageOff className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="font-semibold text-foreground mb-1">Iniciá sesión</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-foreground/70">
                 Necesitás tu cuenta vinculada al coach para subir y guardar fotos.
               </p>
             </div>
@@ -127,14 +127,14 @@ export default function ProgressPhotos() {
                 <Camera className="w-8 h-8 text-primary" />
               </div>
               <p className="text-lg font-black text-foreground mb-1">Empezá tu progreso visual</p>
-              <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
+              <p className="text-base text-foreground/70 mb-5 max-w-xs mx-auto">
                 Subí tu primera foto. Cada mes sacate otra y mirá la evolución lado a lado.
               </p>
               <button
                 onClick={() => openUpload(today, "front")}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
               >
-                <Plus className="w-4 h-4" /> Subir primera foto
+                <Plus className="w-5 h-5" /> Subir primera foto
               </button>
             </motion.div>
           )}
@@ -266,7 +266,7 @@ function CompareView({ months }: { months: ReturnType<typeof useProgressPhotos>[
             <button
               key={t.key}
               onClick={() => { setPose(t.key); setLeftIdx(0); setRightIdx(0); }}
-              className={`flex items-center justify-center gap-1.5 rounded-2xl py-2.5 border text-sm font-bold transition-colors ${
+              className={`flex items-center justify-center gap-1.5 rounded-2xl py-2.5 min-h-11 border text-sm font-bold transition-colors ${
                 active ? "border-primary/50 bg-primary/10 text-primary" : "border-white/[0.06] bg-secondary/40 text-muted-foreground"
               }`}
             >
@@ -279,7 +279,7 @@ function CompareView({ months }: { months: ReturnType<typeof useProgressPhotos>[
       {series.length < 2 ? (
         <div className="card-elevated rounded-2xl p-6 text-center">
           <GitCompareArrows className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-foreground/70">
             Necesitás al menos 2 fotos de <span className="font-bold text-foreground">{PHOTO_TYPES.find((t) => t.key === pose)?.label}</span> para comparar.
           </p>
         </div>
@@ -295,14 +295,14 @@ function CompareView({ months }: { months: ReturnType<typeof useProgressPhotos>[
                     ) : (
                       <div className="w-full h-full bg-secondary/50" />
                     )}
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-background/80 backdrop-blur text-[10px] font-black uppercase tracking-wider text-foreground">
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-background/80 backdrop-blur text-[11px] font-black uppercase tracking-wider text-foreground">
                       {tag}
                     </span>
                   </div>
                   <select
                     value={idx}
                     onChange={(e) => set(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl bg-secondary border border-border text-foreground text-sm font-semibold px-3 focus:border-primary focus:outline-none"
+                    className="w-full h-11 rounded-xl bg-secondary border border-border text-foreground text-sm font-semibold px-3 focus:border-primary focus:outline-none"
                   >
                     {series.map((p, j) => (
                       <option key={p.id} value={j}>
@@ -315,7 +315,7 @@ function CompareView({ months }: { months: ReturnType<typeof useProgressPhotos>[
             )}
           </div>
           {left && right && left.date !== right.date && (
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-sm text-foreground/70">
               {Math.max(
                 0,
                 Math.round(

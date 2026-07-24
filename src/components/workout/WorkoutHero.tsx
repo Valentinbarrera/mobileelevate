@@ -45,7 +45,7 @@ const WorkoutHero = ({
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center border border-white/10">
+          <div className="w-11 h-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center border border-white/10">
             <ArrowLeft className="w-5 h-5" />
           </div>
           <span className="text-xs font-medium uppercase tracking-wider">

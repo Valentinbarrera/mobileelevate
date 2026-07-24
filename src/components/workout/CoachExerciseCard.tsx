@@ -381,42 +381,43 @@ const CoachExerciseCard = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <h3 className={`font-semibold text-sm truncate ${isCompleted ? "text-emerald-500" : "text-foreground"}`}>
+              <h3 className={`font-semibold text-base truncate ${isCompleted ? "text-emerald-500" : "text-foreground"}`}>
                 {exercise.name}
               </h3>
               {/* Deja claro qué se apartó de lo que prescribió el coach */}
               {isSubstituted && (
-                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400">
+                <span className="shrink-0 text-[11px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400">
                   Cambiado
                 </span>
               )}
               {isExtra && (
-                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                <span className="shrink-0 text-[11px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
                   Extra
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-xs ${isCompleted ? "text-emerald-500/70" : "text-muted-foreground"}`}>
+              <span className={`text-sm ${isCompleted ? "text-emerald-500/80" : "text-foreground/70"}`}>
                 {doneCount}/{exercise.sets} series • {exercise.reps} reps
               </span>
               {isCompleted && (
-                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">✓ Listo</span>
+                <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider">✓ Listo</span>
               )}
             </div>
           </div>
 
           <button
-            className="p-2"
+            className="w-11 h-11 -mr-1 flex items-center justify-center flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
             }}
+            aria-label={expanded ? "Contraer ejercicio" : "Expandir ejercicio"}
           >
             {expanded ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              <ChevronUp className="w-6 h-6 text-muted-foreground" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              <ChevronDown className="w-6 h-6 text-muted-foreground" />
             )}
           </button>
         </div>
@@ -448,7 +449,7 @@ const CoachExerciseCard = ({
                 {/* Nota del coach: cue corto, se mantiene arriba */}
                 {exercise.notes && (
                   <div className="p-3 bg-primary/5 border border-primary/10 rounded-xl">
-                    <p className="text-xs text-foreground">
+                    <p className="text-sm text-foreground">
                       <span className="font-medium">💡 Nota:</span> {exercise.notes}
                     </p>
                   </div>
@@ -460,18 +461,18 @@ const CoachExerciseCard = ({
                   onClick={() => setNoteOpen(true)}
                   className="w-full flex items-start gap-2 rounded-xl border border-white/[0.06] bg-secondary/40 px-3 py-2.5 text-left active:scale-[0.99] transition-transform"
                 >
-                  <StickyNote className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <StickyNote className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   {athleteNote?.text ? (
                     <span className="flex-1 min-w-0">
-                      <span className="block text-xs text-foreground line-clamp-2">{athleteNote.text}</span>
+                      <span className="block text-sm text-foreground line-clamp-2">{athleteNote.text}</span>
                       {athleteNote.pinned && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wider mt-1">
-                          <Pin className="w-3 h-3" /> Fijada
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary uppercase tracking-wider mt-1">
+                          <Pin className="w-3.5 h-3.5" /> Fijada
                         </span>
                       )}
                     </span>
                   ) : (
-                    <span className="flex-1 text-xs font-semibold text-muted-foreground">Agregar mi nota</span>
+                    <span className="flex-1 text-sm font-semibold text-foreground/70">Agregar mi nota</span>
                   )}
                 </button>
 
@@ -627,7 +628,7 @@ const CoachExerciseCard = ({
                               aria-label={`Editar serie ${setNum}`}
                             >
                               <motion.div
-                                className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center"
+                                className="w-11 h-11 rounded-lg bg-emerald-500 flex items-center justify-center"
                                 initial={justLogged === setNum ? { scale: 0, rotate: -90 } : false}
                                 animate={{ scale: 1, rotate: 0 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 14 }}
@@ -898,18 +899,18 @@ const CoachExerciseCard = ({
                         <button
                           type="button"
                           onClick={onAddSet}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 min-h-11 py-3 rounded-xl border border-dashed border-border hover:border-primary/40 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
                         >
-                          <Plus className="w-3.5 h-3.5 text-primary" /> Agregar serie
+                          <Plus className="w-4 h-4 text-primary" /> Agregar serie
                         </button>
                       )}
                       {(state.extraSets ?? 0) > 0 && onRemoveSet && (
                         <button
                           type="button"
                           onClick={onRemoveSet}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-xs font-bold text-red-400/80 hover:text-red-400 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 min-h-11 py-3 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-sm font-bold text-red-400/90 hover:text-red-400 transition-colors"
                         >
-                          <Minus className="w-3.5 h-3.5" /> Quitar serie
+                          <Minus className="w-4 h-4" /> Quitar serie
                         </button>
                       )}
                     </div>
@@ -921,18 +922,18 @@ const CoachExerciseCard = ({
                           <button
                             type="button"
                             onClick={onReplaceExercise}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 min-h-11 py-3 rounded-xl border border-dashed border-border hover:border-primary/40 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
                           >
-                            <Repeat className="w-3.5 h-3.5 text-primary" /> Cambiar ejercicio
+                            <Repeat className="w-4 h-4 text-primary" /> Cambiar ejercicio
                           </button>
                         )}
                         {onRemoveExercise && (
                           <button
                             type="button"
                             onClick={onRemoveExercise}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-xs font-bold text-red-400/80 hover:text-red-400 transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 min-h-11 py-3 rounded-xl border border-dashed border-red-500/30 hover:border-red-500/50 text-sm font-bold text-red-400/90 hover:text-red-400 transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                             {isExtra ? "Quitar" : "Sacar del día"}
                           </button>
                         )}
@@ -943,9 +944,9 @@ const CoachExerciseCard = ({
                       <button
                         type="button"
                         onClick={onUndoReplace}
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-amber-400/90 hover:text-amber-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 rounded-xl text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors"
                       >
-                        <Undo2 className="w-3.5 h-3.5" /> Volver al del coach
+                        <Undo2 className="w-4 h-4" /> Volver al del coach
                       </button>
                     )}
 
@@ -953,9 +954,9 @@ const CoachExerciseCard = ({
                       <button
                         type="button"
                         onClick={onSkipExercise}
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-muted-foreground/80 hover:text-foreground transition-colors"
+                        className="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 rounded-xl text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
                       >
-                        <SkipForward className="w-3.5 h-3.5" /> Saltar hoy
+                        <SkipForward className="w-4 h-4" /> Saltar hoy
                       </button>
                     )}
                   </div>
@@ -966,9 +967,9 @@ const CoachExerciseCard = ({
                   <div className="rounded-xl bg-secondary/40 border border-border overflow-hidden">
                     <button
                       onClick={() => setShowPlates((v) => !v)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground"
+                      className="w-full flex items-center gap-2 px-3 min-h-11 py-2.5 text-sm font-semibold text-foreground/80"
                     >
-                      <Calculator className="w-3.5 h-3.5 text-primary" />
+                      <Calculator className="w-4 h-4 text-primary" />
                       Discos por lado ({editWeight} kg)
                       {showPlates ? (
                         <ChevronUp className="w-3.5 h-3.5 ml-auto" />
@@ -989,16 +990,16 @@ const CoachExerciseCard = ({
                               plates.perSide.map((p, i) => (
                                 <span
                                   key={i}
-                                  className="px-2 py-1 rounded-md bg-primary/15 border border-primary/30 text-xs font-bold text-primary tabular-nums"
+                                  className="px-2.5 py-1 rounded-md bg-primary/15 border border-primary/30 text-sm font-bold text-primary tabular-nums"
                                 >
                                   {p}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground">Solo la barra (20 kg)</span>
+                              <span className="text-sm text-foreground/70">Solo la barra (20 kg)</span>
                             )}
                             {plates.leftover > 0 && (
-                              <span className="text-xs text-amber-500 self-center">
+                              <span className="text-sm text-amber-500 self-center">
                                 +{plates.leftover} kg no exacto
                               </span>
                             )}
@@ -1021,9 +1022,9 @@ const CoachExerciseCard = ({
                   <button
                     type="button"
                     onClick={() => setShowTechnique((v) => !v)}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-muted-foreground"
+                    className="w-full flex items-center gap-2 px-3 min-h-11 py-2.5 text-sm font-bold text-foreground/80"
                   >
-                    <Video className="w-3.5 h-3.5 text-primary" />
+                    <Video className="w-4 h-4 text-primary" />
                     Técnica y tutorial
                     {showTechnique ? (
                       <ChevronUp className="w-3.5 h-3.5 ml-auto" />

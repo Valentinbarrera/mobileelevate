@@ -79,7 +79,7 @@ const SideNav = () => {
               <span className="hidden xl:block text-sm font-medium">{item.label}</span>
 
               {/* Tooltip on collapsed (icon-only) mode */}
-              <span className="xl:hidden absolute left-full ml-2 px-2 py-1 rounded-lg bg-card border border-border text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+              <span className="xl:hidden absolute left-full ml-2 px-2 py-1 rounded-lg bg-card border border-border text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                 {item.label}
               </span>
             </motion.button>
@@ -89,7 +89,7 @@ const SideNav = () => {
 
       {/* Version */}
       <div className="px-4 py-4 border-t border-border/30">
-        <span className="hidden xl:block text-[10px] text-muted-foreground/50 tracking-wider">v1.0.0</span>
+        <span className="hidden xl:block text-[11px] text-muted-foreground/50 tracking-wider">v1.0.0</span>
       </div>
     </nav>
   );

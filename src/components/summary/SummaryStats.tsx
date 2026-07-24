@@ -75,7 +75,7 @@ const SummaryStats = ({
           >
             <div className="flex items-center gap-2 mb-2">
               <stat.icon className={`w-4 h-4 ${stat.color}`} />
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              <span className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
                 {stat.label}
               </span>
             </div>

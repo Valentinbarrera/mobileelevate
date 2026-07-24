@@ -80,7 +80,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
-          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+          <p className="text-sm text-foreground/70 mb-1">{label}</p>
           <p className="text-lg font-bold text-foreground">
             {payload[0].value} {unit}
           </p>
@@ -103,7 +103,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
         </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />
-          <span className="text-xs font-semibold">
+          <span className="text-sm font-semibold">
             {change > 0 ? "+" : ""}{change.toFixed(1)}%
           </span>
         </div>

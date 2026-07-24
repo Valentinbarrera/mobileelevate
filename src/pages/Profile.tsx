@@ -75,17 +75,17 @@ const Profile = () => {
                   <ClipboardList className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-foreground">Mi perfil de entrenamiento</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-base font-black text-foreground">Mi perfil de entrenamiento</p>
+                  <p className="text-sm text-foreground/70 mt-0.5">
                     {intakeDone ? "Cuestionario completo · tocá para editar" : "Completá el cuestionario para tu coach"}
                   </p>
                 </div>
                 {intakeDone ? (
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 shrink-0">
+                  <span className="flex items-center gap-1 text-sm font-bold text-emerald-400 shrink-0">
                     <Check className="w-4 h-4" /> Listo
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
+                  <span className="text-[11px] font-bold text-primary uppercase tracking-wider px-2 py-1 rounded-md bg-primary/10 border border-primary/20 shrink-0">
                     Pendiente
                   </span>
                 )}
@@ -94,13 +94,13 @@ const Profile = () => {
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
                 <button
                   onClick={() => navigate("/perfil/resumen")}
-                  className="text-xs font-bold text-primary active:opacity-70"
+                  className="text-sm font-bold text-primary active:opacity-70 inline-flex items-center min-h-11 py-2"
                 >
                   Ver resumen de mi perfil →
                 </button>
                 <button
                   onClick={() => navigate("/cuestionarios")}
-                  className="text-xs font-bold text-primary active:opacity-70"
+                  className="text-sm font-bold text-primary active:opacity-70 inline-flex items-center min-h-11 py-2"
                 >
                   Ver todos los cuestionarios →
                 </button>
@@ -117,7 +117,7 @@ const Profile = () => {
                       <item.icon className="w-4 h-4 text-primary" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
                     </div>
-                    <p className="text-sm font-semibold text-foreground">{item.value}</p>
+                    <p className="text-base font-semibold text-foreground">{item.value}</p>
                   </div>
                 ))}
               </div>

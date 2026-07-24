@@ -56,9 +56,9 @@ const ExerciseLibrary = ({
           <button
             onClick={() => setSearch("")}
             aria-label="Limpiar"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         )}
       </div>
@@ -68,7 +68,7 @@ const ExerciseLibrary = ({
         <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5">
           <button
             onClick={() => setMuscle(null)}
-            className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors ${
+            className={`shrink-0 px-4 py-2.5 rounded-full text-sm font-bold border transition-colors ${
               !muscle
                 ? "bg-primary/10 text-primary border-primary/20"
                 : "bg-secondary/60 text-muted-foreground border-transparent"
@@ -80,7 +80,7 @@ const ExerciseLibrary = ({
             <button
               key={m}
               onClick={() => setMuscle(m === muscle ? null : m)}
-              className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold capitalize border transition-colors ${
+              className={`shrink-0 px-4 py-2.5 rounded-full text-sm font-bold capitalize border transition-colors ${
                 muscle === m
                   ? "bg-primary/10 text-primary border-primary/20"
                   : "bg-secondary/60 text-muted-foreground border-transparent"
@@ -104,7 +104,7 @@ const ExerciseLibrary = ({
               <button
                 onClick={onClose}
                 aria-label="Cerrar"
-                className="shrink-0 w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
+                className="shrink-0 w-11 h-11 rounded-full bg-secondary/60 flex items-center justify-center text-foreground"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -138,7 +138,7 @@ const ExerciseLibrary = ({
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <Dumbbell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/70">
                 {exercises.length === 0 ? "No hay ejercicios cargados todavía." : "Sin resultados para tu búsqueda."}
               </p>
             </div>
@@ -177,7 +177,7 @@ const ExerciseLibrary = ({
                   <div className="p-2.5">
                     <p className="text-sm font-bold text-foreground leading-tight line-clamp-2">{ex.name}</p>
                     {ex.muscle && (
-                      <p className="text-[11px] font-semibold text-primary capitalize mt-0.5 truncate">
+                      <p className="text-sm font-semibold text-primary capitalize mt-0.5 truncate">
                         {cap(ex.muscle)}
                       </p>
                     )}

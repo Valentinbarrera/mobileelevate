@@ -98,10 +98,10 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-foreground leading-tight">Calcular calorías</h2>
-                  <p className="text-xs text-muted-foreground">Método Harris-Benedict</p>
+                  <p className="text-sm text-muted-foreground">Método Harris-Benedict</p>
                 </div>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onClose} aria-label="Cerrar" className="text-foreground/70 w-11 h-11 flex items-center justify-center -mr-2 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -136,7 +136,7 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                     <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-white/[0.06]">
                       <span className="text-muted-foreground">
                         Mantenimiento
-                        <span className="text-[11px] text-muted-foreground/70">
+                        <span className="text-xs text-muted-foreground/70">
                           {" "}
                           (×{ACTIVITY_FACTORS[inputs.activityLevel]})
                         </span>
@@ -157,13 +157,13 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                         <button
                           key={m.value}
                           onClick={() => setMode(m.value)}
-                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-bold transition-all ${
+                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-sm font-bold transition-all ${
                             active
                               ? "bg-primary/15 border-primary/40 text-primary"
                               : "bg-secondary/50 border-white/[0.06] text-muted-foreground"
                           }`}
                         >
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-5 h-5" />
                           {m.label}
                         </button>
                       );
@@ -188,7 +188,7 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                             aria-label="Menos"
                             className="w-11 h-11 rounded-xl bg-secondary/60 border border-white/[0.06] flex items-center justify-center text-foreground active:scale-95 transition-transform"
                           >
-                            <Minus className="w-4 h-4" />
+                            <Minus className="w-5 h-5" />
                           </button>
                           <div className="flex-1 h-11 rounded-xl bg-secondary/60 border border-white/[0.06] flex items-center justify-center">
                             <span className="text-base font-black text-foreground tabular-nums">
@@ -201,7 +201,7 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                             aria-label="Más"
                             className="w-11 h-11 rounded-xl bg-secondary/60 border border-white/[0.06] flex items-center justify-center text-foreground active:scale-95 transition-transform"
                           >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-5 h-5" />
                           </button>
                         </div>
                         <div className="flex gap-2">
@@ -209,7 +209,7 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                             <button
                               key={p}
                               onClick={() => setAdjust(p)}
-                              className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
+                              className={`flex-1 min-h-11 py-2 rounded-lg text-sm font-bold border transition-all ${
                                 adjust === p
                                   ? "bg-primary/15 border-primary/40 text-primary"
                                   : "bg-secondary/40 border-white/[0.06] text-muted-foreground"
@@ -231,7 +231,7 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                       <span className="text-base font-bold text-muted-foreground"> kcal</span>
                     </p>
                     {macros && (
-                      <p className="text-xs text-muted-foreground tabular-nums mt-1.5">
+                      <p className="text-sm text-muted-foreground tabular-nums mt-1.5">
                         <span className="text-blue-400 font-bold">P {macros.protein}g</span>
                         {" · "}
                         <span className="text-amber-400 font-bold">C {macros.carbs}g</span>
@@ -245,14 +245,14 @@ const CalorieCalculatorSheet = ({ open, onClose, onApply }: Props) => {
                   {result.clampedToFloor && (
                     <div className="flex items-start gap-2 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 py-2.5">
                       <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                      <p className="text-xs text-foreground/80">
+                      <p className="text-sm text-foreground/80">
                         Ajustamos tu meta al mínimo seguro. Bajar más de ahí no es recomendable sin la
                         supervisión de un profesional.
                       </p>
                     </div>
                   )}
 
-                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-3">
                     Es una estimación orientativa, no una indicación médica. Consultá a tu coach o a un
                     nutricionista antes de sostener un déficit o superávit.
                   </p>

@@ -123,7 +123,7 @@ const CoachRoutines = () => {
             <Dumbbell className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-lg font-bold text-foreground mb-2">Sin coach asignado</h2>
-          <p className="text-muted-foreground text-sm max-w-xs">
+          <p className="text-foreground/70 text-base max-w-xs">
             Pedile a tu entrenador que te agregue como alumno para ver tus rutinas personalizadas.
           </p>
         </div>
@@ -145,8 +145,8 @@ const CoachRoutines = () => {
         title="Rutinas del coach"
         maxWidth="max-w-2xl lg:max-w-6xl"
         left={
-          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center" aria-label="Volver">
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
         right={
@@ -175,8 +175,8 @@ const CoachRoutines = () => {
                 variants={fadeUp}
                 className="flex items-center gap-2 rounded-2xl bg-primary/10 border border-primary/25 px-4 py-3"
               >
-                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                <p className="text-xs font-bold text-primary">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                <p className="text-sm font-bold text-primary">
                   El plan de tu coach es tu plan activo
                 </p>
               </motion.div>
@@ -185,7 +185,7 @@ const CoachRoutines = () => {
                 <p className="text-sm font-bold text-foreground">
                   Ahora estás siguiendo un programa propio
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-foreground/70 mt-1">
                   Volvé al plan de tu coach para que Inicio y tu calendario se guíen otra
                   vez por lo que te armó.
                 </p>
@@ -194,7 +194,7 @@ const CoachRoutines = () => {
                   onClick={useCoachPlan}
                   className="w-full mt-3 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Usar como mi plan
+                  <CheckCircle2 className="w-5 h-5" /> Usar como mi plan
                 </button>
               </motion.div>
             ))}
@@ -220,7 +220,7 @@ const CoachRoutines = () => {
               <h1 className="mt-2.5 text-[26px] lg:text-4xl font-black tracking-tight text-foreground leading-[1.08]">
                 Rutinas del coach
               </h1>
-              <p className="mt-1.5 text-sm lg:text-base text-muted-foreground">
+              <p className="mt-1.5 text-sm lg:text-base text-foreground/70">
                 ¡A entrenar, <span className="font-bold text-foreground">{firstName}</span>! Todo lo que tu coach
                 preparó para vos.
               </p>
@@ -229,7 +229,7 @@ const CoachRoutines = () => {
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/15">
                     <Flame className="w-3.5 h-3.5 text-primary" />
                   </span>
-                  <span className="text-xs font-semibold text-foreground">
+                  <span className="text-sm font-semibold text-foreground">
                     <span className="font-black text-primary tabular-nums">{weeklyCount}</span>{" "}
                     {weeklyCount === 1 ? "sesión" : "sesiones"} esta semana
                   </span>
@@ -246,7 +246,7 @@ const CoachRoutines = () => {
                 <Dumbbell className="w-7 h-7 text-destructive" />
               </div>
               <p className="text-destructive text-sm">Error al cargar rutinas</p>
-              <p className="text-muted-foreground text-xs mt-1">{(error as Error).message}</p>
+              <p className="text-foreground/70 text-sm mt-1">{(error as Error).message}</p>
             </div>
           )}
 
@@ -256,7 +256,7 @@ const CoachRoutines = () => {
                 <Dumbbell className="w-7 h-7 text-primary" />
               </div>
               <p className="font-bold text-foreground">Sin rutinas todavía</p>
-              <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
+              <p className="text-sm text-foreground/70 mt-1.5 max-w-xs mx-auto">
                 Tu coach aún no te asignó una rutina.
               </p>
             </div>
@@ -301,9 +301,9 @@ const CoachRoutines = () => {
                     </div>
                     <button
                       onClick={() => setShowCalendar((v) => !v)}
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                      className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10 transition-colors"
                     >
-                      <CalendarDays className="w-3.5 h-3.5" />
+                      <CalendarDays className="w-5 h-5" />
                       {showCalendar ? "Ver semana" : "Ver mes"}
                     </button>
                   </div>
@@ -339,7 +339,7 @@ const CoachRoutines = () => {
                           <button
                             key={f}
                             onClick={() => setProgramsFilter(f)}
-                            className={`relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                            className={`relative px-3.5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
                               active ? "text-primary-foreground" : "text-muted-foreground"
                             }`}
                           >
@@ -366,7 +366,7 @@ const CoachRoutines = () => {
                   </div>
                 ) : (
                   <div className="rounded-2xl card-elevated p-6 text-center">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-foreground/70">
                       {programsFilter === "completed"
                         ? "Todavía no completaste ningún programa."
                         : "No tenés programas activos."}

@@ -57,7 +57,7 @@ const DayCard = ({
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-black text-foreground truncate">{day.day_name || day.name}</p>
-          <p className="text-xs text-muted-foreground">{exercises.length} ejercicios</p>
+          <p className="text-sm text-foreground/70">{exercises.length} ejercicios</p>
         </div>
         <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
@@ -73,7 +73,7 @@ const DayCard = ({
           >
             {day.notes && (
               <div className="mx-4 mb-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                <p className="text-xs text-foreground/80">{day.notes}</p>
+                <p className="text-sm text-foreground/80">{day.notes}</p>
               </div>
             )}
 
@@ -87,7 +87,7 @@ const DayCard = ({
                   onClick={onStart}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
                 >
-                  <Play className="w-4 h-4 fill-current" /> Empezar este día
+                  <Play className="w-5 h-5 fill-current" /> Empezar este día
                 </button>
               </div>
             )}
@@ -140,7 +140,7 @@ const RoutineDetail = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <Dumbbell className="w-12 h-12 text-muted-foreground mb-4" />
         <p className="text-foreground font-semibold mb-2">Rutina no encontrada</p>
-        <button onClick={() => navigate("/routines")} className="text-primary text-sm font-semibold">
+        <button onClick={() => navigate("/routines")} className="text-primary text-sm font-semibold min-h-11 px-4 inline-flex items-center">
           Volver a Rutinas
         </button>
         <BottomNav />
@@ -193,8 +193,8 @@ const RoutineDetail = () => {
         title={routine.name}
         subtitle={routine.description || undefined}
         left={
-          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-1 p-1" aria-label="Volver">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center" aria-label="Volver">
+            <ArrowLeft className="w-6 h-6" />
           </button>
         }
       />
@@ -202,7 +202,7 @@ const RoutineDetail = () => {
       <div className="max-w-2xl lg:max-w-3xl mx-auto px-5 lg:px-8 pt-5">
         {/* ── Héroe compacto: objetivo + progreso ── */}
         <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground mb-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/70 mb-4">
             <span className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-primary" /> {weekCount} semanas
             </span>
@@ -222,7 +222,7 @@ const RoutineDetail = () => {
           <div className="flex items-end justify-between mb-2">
             <span className="text-sm font-bold text-foreground tabular-nums">
               Semana {weekIndex}
-              <span className="text-muted-foreground font-semibold"> de {weekCount}</span>
+              <span className="text-foreground/70 font-semibold"> de {weekCount}</span>
             </span>
             <span className="text-sm font-black text-primary tabular-nums">{progress}%</span>
           </div>
@@ -245,7 +245,7 @@ const RoutineDetail = () => {
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`relative flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                  className={`relative flex-1 py-3 rounded-xl text-sm font-bold transition-colors ${
                     active ? "text-primary-foreground" : "text-muted-foreground"
                   }`}
                 >
@@ -281,7 +281,7 @@ const RoutineDetail = () => {
               <div className="space-y-4">
                 <div className="card-elevated rounded-2xl p-6 text-center">
                   <p className="font-bold text-foreground">Tu coach todavía no agendó fechas</p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-foreground/70 mt-1">
                     Mientras tanto, mirá los días del plan.
                   </p>
                 </div>
@@ -306,7 +306,7 @@ const RoutineDetail = () => {
                   <Calendar className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <p className="font-bold text-foreground">Sin entreno hoy</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-foreground/70 mt-1">
                   No tenés una sesión de este programa agendada para hoy.
                 </p>
               </div>

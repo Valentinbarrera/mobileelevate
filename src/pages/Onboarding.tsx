@@ -400,10 +400,10 @@ const Onboarding = () => {
             </motion.div>
             <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card divide-y divide-white/[0.05] overflow-hidden">
               {rows.map((r) => (
-                <button key={r.k + r.v} onClick={() => goTo(r.step)} className="w-full flex items-center gap-3 px-4 py-2.5 text-left active:bg-secondary/40 transition-colors">
+                <button key={r.k + r.v} onClick={() => goTo(r.step)} className="w-full flex items-center gap-3 px-4 py-2.5 min-h-11 text-left active:bg-secondary/40 transition-colors">
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider w-24 shrink-0 pt-0.5">{r.k}</span>
-                  <span className="text-sm text-foreground flex-1 min-w-0">{r.v}</span>
-                  <Pencil className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  <span className="text-base text-foreground flex-1 min-w-0">{r.v}</span>
+                  <Pencil className="w-5 h-5 text-muted-foreground/50 shrink-0" />
                 </button>
               ))}
             </motion.div>
@@ -442,7 +442,7 @@ const Onboarding = () => {
       {/* Footer fijo: continuar / finalizar */}
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent">
         {!canContinue && (
-          <p className="text-center text-xs text-muted-foreground mb-2">Completá los campos para continuar</p>
+          <p className="text-center text-sm text-foreground/70 mb-2">Completá los campos para continuar</p>
         )}
         <motion.button
           onClick={next}

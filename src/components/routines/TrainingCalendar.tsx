@@ -55,7 +55,7 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
     const done = doneDates.has(iso);
     const isToday = iso === today;
     const selected = iso === selectedDate;
-    return `relative w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold tabular-nums transition-colors ${
+    return `relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold tabular-nums transition-colors ${
       selected
         ? "bg-gradient-primary text-primary-foreground"
         : done
@@ -116,9 +116,9 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
                 setCursor(parseISO(selectedDate));
                 setExpanded(true);
               }}
-              className="flex items-center gap-1.5 text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10"
+              className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10"
             >
-              <CalendarDays className="w-3.5 h-3.5" /> Calendario
+              <CalendarDays className="w-4 h-4" /> Calendario
             </button>
           </div>
 
@@ -135,7 +135,7 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
                   className="flex-1 flex flex-col items-center gap-1 py-0.5"
                 >
                   <span
-                    className={`text-[10px] font-bold uppercase ${
+                    className={`text-[11px] font-bold uppercase ${
                       isToday ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
@@ -155,18 +155,18 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
           {/* Cabecera: navegación + cerrar */}
           <div className="flex items-center justify-between mb-3 px-1">
             <div className="flex items-center gap-1">
-              <button onClick={() => moveMonth(-1)} aria-label="Mes anterior" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
-                <ChevronLeft className="w-4 h-4" />
+              <button onClick={() => moveMonth(-1)} aria-label="Mes anterior" className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground">
+                <ChevronLeft className="w-5 h-5" />
               </button>
               <span className="text-sm font-black text-foreground capitalize min-w-[7.5rem] text-center">{cursorTitle}</span>
-              <button onClick={() => moveMonth(1)} aria-label="Mes siguiente" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
-                <ChevronRight className="w-4 h-4" />
+              <button onClick={() => moveMonth(1)} aria-label="Mes siguiente" className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground">
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={goToday}
-                className="text-[11px] font-bold text-primary px-2 py-1 rounded-lg hover:bg-primary/10"
+                className="text-sm font-bold text-primary px-3 min-h-11 inline-flex items-center rounded-lg hover:bg-primary/10"
               >
                 Hoy
               </button>
@@ -177,9 +177,9 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
                     onCollapse?.();
                   }}
                   aria-label="Contraer calendario"
-                  className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground px-2 py-1 rounded-lg hover:bg-secondary"
+                  className="flex items-center gap-1 text-sm font-bold text-muted-foreground px-2.5 min-h-11 rounded-lg hover:bg-secondary"
                 >
-                  <ChevronUp className="w-3.5 h-3.5" /> {monthOnly ? "Ver semana" : "Cerrar"}
+                  <ChevronUp className="w-4 h-4" /> {monthOnly ? "Ver semana" : "Cerrar"}
                 </button>
               )}
             </div>
@@ -188,7 +188,7 @@ const TrainingCalendar = ({ plannedDates, doneDates, selectedDate, today, onSele
           {/* Labels */}
           <div className="grid grid-cols-7 mb-1">
             {WEEK_LABELS.map((l, i) => (
-              <span key={i} className="text-center text-[10px] font-bold text-muted-foreground uppercase">
+              <span key={i} className="text-center text-[11px] font-bold text-muted-foreground uppercase">
                 {l}
               </span>
             ))}

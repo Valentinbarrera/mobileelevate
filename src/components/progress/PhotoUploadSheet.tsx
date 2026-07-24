@@ -98,7 +98,7 @@ const PhotoUploadSheet = ({
                 <h2 className="text-xl font-black text-foreground">Subir foto</h2>
                 <p className="text-sm text-muted-foreground">Tu coach va a poder verla y compararla.</p>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1">
+              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground w-11 h-11 -mr-2 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -119,7 +119,7 @@ const PhotoUploadSheet = ({
                     }`}
                   >
                     <span className="text-xl">{t.emoji}</span>
-                    <span className="text-xs font-bold">{t.label}</span>
+                    <span className="text-sm font-bold">{t.label}</span>
                   </button>
                 );
               })}
@@ -155,7 +155,7 @@ const PhotoUploadSheet = ({
               {preview ? (
                 <div className="relative">
                   <img src={preview} alt="Vista previa" className="w-full max-h-72 object-cover" />
-                  <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-background/80 backdrop-blur text-xs font-bold text-foreground">
+                  <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-background/80 backdrop-blur text-sm font-bold text-foreground">
                     Cambiar
                   </span>
                 </div>
@@ -163,7 +163,7 @@ const PhotoUploadSheet = ({
                 <div className="flex flex-col items-center justify-center gap-2 py-10">
                   <ImagePlus className="w-8 h-8 text-primary" />
                   <span className="text-sm font-bold text-foreground">Elegí una foto</span>
-                  <span className="text-xs text-muted-foreground">JPG o PNG · hasta {MAX_MB}MB</span>
+                  <span className="text-sm text-muted-foreground">JPG o PNG · hasta {MAX_MB}MB</span>
                 </div>
               )}
             </button>

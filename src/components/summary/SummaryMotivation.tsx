@@ -25,7 +25,7 @@ const SummaryMotivation = () => {
             <p className="text-sm font-medium text-foreground leading-relaxed">
               {randomQuote.text}
             </p>
-            <p className="text-xs text-muted-foreground mt-2">— Tu Profe 💪</p>
+            <p className="text-sm text-muted-foreground mt-2">— Tu Profe 💪</p>
           </div>
         </div>
       </div>

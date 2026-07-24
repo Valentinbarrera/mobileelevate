@@ -174,12 +174,12 @@ export default function Messages() {
         {/* Header — header-safe-lg suma el env(safe-area-inset-top) para que no quede bajo la isla */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50 px-5 pb-4 header-safe-lg">
           <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground">
-              <ArrowLeft className="w-5 h-5" />
+            <button onClick={() => navigate(-1)} className="text-muted-foreground w-11 h-11 -ml-2 flex items-center justify-center" aria-label="Volver">
+              <ArrowLeft className="w-6 h-6" />
             </button>
             <h1 className="text-xl font-black tracking-tight text-foreground">Mensajes</h1>
             {unseenCount > 0 && (
-              <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-primary text-white text-sm font-bold px-2.5 py-0.5 rounded-full">
                 {unseenCount}
               </span>
             )}
@@ -197,7 +197,7 @@ export default function Messages() {
               <div className="flex flex-col items-center justify-center py-20">
                 <MessageCircle className="w-14 h-14 text-muted-foreground/30 mb-4" />
                 <p className="font-semibold text-foreground mb-1">No hay mensajes aún</p>
-                <p className="text-sm text-muted-foreground">Inicia una conversación con tu coach</p>
+                <p className="text-base text-foreground/70">Inicia una conversación con tu coach</p>
               </div>
             ) : (
               messages.map((msg: Message) => {
@@ -210,17 +210,17 @@ export default function Messages() {
                         ? "bg-primary text-white rounded-br-sm"
                         : "bg-card text-foreground border border-border/50 rounded-bl-sm"
                     )}>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                       <div className={cn("flex items-center gap-1 mt-1", isStudent ? "justify-end" : "")}>
-                        <p className={cn("text-xs", isStudent ? "text-white/70" : "text-muted-foreground")}>
+                        <p className={cn("text-sm", isStudent ? "text-white/70" : "text-muted-foreground")}>
                           {formatTime(msg.created_at)}
                         </p>
                         {/* Read receipts for student's own messages */}
                         {isStudent && (
                           msg.seen_at ? (
-                            <CheckCheck className="w-3.5 h-3.5 text-white/70" />
+                            <CheckCheck className="w-4 h-4 text-white/70" />
                           ) : (
-                            <Check className="w-3.5 h-3.5 text-white/50" />
+                            <Check className="w-4 h-4 text-white/50" />
                           )
                         )}
                       </div>

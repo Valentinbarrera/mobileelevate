@@ -104,18 +104,18 @@ const FreeExerciseCard = ({
           <div className="min-w-0">
             <h3 className="text-sm font-black text-foreground truncate">{ex.name}</h3>
             {ex.muscle && (
-              <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscle}</p>
+              <p className="text-sm font-semibold text-primary capitalize truncate">{ex.muscle}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onInfo && (
-            <button onClick={onInfo} aria-label="Ver detalle del ejercicio" className="text-muted-foreground p-1 active:text-foreground">
-              <Info className="w-4 h-4" />
+            <button onClick={onInfo} aria-label="Ver detalle del ejercicio" className="text-muted-foreground w-11 h-11 flex items-center justify-center active:text-foreground">
+              <Info className="w-5 h-5" />
             </button>
           )}
-          <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground p-1 active:text-foreground">
-            <X className="w-4 h-4" />
+          <button onClick={onRemove} aria-label="Quitar ejercicio" className="text-muted-foreground w-11 h-11 flex items-center justify-center active:text-foreground">
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -128,12 +128,12 @@ const FreeExerciseCard = ({
               key={s.setNumber}
               className="grid grid-cols-[1.75rem_1fr_1fr_1.75rem] gap-2 items-center rounded-lg bg-emerald-500/10 px-1 py-1.5"
             >
-              <span className="text-center text-xs font-bold text-emerald-500">{s.setNumber}</span>
+              <span className="text-center text-sm font-bold text-emerald-500">{s.setNumber}</span>
               <span className="text-center text-base font-bold text-foreground tabular-nums">{s.weight} kg</span>
               <span className="text-center text-base font-bold text-foreground tabular-nums">
                 {s.reps} reps
                 {s.rir != null && (
-                  <span className="text-xs font-semibold text-muted-foreground"> · RIR {s.rir}</span>
+                  <span className="text-sm font-semibold text-foreground/70"> · RIR {s.rir}</span>
                 )}
               </span>
               <Check className="w-4 h-4 text-emerald-500 mx-auto" strokeWidth={3} />
@@ -145,7 +145,7 @@ const FreeExerciseCard = ({
       {/* Fila de carga */}
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3rem_2.75rem] gap-2 items-end">
         <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Peso (kg)</span>
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Peso (kg)</span>
           <input
             ref={weightRef}
             type="number"
@@ -165,7 +165,7 @@ const FreeExerciseCard = ({
           />
         </label>
         <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Reps</span>
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Reps</span>
           <input
             ref={repsRef}
             type="number"
@@ -180,7 +180,7 @@ const FreeExerciseCard = ({
           />
         </label>
         <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">RIR</span>
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">RIR</span>
           <input
             type="number"
             inputMode="numeric"
@@ -198,12 +198,12 @@ const FreeExerciseCard = ({
           aria-label="Registrar serie"
           className="h-11 rounded-lg bg-primary flex items-center justify-center active:scale-95 transition-transform"
         >
-          <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+          <Check className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
         </button>
       </div>
 
       {last && (
-        <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
+        <p className="text-sm text-foreground/70 mt-1.5 tabular-nums">
           Anterior: {last.weight}kg × {last.reps}
         </p>
       )}
@@ -442,8 +442,8 @@ const FreeWorkout = () => {
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-white/[0.06]">
         {/* header-safe-lg suma env(safe-area-inset-top) para no quedar bajo la isla */}
         <div className="max-w-2xl mx-auto flex items-center gap-3 px-5 pb-3 header-safe-lg">
-          <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Volver">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground w-11 h-11 -ml-2 flex items-center justify-center" aria-label="Volver">
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
@@ -477,15 +477,15 @@ const FreeWorkout = () => {
               onKeyDown={(e) => e.key === "Enter" && submitSearch()}
               enterKeyHint="done"
               placeholder="Buscá en la biblioteca…"
-              className="w-full min-w-0 h-11 pl-11 pr-10 rounded-xl bg-secondary border border-border text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+              className="w-full min-w-0 h-11 pl-11 pr-12 rounded-xl bg-secondary border border-border text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
             />
             {newName && (
               <button
                 onClick={() => setNewName("")}
                 aria-label="Limpiar"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-11 rounded-full flex items-center justify-center text-muted-foreground active:text-foreground"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -495,7 +495,7 @@ const FreeWorkout = () => {
             <div className="-mx-1 px-1 mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
               <button
                 onClick={() => setMuscleFilter(null)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
+                className={`shrink-0 inline-flex items-center px-4 min-h-11 rounded-full text-sm font-bold whitespace-nowrap border transition-colors ${
                   !muscleFilter
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -507,7 +507,7 @@ const FreeWorkout = () => {
                 <button
                   key={m}
                   onClick={() => setMuscleFilter((cur) => (cur === m ? null : m))}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap capitalize border transition-colors ${
+                  className={`shrink-0 inline-flex items-center px-4 min-h-11 rounded-full text-sm font-bold whitespace-nowrap capitalize border transition-colors ${
                     muscleFilter === m
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
@@ -526,7 +526,7 @@ const FreeWorkout = () => {
                 <button
                   key={eq}
                   onClick={() => setEquipFilter((cur) => (cur === eq ? null : eq))}
-                  className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap capitalize border transition-colors ${
+                  className={`shrink-0 inline-flex items-center px-4 min-h-11 rounded-full text-sm font-semibold whitespace-nowrap capitalize border transition-colors ${
                     equipFilter === eq
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
@@ -560,23 +560,23 @@ const FreeWorkout = () => {
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
                       {ex.muscle && (
-                        <p className="text-[11px] font-semibold text-primary capitalize truncate">{ex.muscle}</p>
+                        <p className="text-sm font-semibold text-primary capitalize truncate">{ex.muscle}</p>
                       )}
                     </div>
-                    {ex.videoUrl && <Play className="w-3.5 h-3.5 text-muted-foreground fill-current shrink-0 ml-auto" />}
+                    {ex.videoUrl && <Play className="w-4 h-4 text-muted-foreground fill-current shrink-0 ml-auto" />}
                   </button>
                   <button
                     onClick={() => setDetail(ex)}
                     aria-label="Ver detalle"
-                    className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground active:text-foreground"
+                    className="shrink-0 w-11 h-11 rounded-lg flex items-center justify-center text-muted-foreground active:text-foreground"
                   >
-                    <Info className="w-4 h-4" />
+                    <Info className="w-5 h-5" />
                   </button>
                 </div>
               ))}
 
               {libraryLoading && results.length === 0 && (
-                <p className="text-xs text-muted-foreground px-1 py-1">Buscando en la biblioteca…</p>
+                <p className="text-sm text-foreground/70 px-1 py-1">Buscando en la biblioteca…</p>
               )}
 
               {/* Fallback texto libre: agregar como custom lo que no está en la biblioteca */}
@@ -586,11 +586,11 @@ const FreeWorkout = () => {
                   className="flex items-center gap-2.5 w-full rounded-xl border border-dashed border-border p-2 text-left active:opacity-70"
                 >
                   <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-                    <Plus className="w-4 h-4 text-primary" />
+                    <Plus className="w-5 h-5 text-primary" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-foreground truncate">Agregar “{newName.trim()}”</p>
-                    <p className="text-[11px] font-semibold text-muted-foreground">Ejercicio custom</p>
+                    <p className="text-sm font-semibold text-foreground/70">Ejercicio custom</p>
                   </div>
                 </button>
               )}
@@ -604,7 +604,7 @@ const FreeWorkout = () => {
                 <button
                   key={n}
                   onClick={() => addByName(n)}
-                  className="px-2.5 py-1.5 rounded-lg bg-secondary/60 border border-white/[0.06] text-xs font-semibold text-muted-foreground active:text-foreground"
+                  className="inline-flex items-center px-4 min-h-11 rounded-lg bg-secondary/60 border border-white/[0.06] text-sm font-semibold text-foreground/70 active:text-foreground"
                 >
                   + {n}
                 </button>
@@ -630,7 +630,7 @@ const FreeWorkout = () => {
         {exercises.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-8 text-center">
             <Dumbbell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Agregá tu primer ejercicio para empezar</p>
+            <p className="text-base text-foreground/70">Agregá tu primer ejercicio para empezar</p>
           </div>
         )}
 
@@ -645,7 +645,7 @@ const FreeWorkout = () => {
                 }}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-black text-foreground active:opacity-70"
               >
-                <Bookmark className="w-4 h-4 text-primary" />
+                <Bookmark className="w-5 h-5 text-primary" />
                 Guardar como programa
               </button>
             ) : (
@@ -666,13 +666,13 @@ const FreeWorkout = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setSavingProgram(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-muted-foreground active:text-foreground"
+                    className="flex-1 min-h-11 py-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-bold text-foreground/70 active:text-foreground"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={saveAsProgram}
-                    className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-black active:scale-[0.98] transition-transform"
+                    className="flex-1 min-h-11 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-black active:scale-[0.98] transition-transform"
                   >
                     Guardar
                   </button>

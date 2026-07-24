@@ -58,7 +58,7 @@ const ExerciseNoteSheet = ({
                 </p>
                 <h2 className="text-lg font-black text-foreground leading-tight truncate">{exerciseName}</h2>
               </div>
-              <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground p-1 -mr-1 shrink-0">
+              <button onClick={onClose} aria-label="Cerrar" className="w-11 h-11 -mr-2 flex items-center justify-center text-muted-foreground shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -80,7 +80,7 @@ const ExerciseNoteSheet = ({
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground">Fijar en todas las semanas</p>
-                <p className="text-[11px] text-muted-foreground leading-snug">
+                <p className="text-sm text-foreground/70 leading-snug">
                   Si está activado, la nota viaja con vos cada semana del mes.
                 </p>
               </div>

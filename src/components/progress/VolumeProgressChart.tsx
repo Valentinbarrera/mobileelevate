@@ -73,7 +73,7 @@ const VolumeProgressChart = ({
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
-          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+          <p className="text-sm text-foreground/70 mb-1">{label}</p>
           <p className="text-lg font-bold text-foreground">
             {payload[0].value.toLocaleString()} {unit}
           </p>
@@ -97,7 +97,7 @@ const VolumeProgressChart = ({
         </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />
-          <span className="text-xs font-semibold">
+          <span className="text-sm font-semibold">
             {trend > 0 ? "+" : ""}{trend.toFixed(1)}%
           </span>
         </div>
@@ -153,7 +153,7 @@ const VolumeProgressChart = ({
 
       {/* Legend */}
       <div className="mt-3 pt-3 border-t border-white/[0.06]">
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-sm text-muted-foreground text-center">
           {legend}
         </p>
       </div>

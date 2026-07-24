@@ -914,7 +914,7 @@ const CoachWorkoutDetail = () => {
         <h2 className="text-xl font-black tracking-tight text-foreground mb-2">
           Rutina no encontrada
         </h2>
-        <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+        <p className="text-foreground/70 text-sm mb-6 max-w-xs">
           {isAuthenticated 
             ? "Esta rutina no está disponible o aún no tenés asignada una rutina para hoy."
             : "Debés iniciar sesión con tu cuenta de Elevate Coach para acceder a tus rutinas personalizadas."
@@ -929,7 +929,7 @@ const CoachWorkoutDetail = () => {
         </motion.button>
         <button
           onClick={() => navigate("/")}
-          className="mt-4 text-muted-foreground text-sm"
+          className="mt-4 px-4 min-h-11 text-foreground/70 text-sm"
         >
           Volver al Inicio
         </button>
@@ -1011,7 +1011,7 @@ const CoachWorkoutDetail = () => {
               </button>
               <button
                 onClick={discardResume}
-                className="w-full mt-2 py-2.5 rounded-xl text-sm font-bold text-muted-foreground active:text-foreground"
+                className="w-full mt-2 min-h-11 py-2.5 rounded-xl text-sm font-bold text-foreground/70 active:text-foreground"
               >
                 Empezar de nuevo
               </button>
@@ -1075,9 +1075,9 @@ const CoachWorkoutDetail = () => {
           </h2>
           <button
             onClick={() => setShowLibrary(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl card-elevated text-xs font-bold text-foreground active:scale-95 transition-transform"
+            className="flex items-center gap-1.5 px-3.5 min-h-11 py-2 rounded-xl card-elevated text-sm font-bold text-foreground active:scale-95 transition-transform"
           >
-            <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+            <LayoutGrid className="w-4 h-4 text-primary" />
             Ver todos
           </button>
         </motion.div>
@@ -1120,7 +1120,7 @@ const CoachWorkoutDetail = () => {
                         {g && <span className="text-amber-400">{g.letter}{g.position} · </span>}
                         {exercise.name}
                       </p>
-                      <p className="text-[11px] text-muted-foreground tabular-nums">
+                      <p className="text-sm text-foreground/60 tabular-nums">
                         {doneSets}/{exercise.sets} series
                       </p>
                     </div>
@@ -1164,14 +1164,14 @@ const CoachWorkoutDetail = () => {
           <>
             {/* Ajustes del día: reordenar y sumar ejercicios. Disponibles también
                 con el entreno en curso (la máquina ocupada aparece a mitad de sesión). */}
-            <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               {hasPlanChanges ? (
                 <button
                   type="button"
                   onClick={handleRestorePlan}
-                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg text-foreground/70 hover:text-foreground transition-colors"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-4 h-4" />
                   Volver a la rutina del coach
                 </button>
               ) : (
@@ -1181,20 +1181,20 @@ const CoachWorkoutDetail = () => {
                 <button
                   type="button"
                   onClick={() => setPicker({ mode: "add" })}
-                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   Agregar ejercicio
                 </button>
                 {exercises.length > 1 && (
                   <button
                     type="button"
                     onClick={() => setReorderMode((v) => !v)}
-                    className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                    className={`flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg transition-colors ${
                       reorderMode ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10"
                     }`}
                   >
-                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    <ArrowUpDown className="w-4 h-4" />
                     {reorderMode ? "Listo" : "Reordenar"}
                   </button>
                 )}
@@ -1223,18 +1223,18 @@ const CoachWorkoutDetail = () => {
                           onClick={() => moveExercise(exercise.id, -1)}
                           disabled={index === 0}
                           aria-label="Subir ejercicio"
-                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                          className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
                         >
-                          <ChevronUp className="w-5 h-5" />
+                          <ChevronUp className="w-6 h-6" />
                         </button>
                         <button
                           type="button"
                           onClick={() => moveExercise(exercise.id, 1)}
                           disabled={index === exercises.length - 1}
                           aria-label="Bajar ejercicio"
-                          className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                          className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
                         >
-                          <ChevronDown className="w-5 h-5" />
+                          <ChevronDown className="w-6 h-6" />
                         </button>
                       </div>
                     </div>

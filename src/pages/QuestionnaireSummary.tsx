@@ -46,7 +46,7 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0 pt-0.5">
       {label}
     </p>
-    <p className="text-sm font-semibold text-foreground text-right min-w-0">{value}</p>
+    <p className="text-base font-semibold text-foreground text-right min-w-0">{value}</p>
   </div>
 );
 
@@ -58,7 +58,7 @@ const ChipsRow = ({ label, items }: { label: string; items: string[] }) => (
       {items.map((it) => (
         <span
           key={it}
-          className="text-xs font-semibold text-foreground px-2.5 py-1 rounded-lg bg-secondary/60 border border-white/[0.06]"
+          className="text-sm font-semibold text-foreground px-2.5 py-1 rounded-lg bg-secondary/60 border border-white/[0.06]"
         >
           {it}
         </span>
@@ -121,10 +121,10 @@ export default function QuestionnaireSummary() {
       left={
         <button
           onClick={() => navigate(-1)}
-          className="text-muted-foreground -ml-1 p-1"
+          className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
           aria-label="Volver"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-6 h-6" />
         </button>
       }
     />
@@ -147,14 +147,14 @@ export default function QuestionnaireSummary() {
                 <ClipboardList className="w-8 h-8 text-primary" />
               </div>
               <p className="text-lg font-black text-foreground mb-1">Todavía no completaste el cuestionario</p>
-              <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
+              <p className="text-base text-foreground/70 mb-5 max-w-xs mx-auto">
                 Respondelo una vez para que tu coach conozca tu contexto y arme tu plan.
               </p>
               <button
                 onClick={() => navigate("/onboarding")}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform"
               >
-                <ClipboardList className="w-4 h-4" /> Completar cuestionario
+                <ClipboardList className="w-5 h-5" /> Completar cuestionario
               </button>
             </motion.div>
           </div>
@@ -235,17 +235,17 @@ export default function QuestionnaireSummary() {
               disabled={exporting}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-primary text-primary-foreground font-bold active:scale-95 transition-transform disabled:opacity-60"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-5 h-5" />
               {exporting ? "Generando PDF…" : "Descargar / Enviar al coach"}
             </button>
-            <p className="text-[11px] text-muted-foreground text-center px-4">
+            <p className="text-sm text-foreground/70 text-center px-4">
               Genera un PDF con tus respuestas para compartirlo con tu coach.
             </p>
             <button
               onClick={() => navigate("/onboarding")}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-secondary/60 border border-white/[0.06] text-foreground font-bold active:scale-95 transition-transform"
             >
-              <Pencil className="w-4 h-4 text-primary" /> Editar cuestionario
+              <Pencil className="w-5 h-5 text-primary" /> Editar cuestionario
             </button>
           </motion.div>
         </div>
