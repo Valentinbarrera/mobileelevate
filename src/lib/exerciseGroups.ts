@@ -44,3 +44,44 @@ export function computeExerciseGroups<T extends { id: string; method?: string | 
 
   return map;
 }
+
+/**
+ * Igual que `computeExerciseGroups` pero además une ejercicios que el ALUMNO
+ * marcó como biserie (`linkedIds`: ids unidos al anterior). Dos ejercicios
+ * consecutivos quedan agrupados si comparten un método especial del coach O si
+ * el segundo está en `linkedIds`. Si el bloque no tiene método del coach, se
+ * rotula como "biserie".
+ */
+export function computeExerciseGroupsWithLinks<
+  T extends { id: string; method?: string | null }
+>(exercises: T[], linkedIds: Set<string>): Map<string, ExerciseGroupInfo> {
+  const map = new Map<string, ExerciseGroupInfo>();
+  let i = 0;
+  let groupIdx = 0;
+
+  const connected = (a: T, b: T) => {
+    const am = a.method ?? null;
+    const bm = b.method ?? null;
+    const sameMethod = isSpecialMethod(am) && am === bm;
+    return sameMethod || linkedIds.has(b.id);
+  };
+
+  while (i < exercises.length) {
+    let j = i + 1;
+    while (j < exercises.length && connected(exercises[j - 1], exercises[j])) j++;
+    const size = j - i;
+    if (size >= 2) {
+      const letter = String.fromCharCode(65 + (groupIdx % 26));
+      const coachMethod = isSpecialMethod(exercises[i].method ?? null)
+        ? (exercises[i].method as string)
+        : "biserie";
+      for (let k = i; k < j; k++) {
+        map.set(exercises[k].id, { type: coachMethod, letter, position: k - i + 1, size });
+      }
+      groupIdx++;
+    }
+    i = j;
+  }
+
+  return map;
+}

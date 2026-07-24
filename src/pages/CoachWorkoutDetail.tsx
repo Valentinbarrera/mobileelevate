@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown, Plus, RotateCcw } from "lucide-react";
+import { Dumbbell, LayoutGrid, Check, ArrowUpDown, ChevronUp, ChevronDown, Plus, RotateCcw, Link2 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCoachHomeData } from "@/hooks/useCoachHomeData";
@@ -25,7 +25,7 @@ import ExerciseVideoPlayer from "@/components/workout/ExerciseVideoPlayer";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
 import WorkoutCheckIn from "@/components/workout/WorkoutCheckIn";
 import ReadinessCheck from "@/components/workout/ReadinessCheck";
-import { computeExerciseGroups } from "@/lib/exerciseGroups";
+import { computeExerciseGroupsWithLinks } from "@/lib/exerciseGroups";
 import { saveCheckIn, type CheckInData } from "@/lib/checkins";
 import {
   saveReadiness,
@@ -52,6 +52,7 @@ import {
   undoReplaceInPlan,
   addToPlan,
   moveInOrder,
+  toggleLinkInPlan,
   type SessionPlan,
 } from "@/lib/sessionPlan";
 import type { TodayRoutineDay } from "@/hooks/useCoachHomeData";
@@ -336,6 +337,11 @@ const CoachWorkoutDetail = () => {
         dir
       ),
     }));
+  };
+
+  // Unir/separar un ejercicio del anterior como biserie (solo por hoy).
+  const toggleLink = (id: string) => {
+    updatePlan((prev) => toggleLinkInPlan(prev, id));
   };
 
   // Workout timer — keeps running during rest (the rest bar no longer blocks).
@@ -957,7 +963,7 @@ const CoachWorkoutDetail = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
   const hasPlanChanges = planHasChanges(plan);
-  const exerciseGroups = computeExerciseGroups(exercises);
+  const exerciseGroups = computeExerciseGroupsWithLinks(exercises, new Set(plan.links));
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
   const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
   const completedSets = exercises.reduce((acc, e) => {
@@ -1046,6 +1052,7 @@ const CoachWorkoutDetail = () => {
             onFinish={handleFinishWorkout}
             activeExerciseName={activeExercise?.name}
             onOpenVideo={activeExercise ? openActiveVideo : undefined}
+            onDiscard={() => clearActiveWorkout(sid)}
           />
         )}
       </AnimatePresence>
@@ -1208,34 +1215,53 @@ const CoachWorkoutDetail = () => {
                 // El modo reordenar gana sobre el entreno en curso: si no, con la
                 // sesión empezada no se podría reacomodar nada.
                 if (reorderMode) {
+                  const linked = plan.links.includes(exercise.id);
                   return (
-                    <div key={exercise.id} className="flex items-center gap-2">
-                      <div className="flex-1 min-w-0 pointer-events-none">
-                        <CoachExerciseListItem
-                          exercise={exercise}
-                          index={index + 1}
-                          group={exerciseGroups.get(exercise.id)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1.5 shrink-0">
+                    <div key={exercise.id} className="space-y-2">
+                      {/* Gancho: unir/separar este ejercicio del anterior (biserie) */}
+                      {index > 0 && (
                         <button
                           type="button"
-                          onClick={() => moveExercise(exercise.id, -1)}
-                          disabled={index === 0}
-                          aria-label="Subir ejercicio"
-                          className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                          onClick={() => toggleLink(exercise.id)}
+                          className={`w-full flex items-center justify-center gap-1.5 min-h-11 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                            linked
+                              ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
+                              : "border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                          }`}
+                          aria-label={linked ? "Separar biserie" : "Unir en biserie con el ejercicio anterior"}
                         >
-                          <ChevronUp className="w-6 h-6" />
+                          <Link2 className="w-4 h-4" />
+                          {linked ? "Biserie con el anterior · tocá para separar" : "Unir con el anterior (biserie)"}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => moveExercise(exercise.id, 1)}
-                          disabled={index === exercises.length - 1}
-                          aria-label="Bajar ejercicio"
-                          className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
-                        >
-                          <ChevronDown className="w-6 h-6" />
-                        </button>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0 pointer-events-none">
+                          <CoachExerciseListItem
+                            exercise={exercise}
+                            index={index + 1}
+                            group={exerciseGroups.get(exercise.id)}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveExercise(exercise.id, -1)}
+                            disabled={index === 0}
+                            aria-label="Subir ejercicio"
+                            className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                          >
+                            <ChevronUp className="w-6 h-6" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveExercise(exercise.id, 1)}
+                            disabled={index === exercises.length - 1}
+                            aria-label="Bajar ejercicio"
+                            className="w-11 h-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30 active:scale-95 transition-transform"
+                          >
+                            <ChevronDown className="w-6 h-6" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );

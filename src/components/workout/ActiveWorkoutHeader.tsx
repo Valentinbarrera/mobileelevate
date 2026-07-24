@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pause, Play, X, Check, Video } from "lucide-react";
+import { Pause, Play, X, Check, Video, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -20,7 +20,23 @@ interface ActiveWorkoutHeaderProps {
    */
   activeExerciseName?: string;
   onOpenVideo?: () => void;
+  /**
+   * Descarta la sesión en curso (borra el snapshot para que NO se pueda
+   * reanudar). Al salir normalmente el progreso queda guardado; esto es el
+   * "salir sin guardar".
+   */
+  onDiscard?: () => void;
 }
+
+// Preferencia local: ocultar el cronómetro de "tiempo activo" durante el entreno
+const HIDE_TIMER_KEY = "elevate_hide_active_timer";
+const readHideTimer = () => {
+  try {
+    return localStorage.getItem(HIDE_TIMER_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
 
 const ActiveWorkoutHeader = ({
   elapsedTime,
@@ -33,16 +49,38 @@ const ActiveWorkoutHeader = ({
   onFinish,
   activeExerciseName,
   onOpenVideo,
+  onDiscard,
 }: ActiveWorkoutHeaderProps) => {
   const navigate = useNavigate();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [timerHidden, setTimerHidden] = useState(readHideTimer);
   const exerciseProgress = (completedExercises / totalExercises) * 100;
+
+  const toggleTimer = () => {
+    setTimerHidden((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(HIDE_TIMER_KEY, next ? "1" : "0");
+      } catch {
+        /* almacenamiento no disponible */
+      }
+      return next;
+    });
+  };
 
   const handleExit = () => {
     setShowExitConfirm(true);
   };
 
-  const confirmExit = () => {
+  // El snapshot de la sesión se guarda solo en cada cambio → salir simplemente
+  // vuelve al Home y deja el entreno listo para reanudar.
+  const leaveAndSave = () => {
+    navigate("/");
+  };
+
+  // Salir sin guardar: borra el snapshot y sale.
+  const discardAndExit = () => {
+    onDiscard?.();
     navigate("/");
   };
 
@@ -77,14 +115,21 @@ const ActiveWorkoutHeader = ({
                 <X className="w-5 h-5" />
               </motion.button>
 
-              <div className="min-w-0">
-                <span className="text-xl font-black text-foreground tabular-nums tracking-tight">
-                  {elapsedTime}
-                </span>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none">
-                  Tiempo activo
-                </p>
-              </div>
+              <button
+                onClick={toggleTimer}
+                className="min-w-0 text-left flex items-center gap-1.5 shrink"
+                aria-label={timerHidden ? "Mostrar cronómetro" : "Ocultar cronómetro"}
+              >
+                <div className="min-w-0">
+                  <span className="text-xl font-black text-foreground tabular-nums tracking-tight">
+                    {timerHidden ? "– –" : elapsedTime}
+                  </span>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none flex items-center gap-1">
+                    Tiempo activo
+                    {timerHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                  </p>
+                </div>
+              </button>
 
               {/* Video del ejercicio en curso, a mano desde acá arriba */}
               {onOpenVideo && (
@@ -167,29 +212,38 @@ const ActiveWorkoutHeader = ({
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
           >
-            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-              <X className="w-7 h-7 text-destructive" />
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Pause className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-lg font-bold text-foreground mb-2">¿Salir del entrenamiento?</h3>
+            <h3 className="text-lg font-bold text-foreground mb-2">¿Dejar el entrenamiento?</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Tu progreso no se guardará si salís ahora.
+              Tu progreso queda guardado. Podés retomarlo cuando quieras, desde donde lo dejaste.
             </p>
-            
-            <div className="flex gap-3">
+
+            <div className="space-y-2.5">
+              <motion.button
+                onClick={leaveAndSave}
+                className="w-full min-h-12 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold"
+                whileTap={{ scale: 0.98 }}
+              >
+                Dejar y guardar
+              </motion.button>
               <motion.button
                 onClick={() => setShowExitConfirm(false)}
-                className="flex-1 py-3 rounded-xl bg-secondary text-foreground font-semibold"
+                className="w-full min-h-12 py-3 rounded-xl bg-secondary text-foreground font-semibold"
                 whileTap={{ scale: 0.98 }}
               >
-                Continuar
+                Seguir entrenando
               </motion.button>
-              <motion.button
-                onClick={confirmExit}
-                className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-semibold"
-                whileTap={{ scale: 0.98 }}
-              >
-                Salir
-              </motion.button>
+              {onDiscard && (
+                <motion.button
+                  onClick={discardAndExit}
+                  className="w-full min-h-11 py-2.5 rounded-xl text-sm font-semibold text-destructive/90 hover:text-destructive"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Descartar y salir sin guardar
+                </motion.button>
+              )}
             </div>
           </motion.div>
         </motion.div>

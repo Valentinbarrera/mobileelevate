@@ -42,6 +42,12 @@ export interface SessionPlan {
   extras: ExtraExercise[];
   /** orden final elegido (ids del coach + ids de extras) */
   order: string[];
+  /**
+   * Biseries armadas por el alumno: ids de ejercicios que quedan UNIDOS al
+   * anterior (según el orden). Una corrida de consecutivos unidos forma un
+   * bloque (biserie A1, A2, …). No toca la rutina del coach.
+   */
+  links: string[];
 }
 
 export const emptyPlan = (): SessionPlan => ({
@@ -49,6 +55,7 @@ export const emptyPlan = (): SessionPlan => ({
   replaced: {},
   extras: [],
   order: [],
+  links: [],
 });
 
 /** Los ejercicios que NO son del coach llevan este prefijo en el id. */
@@ -105,6 +112,7 @@ export function loadSessionPlan(
       replaced: parsed.replaced && typeof parsed.replaced === "object" ? parsed.replaced : {},
       extras: Array.isArray(parsed.extras) ? parsed.extras : [],
       order: Array.isArray(parsed.order) ? parsed.order : [],
+      links: Array.isArray(parsed.links) ? parsed.links : [],
     };
   } catch {
     return emptyPlan();
@@ -134,7 +142,19 @@ export function clearSessionPlan(studentId: string, routineDayId: string, date: 
 
 /** ¿El alumno tocó algo? (para mostrar el aviso y el botón de restaurar) */
 export const planHasChanges = (plan: SessionPlan) =>
-  plan.removed.length > 0 || plan.extras.length > 0 || Object.keys(plan.replaced).length > 0;
+  plan.removed.length > 0 ||
+  plan.extras.length > 0 ||
+  Object.keys(plan.replaced).length > 0 ||
+  plan.links.length > 0;
+
+/** Une/separa un ejercicio del anterior (biserie). */
+export function toggleLinkInPlan(plan: SessionPlan, exerciseId: string): SessionPlan {
+  const linked = plan.links.includes(exerciseId);
+  return {
+    ...plan,
+    links: linked ? plan.links.filter((id) => id !== exerciseId) : [...plan.links, exerciseId],
+  };
+}
 
 // ── Mutadores puros (devuelven un plan nuevo) ───────────────────────────────
 
@@ -145,6 +165,7 @@ export function removeFromPlan(plan: SessionPlan, exerciseId: string): SessionPl
       ...plan,
       extras: plan.extras.filter((e) => e.id !== exerciseId),
       order: plan.order.filter((id) => id !== exerciseId),
+      links: plan.links.filter((id) => id !== exerciseId),
     };
   }
   const replaced = { ...plan.replaced };
@@ -154,6 +175,7 @@ export function removeFromPlan(plan: SessionPlan, exerciseId: string): SessionPl
     removed: plan.removed.includes(exerciseId) ? plan.removed : [...plan.removed, exerciseId],
     replaced,
     order: plan.order.filter((id) => id !== exerciseId),
+    links: plan.links.filter((id) => id !== exerciseId),
   };
 }
 
