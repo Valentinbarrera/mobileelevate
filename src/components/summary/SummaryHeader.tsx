@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Trophy, Sparkles } from "lucide-react";
-import Confetti from "./Confetti";
+import { Check } from "lucide-react";
+import { ElevateLockup } from "@/components/ui/elevate-mark";
 
 interface SummaryHeaderProps {
   workoutName: string;
@@ -8,63 +8,41 @@ interface SummaryHeaderProps {
 
 const SummaryHeader = ({ workoutName }: SummaryHeaderProps) => {
   return (
-    // pt = 3rem + env(safe-area-inset-top): el contenido no queda bajo el notch/isla en iOS
-    <div className="relative pt-[calc(3rem+env(safe-area-inset-top,0px))] pb-8 px-6 text-center overflow-hidden">
-      {/* Confetti Animation */}
-      <Confetti />
-
-      {/* Trophy Icon */}
+    // header-safe: el padding superior incluye el inset del notch/isla (iOS) →
+    // la marca nunca queda tapada (requisito App Store).
+    <div className="relative header-safe-xl pb-7 px-6 text-center">
+      {/* Marca Elevate arriba de todo */}
       <motion.div
-        initial={{ scale: 0, rotate: -20 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 200, 
-          damping: 15,
-          delay: 0.2 
-        }}
-        className="relative inline-block mb-6"
+        className="flex justify-center mb-8"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/40">
-          <Trophy className="w-14 h-14 text-white" />
-        </div>
-        
-        {/* Sparkle Effects */}
-        <motion.div
-          className="absolute -top-2 -right-2"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [1, 0.8, 1],
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Sparkles className="w-8 h-8 text-amber-400" />
-        </motion.div>
-        
-        <motion.div
-          className="absolute -bottom-1 -left-3"
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.8, 1, 0.8],
-          }}
-          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-        >
-          <Sparkles className="w-6 h-6 text-primary" />
-        </motion.div>
+        <ElevateLockup />
       </motion.div>
 
-      {/* Title */}
+      {/* Sello de completado — círculo de marca (naranja), no trofeo dorado */}
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 240, damping: 16, delay: 0.1 }}
+        className="relative inline-flex items-center justify-center mb-6"
       >
-        <h1 className="text-3xl font-black text-foreground mb-2">
-          ¡Entrenamiento
-          <br />
-          <span className="text-gradient-primary">Completado!</span>
+        <div className="absolute inset-0 rounded-full bg-primary/25 blur-2xl" />
+        <div className="relative w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center shadow-2xl shadow-primary/40">
+          <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
+        </div>
+      </motion.div>
+
+      {/* Título */}
+      <motion.div
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h1 className="text-[2rem] leading-[1.05] font-black text-foreground tracking-tight mb-1.5">
+          ¡Entrenamiento <span className="text-gradient-primary">completado!</span>
         </h1>
-        <p className="text-muted-foreground font-medium">{workoutName}</p>
+        <p className="text-muted-foreground font-semibold">{workoutName}</p>
       </motion.div>
     </div>
   );

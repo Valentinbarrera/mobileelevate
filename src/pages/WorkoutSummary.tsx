@@ -7,7 +7,6 @@ import SummaryAchievements from "@/components/summary/SummaryAchievements";
 import SummaryActions from "@/components/summary/SummaryActions";
 import SummaryMotivation from "@/components/summary/SummaryMotivation";
 import { useProgressData } from "@/hooks/useProgressData";
-import { toast } from "sonner";
 import Confetti from "@/components/summary/Confetti";
 
 export interface WorkoutSummaryData {
@@ -37,25 +36,6 @@ const WorkoutSummary = () => {
   }, [summaryData, navigate]);
 
   if (!summaryData) return null;
-
-  const handleShare = async () => {
-    const shareData = {
-      title: "¡Entrenamiento completado! 💪",
-      text: `Acabo de completar ${summaryData.workoutName} - ${Math.floor(summaryData.duration / 60)} minutos, ${summaryData.caloriesBurned} kcal quemadas!`,
-      url: window.location.origin,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        if (import.meta.env.DEV) console.log("Error sharing:", err);
-      }
-    } else {
-      navigator.clipboard.writeText(shareData.text);
-      toast.success("Texto copiado al portapapeles");
-    }
-  };
 
   return (
     <motion.div
@@ -98,8 +78,8 @@ const WorkoutSummary = () => {
 
         {/* Action Buttons */}
         <SummaryActions
-          onShare={handleShare}
           onGoHome={() => navigate("/")}
+          onViewRoutine={() => navigate("/routines")}
         />
       </div>
     </motion.div>

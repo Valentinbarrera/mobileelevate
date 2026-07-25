@@ -1,65 +1,39 @@
 import { motion } from "framer-motion";
-import { Share2, Home, Instagram, MessageCircle } from "lucide-react";
+import { Home, ClipboardList } from "lucide-react";
 
 interface SummaryActionsProps {
-  onShare: () => void;
   onGoHome: () => void;
+  onViewRoutine: () => void;
 }
 
-const SummaryActions = ({ onShare, onGoHome }: SummaryActionsProps) => {
+const SummaryActions = ({ onGoHome, onViewRoutine }: SummaryActionsProps) => {
   return (
-    <motion.div 
-      className="px-5 pb-10 space-y-4"
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      className="px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] pt-2 space-y-3"
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.4 }}
+      transition={{ delay: 0.9 }}
     >
-      {/* Share Buttons */}
-      <div>
-        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 text-center">
-          Compartir logro
-        </p>
-        <div className="flex justify-center gap-3">
-          <motion.button
-            onClick={onShare}
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Instagram className="w-6 h-6" />
-          </motion.button>
-          
-          <motion.button
-            onClick={onShare}
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <MessageCircle className="w-6 h-6" />
-          </motion.button>
-          
-          <motion.button
-            onClick={onShare}
-            className="w-14 h-14 rounded-2xl bg-secondary border border-border flex items-center justify-center text-foreground"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Share2 className="w-6 h-6" />
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Home Button */}
+      {/* Acción principal */}
       <motion.button
         onClick={onGoHome}
-        className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-5 min-h-[64px] shadow-lg glow-primary"
-        whileHover={{ scale: 1.02 }}
+        className="w-full flex items-center justify-center gap-3 bg-gradient-primary rounded-2xl py-4 min-h-[56px] shadow-lg glow-primary"
         whileTap={{ scale: 0.98 }}
       >
         <Home className="w-5 h-5 text-primary-foreground" />
-        <span className="text-primary-foreground font-bold text-lg tracking-wide">
-          VOLVER AL INICIO
+        <span className="text-primary-foreground font-black text-base tracking-wide uppercase">
+          Volver al inicio
         </span>
+      </motion.button>
+
+      {/* Acción secundaria: ver la rutina/programa */}
+      <motion.button
+        onClick={onViewRoutine}
+        className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-3.5 min-h-[52px] bg-secondary/60 border border-border text-foreground active:scale-[0.99] transition-transform"
+        whileTap={{ scale: 0.98 }}
+      >
+        <ClipboardList className="w-5 h-5 text-primary" />
+        <span className="font-bold text-sm">Ver mi rutina</span>
       </motion.button>
     </motion.div>
   );
