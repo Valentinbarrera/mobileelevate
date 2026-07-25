@@ -203,6 +203,10 @@ const Index = () => {
   // para empezarlos de un toque y —en la misma card— los caminos para armar uno
   // nuevo (entreno libre, templates, programa propio). Antes esos caminos vivían
   // en un bloque aparte y la card de modo libre había desaparecido.
+  // El X/2 es informativo, NO bloquea: nada en el guardado (templates ni
+  // builder) impide pasarse, y en Entrenar los templates también se pueden
+  // abrir estando al límite. Deshabilitar los accesos acá dejaba botones
+  // muertos que no se podían tocar.
   const atProgramLimit = myProgramsOpen.length >= MAX_OWN_PROGRAMS;
 
   const createPaths: {
@@ -210,23 +214,10 @@ const Index = () => {
     icon: typeof Plus;
     label: string;
     to: string;
-    locked: boolean;
   }[] = [
-    { key: "libre", icon: Plus, label: "Entreno libre", to: "/free-workout", locked: false },
-    {
-      key: "templates",
-      icon: LayoutGrid,
-      label: "Templates",
-      to: "/programas/templates",
-      locked: atProgramLimit,
-    },
-    {
-      key: "propio",
-      icon: PenLine,
-      label: "Programa propio",
-      to: "/programas/nuevo",
-      locked: atProgramLimit,
-    },
+    { key: "libre", icon: Plus, label: "Entreno libre", to: "/free-workout" },
+    { key: "templates", icon: LayoutGrid, label: "Templates", to: "/programas/templates" },
+    { key: "propio", icon: PenLine, label: "Programa propio", to: "/programas/nuevo" },
   ];
 
   const trainWithElevateCard = (
@@ -310,18 +301,13 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          {createPaths.map(({ key, icon: Icon, label, to, locked }) => (
+          {createPaths.map(({ key, icon: Icon, label, to }) => (
             <button
               key={key}
               type="button"
-              disabled={locked}
-              aria-label={locked ? `${label} · llegaste al máximo de programas` : label}
+              aria-label={label}
               onClick={() => navigate(to)}
-              className={`flex flex-col items-center justify-center gap-1.5 rounded-xl min-h-[74px] px-2 py-2.5 border transition-transform ${
-                locked
-                  ? "bg-background/20 border-white/[0.04] opacity-40"
-                  : "bg-background/40 border-white/[0.06] active:scale-95"
-              }`}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-xl min-h-[74px] px-2 py-2.5 border bg-background/40 border-white/[0.06] active:scale-95 transition-transform"
             >
               <Icon className="w-5 h-5 text-primary" />
               <span className="text-[11px] font-bold text-foreground leading-tight text-center">
@@ -333,8 +319,8 @@ const Index = () => {
 
         {atProgramLimit && (
           <p className="text-[11px] text-muted-foreground text-center mt-2">
-            Llegaste al máximo de {MAX_OWN_PROGRAMS} programas. Terminá o eliminá uno para crear
-            otro.
+            Ya tenés {myProgramsOpen.length} programas activos. Terminá o eliminá alguno para no
+            perder el foco.
           </p>
         )}
       </div>
