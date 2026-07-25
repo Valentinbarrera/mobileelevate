@@ -61,8 +61,6 @@ import {
 
 type ProgramsFilter = "active" | "completed";
 
-const MAX_OWN_PROGRAMS = 2;
-
 const PROGRAM_STATUS_STYLES: Record<ProgramStatus, string> = {
   en_curso: "bg-primary/15 text-primary border-primary/25",
   guardado: "bg-secondary/60 text-muted-foreground border-white/[0.06]",
@@ -87,11 +85,10 @@ const Routines = () => {
       cancelled = true;
     };
   }, [student]);
-  // Los terminados están archivados: no ocupan lugar en el límite del plan ni se
-  // mezclan con los que el alumno puede entrenar hoy.
+  // Los terminados están archivados: no se mezclan con los que el alumno puede
+  // entrenar hoy. No hay tope de programas propios activos.
   const openPrograms = useMemo(() => myPrograms.filter((p) => !p.completedAt), [myPrograms]);
   const finishedPrograms = useMemo(() => myPrograms.filter((p) => !!p.completedAt), [myPrograms]);
-  const atProgramLimit = openPrograms.length >= MAX_OWN_PROGRAMS;
 
   // ── Plan ACTIVO ────────────────────────────────────────────────────────────
   // Un solo plan manda a la vez: el del coach (default) o uno propio. Toda la
@@ -663,44 +660,34 @@ const Routines = () => {
                     <span className="accent-bar" />
                     <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
                   </div>
-                  {!atProgramLimit && (
-                    <button
-                      onClick={() => navigate("/programas/nuevo")}
-                      className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10 transition-colors"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Crear
-                    </button>
-                  )}
+                  <button
+                    onClick={() => navigate("/programas/nuevo")}
+                    className="flex items-center gap-1.5 text-sm font-bold text-primary px-3 min-h-11 rounded-lg hover:bg-primary/10 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Crear
+                  </button>
                 </div>
 
-                {/* Contador de programas propios (límite del plan) */}
-                <div className="rounded-2xl card-elevated px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-baseline gap-1.5">
+                {/* Contador de programas propios (informativo, sin tope) */}
+                {openPrograms.length > 0 && (
+                  <div className="rounded-2xl card-elevated px-4 py-3 flex items-center justify-between gap-3">
                     <span className="text-2xl font-black text-primary tabular-nums leading-none">
                       {openPrograms.length}
                     </span>
-                    <span className="text-sm font-bold text-foreground/70 tabular-nums leading-none">
-                      /{MAX_OWN_PROGRAMS}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
-                      Programas activos
-                    </p>
-                    {atProgramLimit && (
-                      <p className="text-sm text-foreground/70 mt-1 leading-none">
-                        Terminá o eliminá uno para crear otro.
+                    <div className="text-right">
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-none">
+                        {openPrograms.length === 1 ? "Programa activo" : "Programas activos"}
                       </p>
-                    )}
-                    {!atProgramLimit && finishedPrograms.length > 0 && (
-                      <p className="text-sm text-foreground/70 mt-1 leading-none">
-                        {finishedPrograms.length}{" "}
-                        {finishedPrograms.length === 1 ? "terminado" : "terminados"} (no cuentan)
-                      </p>
-                    )}
+                      {finishedPrograms.length > 0 && (
+                        <p className="text-sm text-foreground/70 mt-1 leading-none">
+                          {finishedPrograms.length}{" "}
+                          {finishedPrograms.length === 1 ? "terminado" : "terminados"} (archivados)
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {myPrograms.length > 0 ? (
                   <>

@@ -27,9 +27,6 @@ import { isOnboardingComplete } from "@/lib/onboarding";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 
-// Límite de programas propios activos (igual que la página Entrenar).
-const MAX_OWN_PROGRAMS = 2;
-
 const Index = () => {
   const isDesktop = useIsDesktop();
   const navigate = useNavigate();
@@ -203,12 +200,6 @@ const Index = () => {
   // para empezarlos de un toque y —en la misma card— los caminos para armar uno
   // nuevo (entreno libre, templates, programa propio). Antes esos caminos vivían
   // en un bloque aparte y la card de modo libre había desaparecido.
-  // El X/2 es informativo, NO bloquea: nada en el guardado (templates ni
-  // builder) impide pasarse, y en Entrenar los templates también se pueden
-  // abrir estando al límite. Deshabilitar los accesos acá dejaba botones
-  // muertos que no se podían tocar.
-  const atProgramLimit = myProgramsOpen.length >= MAX_OWN_PROGRAMS;
-
   const createPaths: {
     key: string;
     icon: typeof Plus;
@@ -288,16 +279,18 @@ const Index = () => {
         </div>
       )}
 
-      {/* Caminos para empezar algo nuevo, en la misma card + contador X/2 */}
+      {/* Caminos para empezar algo nuevo, en la misma card */}
       <div className="mt-3 px-3 pb-3 pt-3 border-t border-white/[0.06]">
         <div className="flex items-center justify-between gap-3 px-0.5 mb-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Empezá algo nuevo
           </p>
-          <p className="text-[11px] font-bold tabular-nums text-muted-foreground">
-            <span className="text-primary">{myProgramsOpen.length}</span>/{MAX_OWN_PROGRAMS}{" "}
-            activos
-          </p>
+          {myProgramsOpen.length > 0 && (
+            <p className="text-[11px] font-bold tabular-nums text-muted-foreground">
+              <span className="text-primary">{myProgramsOpen.length}</span>{" "}
+              {myProgramsOpen.length === 1 ? "activo" : "activos"}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -316,13 +309,6 @@ const Index = () => {
             </button>
           ))}
         </div>
-
-        {atProgramLimit && (
-          <p className="text-[11px] text-muted-foreground text-center mt-2">
-            Ya tenés {myProgramsOpen.length} programas activos. Terminá o eliminá alguno para no
-            perder el foco.
-          </p>
-        )}
       </div>
     </motion.div>
   );
