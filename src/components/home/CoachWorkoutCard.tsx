@@ -15,9 +15,12 @@ interface CoachWorkoutCardProps {
   /** Si es el día de hoy (badge "Hoy" + CTA "Comenzar"). En el carrusel del
    *  plan, los otros días van con isToday=false. */
   isToday?: boolean;
+  /** Tarjeta lateral del carrusel (no activa): atenúa glows y watermark para
+   *  dar profundidad y que la activa se lleve el protagonismo. */
+  dimmed?: boolean;
 }
 
-const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false, isToday = true }: CoachWorkoutCardProps) => {
+const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false, isToday = true, dimmed = false }: CoachWorkoutCardProps) => {
   const navigate = useNavigate();
 
   const handleStart = () => {
@@ -39,9 +42,17 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false, isToday
       variants={fadeUp}
       whileTap={{ scale: 0.99 }}
     >
-      {/* Glows internos */}
-      <div className="pointer-events-none absolute -top-16 -right-12 w-52 h-52 rounded-full bg-primary/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-12 w-48 h-48 rounded-full bg-orange-500/10 blur-3xl" />
+      {/* Glows internos — se atenúan en las tarjetas laterales (transición del fondo) */}
+      <div
+        className={`pointer-events-none absolute -top-16 -right-12 w-52 h-52 rounded-full bg-primary/25 blur-3xl transition-opacity duration-500 ${
+          dimmed ? "opacity-30" : "opacity-100"
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute -bottom-20 -left-12 w-48 h-48 rounded-full bg-orange-500/10 blur-3xl transition-opacity duration-500 ${
+          dimmed ? "opacity-40" : "opacity-100"
+        }`}
+      />
 
       {/* Watermark */}
       <div className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 opacity-[0.06]">
@@ -84,28 +95,28 @@ const CoachWorkoutCard = ({ routineDay, routineInfo, inProgress = false, isToday
           )}
         </div>
 
-        {/* Título */}
-        <h2 className="text-[2rem] font-black text-foreground tracking-tight text-display leading-[1.02] mb-1.5">
+        {/* Título — protagonista de la tarjeta, lo primero que se lee */}
+        <h2 className="text-[2.2rem] font-black text-foreground tracking-tight text-display leading-[1.03] mb-2">
           {routineDay.name}
         </h2>
 
-        <div className="flex items-center gap-1.5 mb-5 text-muted-foreground text-sm">
+        <div className="flex items-center gap-1.5 mb-6 text-muted-foreground text-sm">
           <Dumbbell className="w-4 h-4" />
           <span>{routineDay.totalExercises} ejercicios</span>
         </div>
 
-        {/* CTA — la acción principal de la pantalla */}
+        {/* CTA — importante, pero sin robarle protagonismo al título */}
         <motion.button
           onClick={handleStart}
-          className="w-full flex items-center justify-center gap-2.5 bg-gradient-primary rounded-2xl py-4 touch-target-lg shadow-lg glow-primary"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-primary rounded-2xl py-3 touch-target shadow-lg glow-primary"
           whileHover={{ scale: 1.01, boxShadow: "0 0 34px hsl(18 100% 55% / 0.5)" }}
           whileTap={{ scale: 0.98 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Play className="w-4 h-4 text-primary-foreground fill-current ml-0.5" />
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+            <Play className="w-3.5 h-3.5 text-primary-foreground fill-current ml-0.5" />
           </div>
-          <span className="text-primary-foreground font-black text-[15px] tracking-wide uppercase">
+          <span className="text-primary-foreground font-black text-[13px] tracking-wide uppercase">
             {isToday
               ? inProgress
                 ? "Continuar entrenamiento"
