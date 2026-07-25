@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { RefreshCw, GraduationCap, ChevronRight, Dumbbell } from "lucide-react";
+import { RefreshCw, GraduationCap, ChevronRight, Dumbbell, Play, LayoutGrid, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
@@ -26,6 +26,9 @@ import { hasLoggedToday } from "@/lib/workoutLog";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
+
+// Límite de programas propios activos (igual que la página Entrenar).
+const MAX_OWN_PROGRAMS = 2;
 
 const Index = () => {
   const isDesktop = useIsDesktop();
@@ -199,82 +202,115 @@ const Index = () => {
   // Modo libre: además del acceso, lista los programas que el alumno se armó.
   // Antes era solo un link a Entrenar y sus programas quedaban escondidos a dos
   // toques; acá los ve y los empieza directo.
-  const trainWithElevateCard = (
-    <motion.div
-      variants={fadeUp}
-      className="card-elevated rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/25"
-    >
-      <button
-        type="button"
-        onClick={() => navigate("/routines")}
-        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left"
-      >
-        <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
-          <Dumbbell className="w-6 h-6 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
-            Modo libre
-          </p>
-          <p className="text-base font-black text-foreground tracking-tight">
-            Entrenar con Elevate
-          </p>
-          <p className="text-[12px] text-muted-foreground truncate">
-            {myProgramsOpen.length
-              ? "Tus programas, entreno libre y tu progreso."
-              : "Creá tus programas, entrená libre y seguí tu progreso."}
-          </p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-primary shrink-0" />
-      </button>
+  // Módulo "Tus programas" (modo libre): el programa activo con su CTA grande
+  // "Entrenar hoy", el contador X/2 y los caminos para crear otro. Layout
+  // inspirado en Lifts, en la identidad naranja de Elevate.
+  const atProgramLimit = myProgramsOpen.length >= MAX_OWN_PROGRAMS;
 
-      {myProgramsOpen.length > 0 ? (
-        <div className="px-3 pb-3 space-y-1.5">
-          {myProgramsOpen.map((p) => {
-            const next = nextProgramDay(overrideSid, p);
-            return (
-              <div
-                key={p.id}
-                className="flex items-center gap-2 rounded-xl bg-background/40 border border-white/[0.06] pl-3 pr-1.5 py-2"
-              >
-                <button
-                  type="button"
-                  onClick={() => navigate(`/programa/${p.id}`)}
-                  className="flex-1 min-w-0 text-left"
-                >
-                  <p className="text-sm font-bold text-foreground truncate">
-                    {p.name || "Mi programa"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground truncate">
-                    {p.days.length} {p.days.length === 1 ? "día" : "días"}
-                    {next ? ` · te toca ${next.day.name}` : ""}
-                  </p>
-                </button>
-                {next && next.day.exercises.length > 0 && (
-                  <button
-                    type="button"
-                    aria-label={`Entrenar ${next.day.name} de ${p.name || "mi programa"}`}
-                    onClick={() => navigate(`/programa/${p.id}/dia/${next.day.id}/entrenar`)}
-                    className="shrink-0 h-9 px-3 rounded-lg bg-primary/15 border border-primary/25 text-primary text-xs font-bold active:scale-95 transition-transform"
-                  >
-                    Entrenar
-                  </button>
-                )}
-              </div>
-            );
-          })}
+  const trainWithElevateCard = (
+    <motion.div variants={fadeUp} className="space-y-3">
+      {/* Encabezado de sección */}
+      <div className="flex items-center justify-between gap-3 px-0.5">
+        <div className="flex items-center gap-2">
+          <span className="accent-bar" />
+          <h3 className="text-sm font-black text-foreground tracking-tight">Tus programas</h3>
         </div>
-      ) : (
-        <div className="px-3 pb-3">
-          <button
-            type="button"
-            onClick={() => navigate("/programas/nuevo")}
-            className="w-full py-2.5 rounded-xl border border-dashed border-primary/30 text-xs font-bold text-primary active:scale-[0.99] transition-transform"
+        <button
+          type="button"
+          onClick={() => navigate("/routines")}
+          className="flex items-center gap-1 text-xs font-bold text-primary min-h-11 px-2 -mr-2"
+        >
+          Ver todos
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Programa(s) activo(s): card con CTA "Entrenar hoy" protagonista */}
+      {myProgramsOpen.map((p) => {
+        const next = nextProgramDay(overrideSid, p);
+        return (
+          <div
+            key={p.id}
+            className="card-elevated rounded-2xl p-4 border-primary/20 bg-gradient-to-br from-primary/12 via-primary/[0.03] to-transparent"
           >
-            + Crear mi primer programa
-          </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/programa/${p.id}`)}
+              className="w-full flex items-center gap-3 text-left"
+            >
+              <div className="w-11 h-11 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                <Dumbbell className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-black text-foreground tracking-tight truncate">
+                  {p.name || "Mi programa"}
+                </p>
+                <p className="text-[12px] text-muted-foreground truncate">
+                  {p.days.length} {p.days.length === 1 ? "día" : "días"}
+                  {next ? ` · te toca ${next.day.name}` : ""}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+            </button>
+
+            {next && next.day.exercises.length > 0 ? (
+              <button
+                type="button"
+                aria-label={`Entrenar hoy: ${next.day.name} de ${p.name || "mi programa"}`}
+                onClick={() => navigate(`/programa/${p.id}/dia/${next.day.id}/entrenar`)}
+                className="mt-3 w-full flex items-center justify-center gap-2 bg-gradient-primary rounded-xl py-3 min-h-12 shadow-lg glow-primary active:scale-[0.99] transition-transform"
+              >
+                <Play className="w-4 h-4 text-primary-foreground fill-current" />
+                <span className="text-primary-foreground font-black text-sm uppercase tracking-wide truncate">
+                  Entrenar hoy · {next.day.name}
+                </span>
+              </button>
+            ) : (
+              <div className="mt-3 w-full text-center rounded-xl py-3 bg-secondary/50 border border-border text-sm font-semibold text-muted-foreground">
+                Este programa todavía no tiene días para entrenar
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Contador X/2 + caminos para crear (estilo Lifts, en naranja) */}
+      <div className="card-elevated rounded-2xl p-4">
+        <div className="text-center mb-3.5">
+          <p className="text-4xl font-black text-primary tabular-nums leading-none">
+            {myProgramsOpen.length}
+            <span className="text-foreground/30">/{MAX_OWN_PROGRAMS}</span>
+          </p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.18em] mt-1.5">
+            Programas activos
+          </p>
         </div>
-      )}
+
+        {atProgramLimit ? (
+          <p className="text-center text-xs text-muted-foreground">
+            Llegaste al máximo. Terminá o eliminá uno para crear otro.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => navigate("/programas/templates")}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-primary rounded-xl py-3 min-h-12 shadow-lg active:scale-[0.99] transition-transform"
+            >
+              <LayoutGrid className="w-4 h-4 text-primary-foreground" />
+              <span className="text-primary-foreground font-bold text-sm">Elegí un template</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/programas/nuevo")}
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-3 min-h-12 bg-secondary/60 border border-border text-foreground active:scale-[0.99] transition-transform"
+            >
+              <PenLine className="w-4 h-4 text-primary" />
+              <span className="font-bold text-sm">Diseñá tu propio programa</span>
+            </button>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 
