@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Utensils } from "lucide-react";
 import { toast } from "sonner";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import type { LoggedFood, MealType } from "@/hooks/useDailyNutritionTracking";
 
 const MEAL_TYPES: { key: MealType; label: string; emoji: string }[] = [
@@ -26,6 +27,7 @@ interface FoodLogSheetProps {
 const numField = (v: string) => Math.max(0, Math.round((parseFloat(v) || 0) * 10) / 10);
 
 const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLogSheetProps) => {
+  const kb = useKeyboardInset();
   const [mealType, setMealType] = useState<MealType>(defaultMeal);
   const [name, setName] = useState("");
   const [calories, setCalories] = useState("");
@@ -98,7 +100,12 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

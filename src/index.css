@@ -132,10 +132,13 @@
     -webkit-user-select: none;
     user-select: none;
   }
-  /* Reactivar donde el usuario SÍ tiene que escribir o copiar */
-  input, textarea, [contenteditable="true"] {
-    -webkit-user-select: text;
-    user-select: text;
+  /* Reactivar donde el usuario SÍ tiene que escribir o copiar. En WKWebView
+     (iOS) el `user-select: none` del universal a veces se filtra y bloquea el
+     caret/tipeo aunque el input sea foco: forzamos con !important + auto. */
+  input, textarea, select, [contenteditable="true"], [contenteditable=""] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default;
   }
   img {
     -webkit-user-drag: none;

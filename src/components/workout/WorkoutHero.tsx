@@ -37,15 +37,17 @@ const WorkoutHero = ({
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-transparent h-24" />
         
-        {/* Back Button */}
+        {/* Back Button — el top respeta la safe-area para no quedar bajo el
+            notch / isla dinámica (ahí era casi intocable). */}
         <motion.button
           onClick={onBack}
-          className="absolute top-4 left-4 z-10 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+          className="absolute left-4 z-10 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="w-11 h-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center border border-white/10">
+          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
             <ArrowLeft className="w-5 h-5" />
           </div>
           <span className="text-xs font-medium uppercase tracking-wider">

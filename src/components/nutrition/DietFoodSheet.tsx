@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import type { DietFood } from "@/hooks/useCustomDiet";
 
 interface DietFoodSheetProps {
@@ -18,6 +19,7 @@ interface DietFoodSheetProps {
 const num = (v: string) => Math.max(0, Math.round((parseFloat(v) || 0) * 10) / 10);
 
 const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) => {
+  const kb = useKeyboardInset();
   const [name, setName] = useState("");
   const [qty, setQty] = useState("");
   const [calories, setCalories] = useState("");
@@ -79,7 +81,12 @@ const DietFoodSheet = ({ open, mealName, onClose, onAdd }: DietFoodSheetProps) =
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
