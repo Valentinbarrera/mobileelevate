@@ -262,7 +262,6 @@ const CoachWorkoutDetail = () => {
     null
   );
   const orderIds = plan.order;
-  const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   // Cronómetro anclado a timestamp: sobrevive al background / throttling.
   const startedAtRef = useRef<number | null>(null); // Date.now() del arranque
@@ -344,23 +343,18 @@ const CoachWorkoutDetail = () => {
     updatePlan((prev) => toggleLinkInPlan(prev, id));
   };
 
-  // Workout timer — keeps running during rest (the rest bar no longer blocks).
-  // Anclado a timestamp: calcula el tiempo desde Date.now() para no driftear ni
-  // pausarse cuando la app queda en background / pantalla bloqueada.
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (workoutStarted && !isPaused) {
-      const compute = () => {
-        if (startedAtRef.current == null) return;
-        setElapsedTime(
-          Math.floor((Date.now() - startedAtRef.current - pausedTotalRef.current) / 1000)
-        );
-      };
-      compute(); // recalcular inmediatamente (ej. al volver del background)
-      interval = setInterval(compute, 500);
-    }
-    return () => clearInterval(interval);
-  }, [workoutStarted, isPaused]);
+  // Segundos transcurridos, anclados a timestamp (sobreviven al background y no
+  // driftean). Es un GETTER, no estado: el reloj del header lo consulta con su
+  // propio tick, así la página (y la lista de ejercicios) NO se re-renderiza
+  // cada 500ms. Descuenta la pausa en curso si la hay.
+  const getElapsedSeconds = useCallback(() => {
+    if (startedAtRef.current == null) return 0;
+    const pausedNow = pausedAtRef.current != null ? Date.now() - pausedAtRef.current : 0;
+    return Math.max(
+      0,
+      Math.floor((Date.now() - startedAtRef.current - pausedTotalRef.current - pausedNow) / 1000)
+    );
+  }, []);
 
   // ── Reanudar entreno ──────────────────────────────────────────────────────
   const [resumeSnapshot, setResumeSnapshot] = useState<ActiveWorkoutSnapshot | null>(null);
@@ -452,12 +446,6 @@ const CoachWorkoutDetail = () => {
   const resumeSetsDone = resumeSnapshot
     ? resumeSnapshot.exerciseStates.reduce((a, s) => a + s.completedSets.length, 0)
     : 0;
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Tocar "Empezar" abre primero el readiness (¿cómo te sentís hoy?), omitible.
   // Es UNA vez por día: si ya lo contestó (otro entreno, o volvió a entrar a
@@ -852,11 +840,12 @@ const CoachWorkoutDetail = () => {
       return acc + (state?.completedSets.length || 0);
     }, 0);
     const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
+    const elapsedSeconds = getElapsedSeconds();
 
     // Persist session completion
     // La nota es lo que se ve como NOMBRE del entreno en el historial.
     const finishedSession = await finishSession(
-      elapsedTime,
+      elapsedSeconds,
       isOwnMode
         ? `${ownProgram?.name ?? "Mi programa"} · ${routineDay?.name ?? ""}`.trim()
         : `Routine day: ${routineDay?.name}`
@@ -878,12 +867,12 @@ const CoachWorkoutDetail = () => {
       state: {
         summaryData: {
           workoutName: routineDay?.name || "Entrenamiento",
-          duration: elapsedTime,
+          duration: elapsedSeconds,
           exercisesCompleted: completedExercises,
           totalExercises: exercises.length,
           setsCompleted: completedSets,
           totalSets: totalSets,
-          caloriesBurned: Math.round(elapsedTime / 60 * 7.5),
+          caloriesBurned: Math.round(elapsedSeconds / 60 * 7.5),
         }
       }
     });
@@ -1030,7 +1019,7 @@ const CoachWorkoutDetail = () => {
       <AnimatePresence>
         {workoutStarted && (
           <ActiveWorkoutHeader
-            elapsedTime={formatTime(elapsedTime)}
+            getElapsedSeconds={getElapsedSeconds}
             isPaused={isPaused}
             onPauseToggle={() =>
               setIsPaused((paused) => {

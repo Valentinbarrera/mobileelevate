@@ -1,10 +1,41 @@
-import { motion } from "framer-motion";
-import { Pause, Play, X, Check, Video, Eye, EyeOff } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Pause, Play, X, Check, Video, Eye, EyeOff, Maximize2, Minimize2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const fmtClock = (s: number) =>
+  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+/**
+ * Reloj vivo del entreno, AISLADO: es lo único que tickea cada 500ms, así el
+ * resto de la pantalla (la lista de ejercicios) no se re-renderiza en cada tick.
+ * Lee el tiempo de un getter anclado a timestamp (sobrevive al background) y se
+ * congela solo con pausar (no tickea mientras isPaused).
+ */
+const ActiveClock = ({
+  getElapsedSeconds,
+  isPaused,
+  hidden,
+  className = "text-xl font-black text-foreground tabular-nums tracking-tight",
+}: {
+  getElapsedSeconds: () => number;
+  isPaused: boolean;
+  hidden: boolean;
+  className?: string;
+}) => {
+  const [, force] = useState(0);
+  useEffect(() => {
+    if (isPaused) return;
+    const id = setInterval(() => force((t) => t + 1), 500);
+    return () => clearInterval(id);
+  }, [isPaused]);
+  return <span className={className}>{hidden ? "– –" : fmtClock(getElapsedSeconds())}</span>;
+};
 
 interface ActiveWorkoutHeaderProps {
-  elapsedTime: string;
+  /** Devuelve los segundos transcurridos (anclado a timestamp). El header lo
+   *  consulta con su propio tick, para no re-renderizar la página entera. */
+  getElapsedSeconds: () => number;
   isPaused: boolean;
   onPauseToggle: () => void;
   completedExercises: number;
@@ -39,7 +70,7 @@ const readHideTimer = () => {
 };
 
 const ActiveWorkoutHeader = ({
-  elapsedTime,
+  getElapsedSeconds,
   isPaused,
   onPauseToggle,
   completedExercises,
@@ -54,6 +85,7 @@ const ActiveWorkoutHeader = ({
   const navigate = useNavigate();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [timerHidden, setTimerHidden] = useState(readHideTimer);
+  const [fullscreen, setFullscreen] = useState(false); // cronómetro en modo foco
   const exerciseProgress = (completedExercises / totalExercises) * 100;
 
   const toggleTimer = () => {
@@ -116,17 +148,19 @@ const ActiveWorkoutHeader = ({
               </motion.button>
 
               <button
-                onClick={toggleTimer}
+                onClick={() => setFullscreen(true)}
                 className="min-w-0 text-left flex items-center gap-1.5 shrink"
-                aria-label={timerHidden ? "Mostrar cronómetro" : "Ocultar cronómetro"}
+                aria-label="Ver cronómetro en pantalla completa"
               >
                 <div className="min-w-0">
-                  <span className="text-xl font-black text-foreground tabular-nums tracking-tight">
-                    {timerHidden ? "– –" : elapsedTime}
-                  </span>
+                  <ActiveClock
+                    getElapsedSeconds={getElapsedSeconds}
+                    isPaused={isPaused}
+                    hidden={timerHidden}
+                  />
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none flex items-center gap-1">
                     Tiempo activo
-                    {timerHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    <Maximize2 className="w-3 h-3" />
                   </p>
                 </div>
               </button>
@@ -198,6 +232,85 @@ const ActiveWorkoutHeader = ({
           </div>
         </div>
       </motion.header>
+
+      {/* Cronómetro a pantalla completa (modo foco). Reusa el mismo reloj vivo:
+          minimizar vuelve al header; también podés ocultarlo del header. */}
+      <AnimatePresence>
+        {fullscreen && (
+          <motion.div
+            className="fixed inset-0 z-[135] bg-background flex flex-col pt-safe pb-safe"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Glow ambiental de marca */}
+            <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-primary/15 blur-3xl" />
+
+            {/* Barra superior: minimizar */}
+            <div className="relative flex justify-end p-4">
+              <button
+                onClick={() => setFullscreen(false)}
+                aria-label="Minimizar cronómetro"
+                className="flex items-center gap-2 px-4 h-11 rounded-xl bg-secondary text-foreground font-semibold text-sm active:scale-95 transition-transform"
+              >
+                <Minimize2 className="w-5 h-5" />
+                Minimizar
+              </button>
+            </div>
+
+            {/* Centro: reloj gigante + pausa */}
+            <div className="relative flex-1 flex flex-col items-center justify-center gap-4 px-6 -mt-8">
+              <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full bg-primary ${isPaused ? "" : "animate-pulse"}`} />
+                {isPaused ? "En pausa" : "Tiempo activo"}
+              </span>
+              <ActiveClock
+                getElapsedSeconds={getElapsedSeconds}
+                isPaused={isPaused}
+                hidden={false}
+                className="text-[5rem] leading-none font-black text-foreground tabular-nums tracking-tight"
+              />
+              <motion.button
+                onClick={onPauseToggle}
+                whileTap={{ scale: 0.97 }}
+                className={`mt-6 flex items-center gap-2.5 px-8 h-14 rounded-2xl font-black uppercase tracking-wide ${
+                  isPaused
+                    ? "bg-gradient-primary text-primary-foreground glow-primary"
+                    : "bg-secondary text-foreground border border-border"
+                }`}
+              >
+                {isPaused ? (
+                  <>
+                    <Play className="w-5 h-5 fill-current" /> Reanudar
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-5 h-5" /> Pausar
+                  </>
+                )}
+              </motion.button>
+            </div>
+
+            {/* Pie: ocultar/mostrar el cronómetro del header */}
+            <div className="relative p-6">
+              <button
+                onClick={toggleTimer}
+                className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-secondary/60 border border-border text-foreground/80 font-semibold text-sm active:scale-[0.99] transition-transform"
+              >
+                {timerHidden ? (
+                  <>
+                    <Eye className="w-4 h-4" /> Mostrar el cronómetro en el header
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-4 h-4" /> Ocultar el cronómetro del header
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
