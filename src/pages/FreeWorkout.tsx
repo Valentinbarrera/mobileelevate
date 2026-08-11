@@ -224,7 +224,7 @@ const FreeWorkout = () => {
 
   // Preset: cuando venís a entrenar un DÍA de un programa propio, se precargan sus ejercicios
   const preset = (location.state as { preset?: PresetWorkout } | null)?.preset;
-  const workoutName = preset?.name || "Entreno libre";
+  const workoutName = preset?.name || "Entreno suelto";
   const seededRef = useRef(false);
 
   // Biblioteca real de ejercicios (degrada suave: si no hay datos, sigue el texto libre)
@@ -419,7 +419,7 @@ const FreeWorkout = () => {
     navigate("/workout-summary", {
       state: {
         summaryData: {
-          workoutName: "Entreno libre",
+          workoutName: "Entreno suelto",
           duration: elapsed,
           exercisesCompleted: exercises.filter((e) => e.sets.length > 0).length,
           totalExercises: exercises.length,
@@ -447,7 +447,7 @@ const FreeWorkout = () => {
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
-              {preset ? "Mi programa" : "Entreno libre"}
+              {preset ? "Mi programa" : "Entreno suelto"}
             </p>
             <h1 className="text-lg font-black text-foreground leading-tight truncate">
               {preset ? workoutName : "Tu sesión"}
@@ -640,7 +640,7 @@ const FreeWorkout = () => {
             {!savingProgram ? (
               <button
                 onClick={() => {
-                  setProgramName(preset?.name && workoutName !== "Entreno libre" ? workoutName : "");
+                  setProgramName(preset?.name && workoutName !== "Entreno suelto" ? workoutName : "");
                   setSavingProgram(true);
                 }}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-secondary/60 border border-white/[0.06] text-sm font-black text-foreground active:opacity-70"

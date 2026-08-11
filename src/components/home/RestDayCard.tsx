@@ -98,7 +98,7 @@ const RestDayCard = ({ nextDay, nextDate, routineId }: RestDayCardProps) => {
           onClick={() => navigate("/routines")}
           className="w-full flex items-center justify-center gap-1 py-2.5 min-h-11 text-sm font-bold text-primary active:opacity-70 transition-opacity"
         >
-          Ver mi rutina completa
+          Ver mi plan completo
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

@@ -5,7 +5,7 @@
  */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Scale, Apple, Ruler, Dumbbell, type LucideIcon } from "lucide-react";
+import { Scale, Ruler, Dumbbell, type LucideIcon } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 export type QuickAction = {
@@ -14,12 +14,21 @@ export type QuickAction = {
   to: string;
 };
 
+// Sin "Nutrición": ya es una pestaña de la barra inferior, y repetirla acá
+// hacía que el alumno no encontrara la diferencia entre una y otra.
 const DEFAULT_ACTIONS: QuickAction[] = [
   { icon: Dumbbell, label: "Ejercicios", to: "/exercises" },
-  { icon: Apple, label: "Nutrición", to: "/nutrition" },
   { icon: Scale, label: "Peso", to: "/progress" },
   { icon: Ruler, label: "Medidas", to: "/measurements" },
 ];
+
+// Tailwind necesita las clases literales, así que no se puede interpolar.
+const GRID_COLS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+};
 
 type QuickActionsProps = {
   actions?: QuickAction[];
@@ -36,7 +45,7 @@ const QuickActions = ({ actions = DEFAULT_ACTIONS, title }: QuickActionsProps) =
           <h3 className="text-sm font-black text-foreground tracking-tight">{title}</h3>
         </div>
       )}
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className={`grid ${GRID_COLS[actions.length] ?? "grid-cols-4"} gap-2.5`}>
         {actions.map(({ icon: Icon, label, to }) => (
           <button
             key={label}

@@ -55,7 +55,9 @@ export default function ProgramTemplates() {
 
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const useTemplate = (t: ProgramTemplate) => {
+  // No se llama `useTemplate`: el prefijo "use" hace que la regla de hooks de
+  // eslint lo tome por un hook y falle al verlo dentro de un onClick.
+  const applyTemplate = (t: ProgramTemplate) => {
     const p = templateToProgram(t);
     saveMyProgram(sid, p);
     toast.success(`"${t.name}" agregado a tus programas 💪`);
@@ -71,7 +73,7 @@ export default function ProgramTemplates() {
             Programas
           </>
         }
-        title="Biblioteca de programas"
+        title="Planes listos"
         maxWidth="max-w-4xl"
         left={
           <button
@@ -222,7 +224,7 @@ export default function ProgramTemplates() {
 
                           {/* Usar este programa */}
                           <button
-                            onClick={() => useTemplate(t)}
+                            onClick={() => applyTemplate(t)}
                             className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold active:scale-[0.99] transition-transform"
                           >
                             <Check className="w-5 h-5" /> Usar este programa

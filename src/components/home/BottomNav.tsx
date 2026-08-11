@@ -29,22 +29,22 @@ interface TrainAction {
 const TRAIN_ACTIONS: TrainAction[] = [
   {
     icon: Dumbbell,
-    label: "Entrenar con el coach",
-    desc: "Seguí las rutinas que armó tu coach para vos.",
+    label: "Mi plan",
+    desc: "Lo que tu coach armó para vos.",
     path: "/rutinas-coach",
     hue: "18 100% 55%",
   },
   {
     icon: PencilRuler,
-    label: "Crear programa",
-    desc: "Diseñá tu propio plan paso a paso.",
+    label: "Armar el mío",
+    desc: "Vos definís días, ejercicios y series.",
     path: "/programas/nuevo",
     hue: "217 91% 60%",
   },
   {
     icon: Flame,
-    label: "Mis entrenos",
-    desc: "Tus programas, entreno libre y templates.",
+    label: "Mis programas",
+    desc: "Los tuyos, entreno suelto y planes listos.",
     path: "/routines",
     hue: "142 71% 45%",
   },

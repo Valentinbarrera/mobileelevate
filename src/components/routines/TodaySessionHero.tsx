@@ -136,7 +136,7 @@ const TodaySessionHero = ({
                 onClick={() => onView(assignment.routine.id)}
                 className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
               >
-                Ver rutina completa
+                Ver mi plan completo
                 <ChevronRight className="w-4 h-4" />
               </button>
 

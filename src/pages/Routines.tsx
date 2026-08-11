@@ -247,6 +247,7 @@ const Routines = () => {
               {p.days.length} {p.days.length === 1 ? "día" : "días"}/sem
               {p.weeks ? ` · ${p.weeks} sem` : ""}
               {p.origin === "template" ? " · template" : ""}
+              {p.origin === "generado" ? " · desde tu cuestionario" : ""}
             </p>
             <span
               className={`mt-1 inline-block text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${PROGRAM_STATUS_STYLES[status]}`}
@@ -650,7 +651,7 @@ const Routines = () => {
                 className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                Entreno libre
+                Entreno suelto
               </motion.button>
 
               {/* Mis programas (propios) */}
@@ -740,8 +741,8 @@ const Routines = () => {
                   <Library className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Templates</p>
-                  <p className="text-sm font-semibold text-foreground">Biblioteca de programas listos</p>
+                  <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Planes listos</p>
+                  <p className="text-sm font-semibold text-foreground">Programas ya diseñados, listos para usar</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
               </motion.button>

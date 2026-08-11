@@ -40,7 +40,13 @@ export interface MyProgram {
   weeks?: number; // duración del mesociclo (semanas)
   daysPerWeek?: number;
   days: ProgramDay[];
-  origin: "propio" | "template";
+  /**
+   * De dónde salió: lo armó el alumno, lo copió de un template, o lo generó la
+   * app desde su cuestionario. "generado" tiene entidad propia a propósito: no
+   * es un template (está adaptado a su equipamiento, lesiones y tiempo) ni algo
+   * que el alumno haya armado a mano.
+   */
+  origin: "propio" | "template" | "generado";
   templateId?: string; // de qué template salió (si aplica)
   splitId?: string; // split elegido en el wizard (si aplica)
   createdAt: string; // ISO

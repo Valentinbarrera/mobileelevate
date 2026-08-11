@@ -206,9 +206,13 @@ const Index = () => {
     label: string;
     to: string;
   }[] = [
-    { key: "libre", icon: Plus, label: "Entreno libre", to: "/free-workout" },
-    { key: "templates", icon: LayoutGrid, label: "Templates", to: "/programas/templates" },
-    { key: "propio", icon: PenLine, label: "Programa propio", to: "/programas/nuevo" },
+    // Nombrados por lo que OBTENÉS, no por la tarea que tenés que hacer:
+    // "Elegí tus ejercicios" o "Armá tu programa desde 0" describen trabajo, y
+    // es justo lo que no queremos que el alumno sienta. Además "template" y
+    // "modo libre" son jerga de herramienta: no significan nada para él.
+    { key: "libre", icon: Plus, label: "Entreno suelto", to: "/free-workout" },
+    { key: "templates", icon: LayoutGrid, label: "Planes listos", to: "/programas/templates" },
+    { key: "propio", icon: PenLine, label: "Armar el mío", to: "/programas/nuevo" },
   ];
 
   const trainWithElevateCard = (
@@ -226,10 +230,10 @@ const Index = () => {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
-            Modo libre
+            Mis programas
           </p>
           <p className="text-base font-black text-foreground tracking-tight">
-            Entrenar con Elevate
+            Entrenar por mi cuenta
           </p>
           <p className="text-[12px] text-muted-foreground truncate">
             {myProgramsOpen.length
@@ -283,7 +287,7 @@ const Index = () => {
       <div className="mt-3 px-3 pb-3 pt-3 border-t border-white/[0.06]">
         <div className="flex items-center justify-between gap-3 px-0.5 mb-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Empezá algo nuevo
+            ¿Querés entrenar otra cosa?
           </p>
           {myProgramsOpen.length > 0 && (
             <p className="text-[11px] font-bold tabular-nums text-muted-foreground">
