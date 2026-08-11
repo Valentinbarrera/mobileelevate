@@ -3,12 +3,31 @@
  * con marcas de biserie/superserie. Reutilizable en el detalle de rutina y en
  * el componente Programa.
  */
-import { Timer, Target } from "lucide-react";
+import { Timer, Target, Dumbbell } from "lucide-react";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
 import type { RoutineExercise } from "@/types/coach";
 
 const fmtRest = (s: number | null) =>
   !s ? null : s >= 60 ? `${Math.floor(s / 60)}′${s % 60 ? String(s % 60).padStart(2, "0") + "″" : ""}` : `${s}″`;
+
+/**
+ * Portada del ejercicio: la misma miniatura del video. Antes había un punto
+ * naranja de 6px, que no identificaba nada — con la portada el alumno reconoce
+ * el movimiento sin leer. Si el ejercicio no tiene imagen cargada cae en la
+ * mancuerna, así la lista nunca queda con huecos.
+ */
+const ExerciseThumb = ({ ex }: { ex: RoutineExercise }) => {
+  const src = ex.exercise?.thumbnail_url ?? ex.exercise?.thumbnail ?? null;
+  return (
+    <span className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-secondary/60 border border-white/[0.06] flex items-center justify-center">
+      {src ? (
+        <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
+      ) : (
+        <Dumbbell className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+      )}
+    </span>
+  );
+};
 
 const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | null }) => {
   const rest = fmtRest(ex.rest);
@@ -19,7 +38,7 @@ const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | nul
           {letter}
         </span>
       ) : (
-        <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary/60 mx-[11px]" />
+        <ExerciseThumb ex={ex} />
       )}
 
       <div className="flex-1 min-w-0">

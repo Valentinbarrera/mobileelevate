@@ -78,12 +78,15 @@ const MealCard = ({
   meal,
   checked,
   onToggle,
+  expanded,
+  onToggleExpanded,
 }: {
   meal: NutritionMeal;
   checked: boolean;
   onToggle: () => void;
+  expanded: boolean;
+  onToggleExpanded: () => void;
 }) => {
-  const [expanded, setExpanded] = useState(true);
   const label = MEAL_TYPE_LABELS[meal.meal_type] ?? meal.meal_type;
   const icon = MEAL_TYPE_ICONS[meal.meal_type] ?? "🍽️";
 
@@ -97,13 +100,16 @@ const MealCard = ({
       {/* Meal header */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Check de "comido" */}
+        {/* El tilde se ve apagado incluso sin marcar: un círculo vacío no le
+            dice a nadie que ahí se toca para registrar la comida. */}
         <button
           onClick={onToggle}
-          aria-label={checked ? "Marcar como no comida" : "Marcar como comida"}
-          className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+          aria-pressed={checked}
+          aria-label={checked ? `${label} comida — tocá para desmarcar` : `Marcar ${label} como comida`}
+          className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
             checked
               ? "bg-emerald-500 border-emerald-500 text-white"
-              : "border-white/15 text-transparent active:bg-white/5"
+              : "border-white/25 bg-white/[0.04] text-white/30 active:bg-white/10"
           }`}
         >
           <Check className="w-5 h-5" strokeWidth={3} />
@@ -112,7 +118,8 @@ const MealCard = ({
         {/* Cabecera expandible */}
         <button
           className="flex-1 flex items-center justify-between gap-3 min-w-0"
-          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          onClick={onToggleExpanded}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-xl">{icon}</span>
@@ -267,6 +274,7 @@ export default function Nutrition() {
   const isDesktop = useIsDesktop();
   const { data: plan, isLoading, error, refetch } = useStudentNutrition();
   const [dayIndex, setDayIndex] = useState(0);
+  const [expandedMeals, setExpandedMeals] = useState<Set<string>>(new Set());
   const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
     useDailyNutritionTracking();
   const [showFoodSheet, setShowFoodSheet] = useState(false);
@@ -481,6 +489,19 @@ export default function Nutrition() {
     ? currentDay.meals.filter((m) => isMealChecked(m.id)).length
     : 0;
 
+  // Guarda los ids desplegados, no un booleano por comida: así el día arranca
+  // cerrado (se ven las 4 comidas de un vistazo) y cambiar de día no arrastra
+  // lo abierto del anterior, porque sus ids no están en el set.
+  const allMealsExpanded = totalMeals > 0 && currentDay!.meals.every((m) => expandedMeals.has(m.id));
+  const toggleAllMeals = () =>
+    setExpandedMeals(allMealsExpanded ? new Set() : new Set(currentDay!.meals.map((m) => m.id)));
+  const toggleMealExpanded = (id: string) =>
+    setExpandedMeals((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
   const caloriesPct =
     plan.calories_target && plan.calories_target > 0
       ? Math.min(100, (dayTotals.calories / plan.calories_target) * 100)
@@ -614,6 +635,16 @@ export default function Nutrition() {
                   <div className="flex items-center gap-2">
                     <span className="accent-bar" />
                     <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+                    <button
+                      onClick={toggleAllMeals}
+                      aria-expanded={allMealsExpanded}
+                      className="ml-auto -mr-2 px-2 min-h-11 flex items-center gap-1 text-sm font-bold text-primary active:scale-95 transition-transform"
+                    >
+                      {allMealsExpanded ? "Retraer todo" : "Desplegar todo"}
+                      <ChevronRight
+                        className={`w-4 h-4 transition-transform ${allMealsExpanded ? "-rotate-90" : "rotate-90"}`}
+                      />
+                    </button>
                   </div>
                   <p className="text-sm text-foreground/70 mt-1 ml-3">
                     Tocá el ✓ cuando comas una — se suma a tu día y queda en tu historial.
@@ -626,6 +657,8 @@ export default function Nutrition() {
                   <MealCard
                     key={meal.id}
                     meal={meal}
+                    expanded={expandedMeals.has(meal.id)}
+                    onToggleExpanded={() => toggleMealExpanded(meal.id)}
                     checked={isMealChecked(meal.id)}
                     onToggle={() => {
                       const wasChecked = isMealChecked(meal.id);
@@ -669,8 +702,8 @@ export default function Nutrition() {
                     {disclaimer}
                   </div>
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
-                    {macroSummary}
                     {daySelector}
+                    {macroSummary}
                     {caloriesEstimate}
                     {myDietEntry}
                     {historyEntry}
@@ -685,8 +718,10 @@ export default function Nutrition() {
           return (
             <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
               {errorBanner}
-              {macroSummary}
+              {/* El día antes del resumen: mostrar "0 / 2500 kcal" sin haber dicho
+                  todavía de qué día se habla dejaba el número sin contexto. */}
               {daySelector}
+              {macroSummary}
               {noDays}
               {dayNotes}
               {mealsBlock}

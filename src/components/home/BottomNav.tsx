@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, X, Plus } from "lucide-react";
+import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, LayoutGrid, X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
@@ -42,11 +42,20 @@ const TRAIN_ACTIONS: TrainAction[] = [
     hue: "217 91% 60%",
   },
   {
+    // Los planes ya armados existían, pero quedaban a dos toques adentro de
+    // "Mis programas": el camino más fácil para empezar era el menos visible.
+    icon: LayoutGrid,
+    label: "Planes listos",
+    desc: "Programas ya armados, para arrancar hoy.",
+    path: "/programas/templates",
+    hue: "142 71% 45%",
+  },
+  {
     icon: Flame,
     label: "Mis programas",
-    desc: "Los tuyos, entreno suelto y planes listos.",
+    desc: "Los tuyos y el entreno suelto.",
     path: "/routines",
-    hue: "142 71% 45%",
+    hue: "48 96% 53%",
   },
 ];
 

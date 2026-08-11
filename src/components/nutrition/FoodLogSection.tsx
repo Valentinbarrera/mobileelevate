@@ -39,6 +39,15 @@ const FoodLogSection = ({ foods, totalCalories, onAdd, onRemove }: FoodLogSectio
             {Math.round(totalCalories)} kcal
           </span>
         )}
+        {/* Agregar vive también acá arriba: abajo sólo aparecía con algo ya
+            cargado, así que en el estado vacío la acción no se nombraba. */}
+        <button
+          onClick={onAdd}
+          aria-label="Agregar comida"
+          className={`${totalCalories > 0 ? "" : "ml-auto"} -mr-1 w-11 h-11 flex items-center justify-center rounded-full text-primary active:scale-90 active:bg-primary/10 transition-transform`}
+        >
+          <Plus className="w-5 h-5" strokeWidth={2.5} />
+        </button>
       </div>
 
       {foods.length === 0 ? (
@@ -47,8 +56,8 @@ const FoodLogSection = ({ foods, totalCalories, onAdd, onRemove }: FoodLogSectio
           className="w-full flex flex-col items-center gap-2 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-primary/40 text-muted-foreground transition-colors"
         >
           <Utensils className="w-7 h-7 text-primary" />
-          <span className="text-base font-bold text-foreground">Registrá lo que comiste</span>
-          <span className="text-sm">Sumá comidas dentro o fuera del plan</span>
+          <span className="text-base font-bold text-foreground">Agregar comida</span>
+          <span className="text-sm">Sumá lo que comiste, dentro o fuera del plan</span>
         </button>
       ) : (
         <div className="space-y-3">
