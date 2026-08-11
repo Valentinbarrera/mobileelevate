@@ -10,10 +10,15 @@ import {
   Sprout, TrendingUp, Trophy,
   Flame, Dumbbell, RefreshCw, Minus, Zap,
   Armchair, Footprints, PersonStanding, Bike,
-  CalendarDays, Repeat,
+  CalendarDays, Repeat, Clock,
 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding/OnboardingLayout";
 import CompletionCelebration from "@/components/onboarding/CompletionCelebration";
+import PlanReveal from "@/components/onboarding/PlanReveal";
+import { generatePlan, type GeneratedPlan } from "@/lib/planGenerator";
+import { saveMyProgram } from "@/lib/myPrograms";
+import { setActivePlan } from "@/lib/activePlan";
+import { useAlumnoRoutines } from "@/hooks/useAlumnoRoutines";
 import { StepHeader, ChoiceCard, Chip, ChipMultiSelect, NumberField, Stepper, NotesField } from "@/components/onboarding/controls";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -34,21 +39,32 @@ import {
   TRAINING_MODE_OPTIONS,
   SPLIT_OPTIONS,
   PROGRAM_WEEKS_OPTIONS,
+  SESSION_MINUTES_OPTIONS,
+  INJURY_SEVERITY_OPTIONS,
   WEEKDAYS,
 } from "@/lib/onboarding";
 
-const TOTAL = 11;
+const TOTAL = 12;
 
 // Eyebrow (categoría) por paso
 const EYEBROWS = [
   "", "Perfil", "Perfil", "Entrenamiento", "Entrenamiento", "Objetivo",
-  "Objetivo", "Equipamiento", "Estilo de vida", "Nutrición", "Programa", "Listo",
+  "Objetivo", "Equipamiento", "Estilo de vida", "Nutrición", "Programa", "Programa", "Listo",
 ];
 
 const EXPERIENCE_ICONS = { beginner: Sprout, intermediate: TrendingUp, advanced: Trophy } as const;
 const GOAL_ICONS = { lose_fat: Flame, gain_muscle: Dumbbell, recomp: RefreshCw, maintain: Minus, performance: Zap } as const;
 const ACTIVITY_ICONS = { sedentary: Armchair, light: Footprints, moderate: PersonStanding, high: Bike, very_high: Flame } as const;
 const MODE_ICONS = { weekly: CalendarDays, free_cycle: Repeat } as const;
+
+// Qué significa en la práctica cada duración, para que elija con criterio.
+const SESSION_MINUTES_DESC: Record<number, string> = {
+  30: "Justo. Vamos con los básicos y nada más",
+  45: "Alcanza para un entreno completo sin apuro",
+  60: "Lo más común: básicos + accesorios",
+  75: "Margen para sumar volumen",
+  90: "Sesión larga, para quien tiene el tiempo",
+};
 
 const labelOf = (opts: { value: string; label: string }[], v: string | null) =>
   v ? opts.find((o) => o.value === v)?.label ?? v : "—";
@@ -65,7 +81,7 @@ const slideVariants = {
 };
 
 // Pasos de selección única que auto-avanzan al elegir (best practice tipo Typeform).
-const AUTO_ADVANCE_STEPS = new Set([2, 5, 8]);
+const AUTO_ADVANCE_STEPS = new Set([2, 5, 8, 11]);
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -78,6 +94,17 @@ const Onboarding = () => {
   const [direction, setDirection] = useState(1);
   const [done, setDone] = useState(false);
   const [synced, setSynced] = useState(true);
+  const [plan, setPlan] = useState<GeneratedPlan | null>(null);
+  const [planActivated, setPlanActivated] = useState(true);
+
+  // Si el coach YA le asignó una rutina, esa manda: un humano que se tomó el
+  // trabajo de programar sabe más que nuestras reglas. El plan generado igual
+  // se guarda, pero como propuesta para que el coach la revise.
+  const { data: coachRoutines } = useAlumnoRoutines({
+    studentId: isAdminMode ? null : student?.id || null,
+    status: "active",
+  });
+  const hasCoachPlan = !!coachRoutines?.length;
   const advanceTimer = useRef<ReturnType<typeof setTimeout>>();
   const [hydrated, setHydrated] = useState(false);
   const [data, setData] = useState<OnboardingData>(() => {
@@ -101,11 +128,18 @@ const Onboarding = () => {
     fetchOnboardingRemote(sid).then((remote) => {
       if (cancelled) return;
       if (remote) {
+        // Los campos que la tabla todavía no tiene columna vuelven vacíos desde
+        // fromRow(); si los dejáramos pisar, la hidratación borraría lo que el
+        // alumno acaba de contestar en este teléfono. Gana siempre lo local.
         setData((d) => ({
           ...remote,
           age: remote.age ?? d.age,
           heightCm: remote.heightCm ?? d.heightCm,
           weightKg: remote.weightKg ?? d.weightKg,
+          sessionMinutes: remote.sessionMinutes ?? d.sessionMinutes,
+          injurySeverity: remote.injurySeverity ?? d.injurySeverity,
+          avoidedExercises: remote.avoidedExercises.length ? remote.avoidedExercises : d.avoidedExercises,
+          trainingDays: remote.trainingDays.length ? remote.trainingDays : d.trainingDays,
         }));
       }
       setHydrated(true);
@@ -149,7 +183,8 @@ const Onboarding = () => {
       case 7: return data.equipment.length > 0;
       case 8: return !!data.activityLevel;
       case 10: return !!data.trainingMode && data.trainingDays.length > 0 && !!data.split && !!data.programWeeks;
-      default: return true; // 3,4,6,9 opcionales · 11 resumen
+      case 11: return !!data.sessionMinutes;
+      default: return true; // 3,4,6,9 opcionales · 12 resumen
     }
   };
   const canContinue = isStepValid(step);
@@ -176,6 +211,18 @@ const Onboarding = () => {
   const finish = async () => {
     const final = { ...data, completedAt: new Date().toISOString() };
     saveOnboarding(sid, final);
+
+    // Acá se cierra el círculo del cuestionario: en vez de mandar al alumno a
+    // una pantalla que le ofrece "crear programa", le dejamos el plan hecho y
+    // activo. Es local y determinista, así que no hay espera ni puede fallar.
+    const generated = generatePlan(final);
+    saveMyProgram(sid, generated.program); // siempre queda en "Mis programas"
+    if (!hasCoachPlan) {
+      setActivePlan(sid, { type: "own", programId: generated.program.id });
+    }
+    setPlanActivated(!hasCoachPlan);
+    setPlan(generated);
+
     buzz([12, 40, 12, 40, 24]); // patrón celebratorio
     setDone(true);
     if (isReal) {
@@ -245,6 +292,21 @@ const Onboarding = () => {
                 placeholder="Otro ejercicio…"
               />
             </motion.div>
+            <motion.p variants={fadeUp} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pt-4">
+              ¿Alguno que prefieras evitar?
+            </motion.p>
+            <motion.p variants={fadeUp} className="text-sm text-muted-foreground -mt-1">
+              Los sacamos de tu plan y ponemos otro que trabaje lo mismo.
+            </motion.p>
+            <motion.div variants={fadeUp}>
+              <ChipMultiSelect
+                options={MASTERED_EXERCISES}
+                selected={data.avoidedExercises}
+                onToggle={(v) => toggle("avoidedExercises", v)}
+                allowCustom
+                placeholder="Otro ejercicio…"
+              />
+            </motion.div>
           </>
         );
       case 4:
@@ -258,6 +320,25 @@ const Onboarding = () => {
                 <Chip key={a} label={a} selected={has("injuryAreas", a)} onClick={() => toggle("injuryAreas", a)} />
               ))}
             </motion.div>
+            {/* La severidad solo tiene sentido si marcó alguna zona. Define si
+                al ejercicio lo reemplazamos o directamente lo sacamos. */}
+            {data.injuryAreas.length > 0 && (
+              <>
+                <motion.p variants={fadeUp} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pt-3">
+                  ¿Cuánto te condiciona?
+                </motion.p>
+                {INJURY_SEVERITY_OPTIONS.map((o) => (
+                  <motion.div key={o.value} variants={fadeUp}>
+                    <ChoiceCard
+                      label={o.label}
+                      desc={o.desc}
+                      selected={data.injurySeverity === o.value}
+                      onClick={() => choose({ injurySeverity: o.value })}
+                    />
+                  </motion.div>
+                ))}
+              </>
+            )}
             <motion.div variants={fadeUp}>
               <NotesField label="Detalle (opcional)" value={data.injuryNotes} onChange={(v) => update({ injuryNotes: v })} placeholder="Ej: molestia en el hombro derecho al hacer press" />
             </motion.div>
@@ -376,7 +457,30 @@ const Onboarding = () => {
             </motion.div>
           </>
         );
-      case 11: {
+      case 11:
+        return (
+          <>
+            <motion.div variants={fadeUp}>
+              <StepHeader
+                eyebrow={EYEBROWS[11]}
+                title="¿Cuánto dura tu entreno?"
+                subtitle="El tiempo real que tenés, no el ideal. Con esto ajustamos cuántos ejercicios entran."
+              />
+            </motion.div>
+            {SESSION_MINUTES_OPTIONS.map((m) => (
+              <motion.div key={m} variants={fadeUp}>
+                <ChoiceCard
+                  label={`${m} minutos`}
+                  desc={SESSION_MINUTES_DESC[m]}
+                  icon={Clock}
+                  selected={data.sessionMinutes === m}
+                  onClick={() => pickSingle({ sessionMinutes: m })}
+                />
+              </motion.div>
+            ))}
+          </>
+        );
+      case 12: {
         const rows: { k: string; v: string; step: number }[] = [
           { k: "Sexo", v: labelOf(SEX_OPTIONS, data.sex), step: 1 },
           { k: "Edad", v: data.age ? `${data.age} años` : "—", step: 1 },
@@ -384,7 +488,8 @@ const Onboarding = () => {
           { k: "Peso", v: data.weightKg ? `${data.weightKg} kg` : "—", step: 1 },
           { k: "Experiencia", v: labelOf(EXPERIENCE_OPTIONS, data.experience), step: 2 },
           { k: "Domina", v: data.masteredExercises.join(", ") || "—", step: 3 },
-          { k: "Lesiones", v: [data.injuryAreas.join(", "), data.injuryNotes].filter(Boolean).join(" · ") || "Ninguna", step: 4 },
+          { k: "Evita", v: data.avoidedExercises.join(", ") || "—", step: 3 },
+          { k: "Lesiones", v: [data.injuryAreas.join(", "), labelOf(INJURY_SEVERITY_OPTIONS, data.injurySeverity), data.injuryNotes].filter((x) => x && x !== "—").join(" · ") || "Ninguna", step: 4 },
           { k: "Objetivo", v: labelOf(GOAL_OPTIONS, data.goal), step: 5 },
           { k: "Prioridades", v: data.priorities.join(", ") || "—", step: 6 },
           { k: "Equipamiento", v: data.equipment.join(", ") || "—", step: 7 },
@@ -392,11 +497,12 @@ const Onboarding = () => {
           { k: "Comidas/día", v: data.mealsPerDay ? String(data.mealsPerDay) : "—", step: 9 },
           { k: "Restricciones", v: [data.dietaryRestrictions.join(", "), data.nutritionNotes].filter(Boolean).join(" · ") || "—", step: 9 },
           { k: "Programa", v: [labelOf(TRAINING_MODE_OPTIONS, data.trainingMode), data.trainingDays.length ? data.trainingDays.map((i) => WEEKDAYS[i]).join(", ") : null, data.daysPerWeek ? `${data.daysPerWeek} días/sem` : null, data.split, data.programWeeks ? `${data.programWeeks} sem` : null].filter(Boolean).join(" · ") || "—", step: 10 },
+          { k: "Por sesión", v: data.sessionMinutes ? `${data.sessionMinutes} min` : "—", step: 11 },
         ];
         return (
           <>
             <motion.div variants={fadeUp}>
-              <StepHeader eyebrow={EYEBROWS[11]} title="Revisá tu perfil" subtitle="Tocá cualquier dato para editarlo antes de enviárselo al coach." />
+              <StepHeader eyebrow={EYEBROWS[12]} title="Revisá tu perfil" subtitle="Tocá cualquier dato para editarlo. Con esto armamos tu plan." />
             </motion.div>
             <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card divide-y divide-white/[0.05] overflow-hidden">
               {rows.map((r) => (
@@ -416,7 +522,21 @@ const Onboarding = () => {
   };
 
   if (done) {
-    return <CompletionCelebration name={firstName} synced={synced} onDone={() => navigate("/profile")} />;
+    // Con plan generado, el remate del onboarding es el plan mismo. La
+    // celebración queda solo como salida de emergencia si algo falló.
+    return plan ? (
+      <PlanReveal
+        plan={plan}
+        name={firstName}
+        synced={synced}
+        activated={planActivated}
+        onStart={() =>
+          navigate(planActivated ? `/programa/${plan.program.id}` : "/rutinas-coach")
+        }
+      />
+    ) : (
+      <CompletionCelebration name={firstName} synced={synced} onDone={() => navigate("/profile")} />
+    );
   }
 
   return (

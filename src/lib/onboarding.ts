@@ -13,6 +13,12 @@ export type Experience = "beginner" | "intermediate" | "advanced";
 export type Goal = "lose_fat" | "gain_muscle" | "recomp" | "maintain" | "performance";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "high" | "very_high";
 export type TrainingMode = "weekly" | "free_cycle";
+/**
+ * Qué tan limitante es la molestia. Define si el generador REEMPLAZA el
+ * ejercicio (molestia: buscamos alternativa, si no hay lo dejamos suave) o si
+ * directamente lo SACA (limita: no arriesgamos).
+ */
+export type InjurySeverity = "molestia" | "limita";
 
 export interface OnboardingData {
   // Datos corporales
@@ -24,8 +30,11 @@ export interface OnboardingData {
   experience: Experience | null;
   // Ejercicios que domina
   masteredExercises: string[];
+  // Ejercicios que prefiere evitar (no por lesión: por gusto o acceso)
+  avoidedExercises: string[];
   // Lesiones / molestias
   injuryAreas: string[];
+  injurySeverity: InjurySeverity | null;
   injuryNotes: string;
   // Objetivo + prioridades
   goal: Goal | null;
@@ -49,6 +58,12 @@ export interface OnboardingData {
   trainingDays: number[];
   split: string | null;
   programWeeks: number | null;
+  /**
+   * Minutos reales que tiene por sesión. Es lo que decide cuántos ejercicios
+   * entran: un plan de 6 ejercicios en 30 minutos no se cumple, y un plan que
+   * no se cumple no sirve.
+   */
+  sessionMinutes: number | null;
   // Meta
   completedAt: string | null;
 }
@@ -60,7 +75,9 @@ export const emptyOnboarding = (): OnboardingData => ({
   weightKg: null,
   experience: null,
   masteredExercises: [],
+  avoidedExercises: [],
   injuryAreas: [],
+  injurySeverity: null,
   injuryNotes: "",
   goal: null,
   priorities: [],
@@ -74,6 +91,7 @@ export const emptyOnboarding = (): OnboardingData => ({
   trainingDays: [],
   split: null,
   programWeeks: null,
+  sessionMinutes: null,
   completedAt: null,
 });
 
@@ -149,6 +167,14 @@ export const SPLIT_OPTIONS = [
 ];
 
 export const PROGRAM_WEEKS_OPTIONS = [4, 6, 8, 12];
+
+/** Minutos por sesión. Determina cuántos ejercicios entran de verdad. */
+export const SESSION_MINUTES_OPTIONS = [30, 45, 60, 75, 90];
+
+export const INJURY_SEVERITY_OPTIONS: Opt<InjurySeverity>[] = [
+  { value: "molestia", label: "Molestia leve", desc: "Puedo entrenar, pero prefiero cuidarla" },
+  { value: "limita", label: "Me limita", desc: "Hay movimientos que directamente no puedo hacer" },
+];
 
 /** Labels de los días de la semana. Índice 0=Lun … 6=Dom (ver trainingDays). */
 export const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
