@@ -3,8 +3,10 @@
  * con marcas de biserie/superserie. Reutilizable en el detalle de rutina y en
  * el componente Programa.
  */
-import { Timer, Target, Dumbbell } from "lucide-react";
+import { useState } from "react";
+import { Timer, Target, Dumbbell, Play } from "lucide-react";
 import { computeExerciseGroups } from "@/lib/exerciseGroups";
+import ExerciseVideoPlayer from "@/components/workout/ExerciseVideoPlayer";
 import type { RoutineExercise } from "@/types/coach";
 
 const fmtRest = (s: number | null) =>
@@ -16,21 +18,53 @@ const fmtRest = (s: number | null) =>
  * el movimiento sin leer. Si el ejercicio no tiene imagen cargada cae en la
  * mancuerna, así la lista nunca queda con huecos.
  */
-const ExerciseThumb = ({ ex }: { ex: RoutineExercise }) => {
+const ExerciseThumb = ({ ex, onPlay }: { ex: RoutineExercise; onPlay: () => void }) => {
   const src = ex.exercise?.thumbnail_url ?? ex.exercise?.thumbnail ?? null;
-  return (
-    <span className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-secondary/60 border border-white/[0.06] flex items-center justify-center">
+  const video = ex.exercise?.video_url ?? null;
+  const name = ex.exercise?.name || ex.name;
+
+  const inner = (
+    <>
       {src ? (
         <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
       ) : (
         <Dumbbell className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
       )}
-    </span>
+      {video && (
+        <span className="absolute inset-0 bg-black/35 flex items-center justify-center">
+          <span className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
+            <Play className="w-2.5 h-2.5 text-primary fill-current ml-px" aria-hidden="true" />
+          </span>
+        </span>
+      )}
+    </>
+  );
+
+  const base =
+    "relative shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-secondary/60 border border-white/[0.06] flex items-center justify-center";
+
+  // Sin video no hay nada que abrir: queda como imagen y no como control muerto.
+  if (!video) return <span className={base}>{inner}</span>;
+
+  return (
+    <button
+      type="button"
+      aria-label={`Ver video de ${name}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onPlay();
+      }}
+      className={`${base} active:scale-95 transition-transform`}
+    >
+      {inner}
+    </button>
   );
 };
 
 const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | null }) => {
   const rest = fmtRest(ex.rest);
+  const [showVideo, setShowVideo] = useState(false);
+  const video = ex.exercise?.video_url ?? null;
   return (
     <div className="flex items-center gap-3 px-4 py-2.5">
       {letter ? (
@@ -38,7 +72,15 @@ const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | nul
           {letter}
         </span>
       ) : (
-        <ExerciseThumb ex={ex} />
+        <ExerciseThumb ex={ex} onPlay={() => setShowVideo(true)} />
+      )}
+
+      {showVideo && video && (
+        <ExerciseVideoPlayer
+          videoUrl={video}
+          exerciseName={ex.exercise?.name || ex.name}
+          onClose={() => setShowVideo(false)}
+        />
       )}
 
       <div className="flex-1 min-w-0">
