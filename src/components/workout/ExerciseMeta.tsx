@@ -6,7 +6,8 @@
  * Los datos ya vienen de routine_exercises (rir, tempo, training_method, type)
  * y de exercises (description, instructions). El coach los carga desde la PC.
  */
-import { Layers, Timer, Target, Gauge, Repeat2 } from "lucide-react";
+import { useState } from "react";
+import { Layers, Timer, Target, Gauge, Repeat2, Pencil } from "lucide-react";
 
 export interface PrescriptionData {
   sets: number;
@@ -43,21 +44,182 @@ const Chip = ({
   </div>
 );
 
-/** Tira de chips con la prescripción. Solo muestra lo que el coach cargó. */
-export const PrescriptionStrip = ({ data }: { data: PrescriptionData }) => {
-  const special = isSpecialMethod(data.method);
+/** Lo que el alumno puede ajustar de la prescripción para la sesión de hoy. */
+export type PrescriptionEdit = Pick<PrescriptionData, "sets" | "reps" | "restSeconds" | "rir" | "tempo">;
+
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <label className="flex flex-col gap-1">
+    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
+    {children}
+  </label>
+);
+
+const inputCls =
+  "w-full min-h-11 rounded-lg bg-background border border-white/10 px-3 text-base font-bold text-foreground tabular-nums focus:border-primary/60 focus:outline-none";
+
+/**
+ * Editor de la prescripción para HOY.
+ *
+ * No pisa lo que armó el coach: el cambio vive en la sesión en curso y se
+ * pierde al salir. Sirve para el dia real —llegaste con menos tiempo, te duele
+ * algo, la barra esta ocupada— sin romper la progresion que el coach planifico
+ * ni dejarlo sin saber que prescribio. Lo que el alumno efectivamente hizo ya
+ * se registra aparte, serie por serie.
+ */
+const PrescriptionEditor = ({
+  data,
+  onChange,
+  onDone,
+}: {
+  data: PrescriptionData;
+  onChange: (next: PrescriptionEdit) => void;
+  onDone: () => void;
+}) => {
+  const patch = (p: Partial<PrescriptionEdit>) =>
+    onChange({
+      sets: data.sets,
+      reps: data.reps,
+      restSeconds: data.restSeconds ?? null,
+      rir: data.rir ?? null,
+      tempo: data.tempo ?? null,
+      ...p,
+    });
+
   return (
-    <div className="flex flex-wrap gap-1.5">
-      <Chip icon={Repeat2} label="Series" value={`${data.sets} × ${data.reps}`} />
-      {data.restSeconds != null && data.restSeconds > 0 && (
-        <Chip icon={Timer} label="Descanso" value={fmtRest(data.restSeconds)} />
-      )}
-      {data.rir != null && <Chip icon={Target} label="RIR" value={String(data.rir)} />}
-      {data.tempo && <Chip icon={Gauge} label="Tempo" value={data.tempo} />}
-      {special && (
-        <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 px-2 py-1.5">
-          <Layers className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="text-sm font-black text-amber-400 capitalize">{data.method}</span>
+    <div className="rounded-xl bg-secondary/40 border border-white/[0.06] p-3 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Series">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={20}
+            value={data.sets}
+            onChange={(e) => patch({ sets: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Reps">
+          <input
+            type="text"
+            value={data.reps}
+            onChange={(e) => patch({ reps: e.target.value })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Descanso (seg)">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={600}
+            step={15}
+            value={data.restSeconds ?? 0}
+            onChange={(e) => patch({ restSeconds: Math.max(0, Math.min(600, Number(e.target.value) || 0)) })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="RIR">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={10}
+            value={data.rir ?? 0}
+            onChange={(e) => patch({ rir: Math.max(0, Math.min(10, Number(e.target.value) || 0)) })}
+            className={inputCls}
+          />
+        </Field>
+      </div>
+      <Field label="Tempo">
+        <input
+          type="text"
+          placeholder="3-1-1-0"
+          value={data.tempo ?? ""}
+          onChange={(e) => patch({ tempo: e.target.value || null })}
+          className={inputCls}
+        />
+      </Field>
+      <button
+        type="button"
+        onClick={onDone}
+        className="w-full min-h-11 rounded-lg bg-primary/15 border border-primary/30 text-sm font-black text-primary active:scale-[0.98] transition-transform"
+      >
+        Listo
+      </button>
+    </div>
+  );
+};
+
+/**
+ * Tira de chips con la prescripción del coach.
+ * Con `editable`, el alumno puede ajustarla para la sesión de hoy.
+ */
+export const PrescriptionStrip = ({
+  data,
+  editable = false,
+  edited = false,
+  onChange,
+  onReset,
+}: {
+  data: PrescriptionData;
+  editable?: boolean;
+  edited?: boolean;
+  onChange?: (next: PrescriptionEdit) => void;
+  onReset?: () => void;
+}) => {
+  const [editing, setEditing] = useState(false);
+  const special = isSpecialMethod(data.method);
+
+  if (editing && onChange) {
+    return <PrescriptionEditor data={data} onChange={onChange} onDone={() => setEditing(false)} />;
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Chip icon={Repeat2} label="Series" value={`${data.sets} × ${data.reps}`} />
+        {data.restSeconds != null && data.restSeconds > 0 && (
+          <Chip icon={Timer} label="Descanso" value={fmtRest(data.restSeconds)} />
+        )}
+        {data.rir != null && <Chip icon={Target} label="RIR" value={String(data.rir)} />}
+        {data.tempo && <Chip icon={Gauge} label="Tempo" value={data.tempo} />}
+        {special && (
+          <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 px-2 py-1.5">
+            <Layers className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-sm font-black text-amber-400 capitalize">{data.method}</span>
+          </div>
+        )}
+        {editable && onChange && (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            aria-label="Ajustar la prescripción para hoy"
+            className="min-h-11 w-11 -my-1 flex items-center justify-center text-muted-foreground active:scale-90 transition-transform"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {edited && (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Ajustado para hoy</span>
+          {onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="min-h-11 -my-3 text-[11px] font-bold text-muted-foreground underline underline-offset-2"
+            >
+              Volver a lo del coach
+            </button>
+          )}
         </div>
       )}
     </div>

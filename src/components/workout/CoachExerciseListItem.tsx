@@ -7,7 +7,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
-import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
+import { PrescriptionStrip, TechniqueBlock, SupersetTag, type PrescriptionEdit } from "./ExerciseMeta";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 
 interface CoachExercise {
@@ -33,9 +33,22 @@ interface CoachExerciseListItemProps {
   exercise: CoachExercise;
   index: number;
   group?: ExerciseGroupInfo;
+  /** Deja al alumno ajustar la prescripción para la sesión de hoy. */
+  editablePrescription?: boolean;
+  prescriptionEdited?: boolean;
+  onPrescriptionChange?: (next: PrescriptionEdit) => void;
+  onPrescriptionReset?: () => void;
 }
 
-const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItemProps) => {
+const CoachExerciseListItem = ({
+  exercise,
+  index,
+  group,
+  editablePrescription = false,
+  prescriptionEdited = false,
+  onPrescriptionChange,
+  onPrescriptionReset,
+}: CoachExerciseListItemProps) => {
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -136,6 +149,10 @@ const CoachExerciseListItem = ({ exercise, index, group }: CoachExerciseListItem
                     tempo: exercise.tempo,
                     method: exercise.method,
                   }}
+                  editable={editablePrescription}
+                  edited={prescriptionEdited}
+                  onChange={onPrescriptionChange}
+                  onReset={onPrescriptionReset}
                 />
 
                 {/* Técnica / ejecución + paso a paso */}

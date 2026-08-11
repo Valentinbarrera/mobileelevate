@@ -20,6 +20,7 @@ import WorkoutFloatingButton from "@/components/workout/WorkoutFloatingButton";
 import ActiveWorkoutHeader from "@/components/workout/ActiveWorkoutHeader";
 import CoachExerciseCard from "@/components/workout/CoachExerciseCard";
 import CoachExerciseListItem from "@/components/workout/CoachExerciseListItem";
+import type { PrescriptionEdit } from "@/components/workout/ExerciseMeta";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import ExerciseVideoPlayer from "@/components/workout/ExerciseVideoPlayer";
 import ExerciseCompletedModal from "@/components/workout/ExerciseCompletedModal";
@@ -213,10 +214,39 @@ const CoachWorkoutDetail = () => {
     };
   }, [ownProgram, dayId]);
 
+  /**
+   * Ajustes del alumno a la prescripción, SOLO para esta sesión.
+   *
+   * Viven en memoria a propósito: no se guardan ni pisan lo que armó el coach.
+   * Se aplican acá, sobre el día, para que valgan igual en la vista previa, en
+   * la card del entreno y en el temporizador de descanso, sin que cada consumidor
+   * tenga que enterarse.
+   */
+  const [prescriptionEdits, setPrescriptionEdits] = useState<Map<string, PrescriptionEdit>>(new Map());
+
   const routineDay = useMemo(() => {
-    if (isOwnMode) return ownRoutineDay;
-    return allDays.find(d => d.id === routineDayId) || null;
-  }, [isOwnMode, ownRoutineDay, allDays, routineDayId]);
+    const base = isOwnMode ? ownRoutineDay : allDays.find(d => d.id === routineDayId) || null;
+    if (!base || prescriptionEdits.size === 0) return base;
+    return {
+      ...base,
+      exercises: base.exercises.map((e) => {
+        const edit = prescriptionEdits.get(e.id);
+        return edit ? { ...e, ...edit } : e;
+      }),
+    };
+  }, [isOwnMode, ownRoutineDay, allDays, routineDayId, prescriptionEdits]);
+
+  const editPrescription = useCallback((exerciseId: string, next: PrescriptionEdit) => {
+    setPrescriptionEdits((prev) => new Map(prev).set(exerciseId, next));
+  }, []);
+
+  const resetPrescription = useCallback((exerciseId: string) => {
+    setPrescriptionEdits((prev) => {
+      const next = new Map(prev);
+      next.delete(exerciseId);
+      return next;
+    });
+  }, []);
 
   const routineId = navState?.routineId || activeRoutine?.id || "";
   
@@ -1289,6 +1319,10 @@ const CoachWorkoutDetail = () => {
                     exercise={exercise}
                     index={index + 1}
                     group={exerciseGroups.get(exercise.id)}
+                    editablePrescription
+                    prescriptionEdited={prescriptionEdits.has(exercise.id)}
+                    onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
+                    onPrescriptionReset={() => resetPrescription(exercise.id)}
                   />
                 );
               })}
