@@ -1170,6 +1170,10 @@ const CoachWorkoutDetail = () => {
                     isActive
                     group={exerciseGroups.get(exercise.id)}
                     onSelect={() => setActiveExerciseId(exercise.id)}
+                    editablePrescription
+                    prescriptionEdited={prescriptionEdits.has(exercise.id)}
+                    onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
+                    onPrescriptionReset={() => resetPrescription(exercise.id)}
                     onCompleteSet={handleCompleteSet}
                     onUpdateSet={handleUpdateSet}
                     onDeleteSet={handleDeleteSet}
@@ -1296,6 +1300,10 @@ const CoachWorkoutDetail = () => {
                       isActive={activeExerciseId === exercise.id}
                       group={exerciseGroups.get(exercise.id)}
                       onSelect={() => setActiveExerciseId(exercise.id)}
+                      editablePrescription
+                      prescriptionEdited={prescriptionEdits.has(exercise.id)}
+                      onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
+                      onPrescriptionReset={() => resetPrescription(exercise.id)}
                       onCompleteSet={handleCompleteSet}
                       onUpdateSet={handleUpdateSet}
                       onDeleteSet={handleDeleteSet}

@@ -74,10 +74,12 @@ const inputCls =
  */
 const PrescriptionEditor = ({
   data,
+  minSets = 1,
   onChange,
   onDone,
 }: {
   data: PrescriptionData;
+  minSets?: number;
   onChange: (next: PrescriptionEdit) => void;
   onDone: () => void;
 }) => {
@@ -98,10 +100,10 @@ const PrescriptionEditor = ({
           <input
             type="number"
             inputMode="numeric"
-            min={1}
+            min={minSets}
             max={20}
             value={data.sets}
-            onChange={(e) => patch({ sets: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })}
+            onChange={(e) => patch({ sets: Math.max(minSets, Math.min(20, Number(e.target.value) || minSets)) })}
             className={inputCls}
           />
         </Field>
@@ -165,12 +167,15 @@ export const PrescriptionStrip = ({
   data,
   editable = false,
   edited = false,
+  minSets,
   onChange,
   onReset,
 }: {
   data: PrescriptionData;
   editable?: boolean;
   edited?: boolean;
+  /** Piso de series: las que el alumno ya completó en esta sesión. */
+  minSets?: number;
   onChange?: (next: PrescriptionEdit) => void;
   onReset?: () => void;
 }) => {
@@ -178,7 +183,14 @@ export const PrescriptionStrip = ({
   const special = isSpecialMethod(data.method);
 
   if (editing && onChange) {
-    return <PrescriptionEditor data={data} onChange={onChange} onDone={() => setEditing(false)} />;
+    return (
+      <PrescriptionEditor
+        data={data}
+        minSets={minSets}
+        onChange={onChange}
+        onDone={() => setEditing(false)}
+      />
+    );
   }
 
   return (

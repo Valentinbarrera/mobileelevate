@@ -10,7 +10,7 @@ import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, V
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import ExerciseNoteSheet from "./ExerciseNoteSheet";
-import { PrescriptionStrip, TechniqueBlock, SupersetTag } from "./ExerciseMeta";
+import { PrescriptionStrip, TechniqueBlock, SupersetTag, type PrescriptionEdit } from "./ExerciseMeta";
 import { getExerciseNote, saveExerciseNote, type ExerciseNote } from "@/lib/exerciseNotes";
 import { getSetRir, saveSetRir } from "@/lib/setRir";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
@@ -86,6 +86,11 @@ interface CoachExerciseCardProps {
   onUndoReplace?: () => void; // volver al que prescribió el coach
   isSubstituted?: boolean; // el alumno lo cambió por otro
   isExtra?: boolean; // lo sumó el alumno, no está en la rutina del coach
+  /** Ajustar series/reps/descanso/RIR/tempo para la sesión de hoy. */
+  editablePrescription?: boolean;
+  prescriptionEdited?: boolean;
+  onPrescriptionChange?: (next: PrescriptionEdit) => void;
+  onPrescriptionReset?: () => void;
 }
 
 interface PerformanceRecord {
@@ -118,6 +123,10 @@ const CoachExerciseCard = ({
   onUndoReplace,
   isSubstituted,
   isExtra,
+  editablePrescription = false,
+  prescriptionEdited = false,
+  onPrescriptionChange,
+  onPrescriptionReset,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
@@ -444,6 +453,13 @@ const CoachExerciseCard = ({
                     tempo: exercise.tempo,
                     method: exercise.method,
                   }}
+                  editable={editablePrescription}
+                  edited={prescriptionEdited}
+                  onChange={onPrescriptionChange}
+                  onReset={onPrescriptionReset}
+                  // A mitad del entreno no se puede bajar de las series ya
+                  // hechas: quedarían logueadas pero fuera de la tabla.
+                  minSets={Math.max(1, state.completedSets.length)}
                 />
 
                 {/* Nota del coach: cue corto, se mantiene arriba */}

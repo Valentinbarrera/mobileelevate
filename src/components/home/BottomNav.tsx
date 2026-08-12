@@ -29,7 +29,7 @@ interface TrainAction {
 const TRAIN_ACTIONS: TrainAction[] = [
   {
     icon: Dumbbell,
-    label: "Mi plan",
+    label: "Rutina del coach",
     desc: "Lo que tu coach armó para vos.",
     path: "/rutinas-coach",
     hue: "18 100% 55%",
@@ -45,7 +45,7 @@ const TRAIN_ACTIONS: TrainAction[] = [
     // Los planes ya armados existían, pero quedaban a dos toques adentro de
     // "Mis programas": el camino más fácil para empezar era el menos visible.
     icon: LayoutGrid,
-    label: "Planes listos",
+    label: "Templates",
     desc: "Programas ya armados, para arrancar hoy.",
     path: "/programas/templates",
     hue: "142 71% 45%",
