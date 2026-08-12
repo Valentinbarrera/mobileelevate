@@ -55,22 +55,31 @@ const MacroPill = ({
   value,
   target,
   color,
+  bar,
 }: {
   label: string;
   value: number;
   target: number | null;
   color: string;
-}) => (
-  <div className="flex flex-col items-center gap-0.5">
-    <span className={`text-lg font-black tabular-nums ${color}`}>{Math.round(value)}</span>
-    {target && (
-      <span className="text-sm text-muted-foreground tabular-nums">/ {target}g</span>
-    )}
-    <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">
-      {label}
-    </span>
-  </div>
-);
+  /** Clase de fondo de la barra, del mismo color que el número. */
+  bar: string;
+}) => {
+  const pct = target && target > 0 ? Math.min(100, (value / target) * 100) : 0;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline gap-1">
+        <span className={`text-lg font-black tabular-nums ${color}`}>{Math.round(value)}</span>
+        {target && <span className="text-sm text-muted-foreground tabular-nums">/ {target}g</span>}
+      </div>
+      {/* La barra hace legible de un vistazo cuál macro viene atrasado: tres
+          números sueltos obligan a comparar de memoria. */}
+      <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
+        <div className={`h-full rounded-full ${bar} transition-[width] duration-500`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{label}</span>
+    </div>
+  );
+};
 
 // ─── Meal card ────────────────────────────────────────────────────────────────
 
@@ -187,39 +196,69 @@ const MealCard = ({
 
 // ─── Day selector ─────────────────────────────────────────────────────────────
 
+/**
+ * Tira de días del plan, con el cumplimiento de cada uno a la vista.
+ *
+ * Antes eran dos flechas: veías un día por vez y no tenías forma de saber cómo
+ * venía la semana sin recorrerla entera. El anillo por día responde eso de un
+ * vistazo, y tocar uno lo abre.
+ */
 const DaySelector = ({
   days,
   currentIndex,
   onChange,
+  progressFor,
 }: {
   days: NutritionDay[];
   currentIndex: number;
   onChange: (i: number) => void;
+  progressFor: (day: NutritionDay) => { done: number; total: number };
 }) => {
   if (days.length <= 1) return null;
-  const day = days[currentIndex];
+
   return (
-    <div className="flex items-center justify-between card-elevated rounded-2xl px-4 py-3">
-      <button
-        onClick={() => onChange(Math.max(0, currentIndex - 1))}
-        disabled={currentIndex === 0}
-        className="w-11 h-11 flex items-center justify-center rounded-lg disabled:opacity-30"
-      >
-        <ChevronLeft className="w-5 h-5 text-foreground" />
-      </button>
-      <div className="text-center">
-        <p className="text-base font-bold text-foreground">{day.day_name}</p>
-        <p className="text-sm text-foreground/70">
-          Día {day.day_number} de {days.length}
-        </p>
+    <div className="card-elevated rounded-2xl px-2 py-3">
+      <div className="flex gap-1 overflow-x-auto rj-scroll snap-x" role="tablist" aria-label="Días del plan">
+        {days.map((day, i) => {
+          const { done, total } = progressFor(day);
+          const pct = total > 0 ? (done / total) * 100 : 0;
+          const active = i === currentIndex;
+          const complete = total > 0 && done === total;
+          return (
+            <button
+              key={day.id}
+              role="tab"
+              aria-selected={active}
+              aria-label={`${day.day_name}, día ${day.day_number}. ${done} de ${total} comidas`}
+              onClick={() => onChange(i)}
+              className={`shrink-0 snap-start flex flex-col items-center gap-1 rounded-xl px-2 pt-2 pb-1.5 min-w-[52px] transition-colors ${
+                active ? "bg-primary/15 border border-primary/40" : "border border-transparent active:bg-white/5"
+              }`}
+            >
+              <ProgressRing progress={pct} size={34} stroke={3} gradientId={`dayRing${i}`}>
+                {complete ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" strokeWidth={3.5} />
+                ) : (
+                  <span
+                    className={`text-[11px] font-black tabular-nums ${
+                      active ? "text-primary" : "text-foreground/70"
+                    }`}
+                  >
+                    {day.day_number}
+                  </span>
+                )}
+              </ProgressRing>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wide ${
+                  active ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {day.day_name.slice(0, 3)}
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <button
-        onClick={() => onChange(Math.min(days.length - 1, currentIndex + 1))}
-        disabled={currentIndex === days.length - 1}
-        className="w-11 h-11 flex items-center justify-center rounded-lg disabled:opacity-30"
-      >
-        <ChevronRight className="w-5 h-5 text-foreground" />
-      </button>
     </div>
   );
 };
@@ -502,6 +541,8 @@ export default function Nutrition() {
       return next;
     });
 
+  const caloriesLeft = Math.round((plan.calories_target ?? 0) - dayTotals.calories);
+
   const caloriesPct =
     plan.calories_target && plan.calories_target > 0
       ? Math.min(100, (dayTotals.calories / plan.calories_target) * 100)
@@ -550,19 +591,18 @@ export default function Nutrition() {
                     <CountUp value={Math.round(caloriesPct)} />%
                   </span>
                 </ProgressRing>
+                {/* Lidera con lo que FALTA, no con lo consumido: "te quedan 900"
+                    dice qué hacer ahora; "0 / 2500" sólo informa. */}
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Consumido hoy
+                    {caloriesLeft >= 0 ? "Te quedan" : "Te pasaste"}
                   </p>
                   <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
-                    {Math.round(dayTotals.calories)}
-                    <span className="text-sm font-bold text-muted-foreground">
-                      {" "}
-                      / {plan.calories_target} kcal
-                    </span>
+                    {Math.abs(caloriesLeft)}
+                    <span className="text-sm font-bold text-muted-foreground"> kcal</span>
                   </p>
                   <p className="text-sm text-foreground/70 mt-0.5 tabular-nums">
-                    {checkedCount}/{totalMeals} comidas registradas
+                    {Math.round(dayTotals.calories)} de {plan.calories_target} · {checkedCount}/{totalMeals} comidas
                   </p>
                 </div>
               </div>
@@ -574,18 +614,21 @@ export default function Nutrition() {
                   value={dayTotals.protein}
                   target={plan.protein_target}
                   color="text-blue-400"
+                  bar="bg-blue-400"
                 />
                 <MacroPill
                   label="Carbos"
                   value={dayTotals.carbs}
                   target={plan.carbs_target}
                   color="text-amber-400"
+                  bar="bg-amber-400"
                 />
                 <MacroPill
                   label="Grasas"
                   value={dayTotals.fats}
                   target={plan.fats_target}
                   color="text-rose-400"
+                  bar="bg-rose-400"
                 />
               </div>
             </motion.div>
@@ -597,6 +640,10 @@ export default function Nutrition() {
                 days={plan.days}
                 currentIndex={dayIndex}
                 onChange={setDayIndex}
+                progressFor={(d) => ({
+                  done: d.meals.filter((m) => isMealChecked(m.id)).length,
+                  total: d.meals.length,
+                })}
               />
             </motion.div>
           );
@@ -636,9 +683,21 @@ export default function Nutrition() {
                     <span className="accent-bar" />
                     <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
                     <button
+                      onClick={() => navigate("/nutrition/history")}
+                      className="ml-auto -mr-2 px-2 min-h-11 flex items-center gap-1 text-sm font-bold text-primary active:scale-95 transition-transform"
+                    >
+                      Ver historial
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 ml-3">
+                    <p className="text-sm text-foreground/70 flex-1 min-w-0">
+                      Tocá el ✓ cuando comas una.
+                    </p>
+                    <button
                       onClick={toggleAllMeals}
                       aria-expanded={allMealsExpanded}
-                      className="ml-auto -mr-2 px-2 min-h-11 flex items-center gap-1 text-sm font-bold text-primary active:scale-95 transition-transform"
+                      className="shrink-0 -mr-2 px-2 min-h-11 flex items-center gap-1 text-sm font-bold text-primary active:scale-95 transition-transform"
                     >
                       {allMealsExpanded ? "Retraer todo" : "Desplegar todo"}
                       <ChevronRight
@@ -646,9 +705,6 @@ export default function Nutrition() {
                       />
                     </button>
                   </div>
-                  <p className="text-sm text-foreground/70 mt-1 ml-3">
-                    Tocá el ✓ cuando comas una — se suma a tu día y queda en tu historial.
-                  </p>
                 </motion.div>
               )}
               {currentDay?.meals.map((meal) => {
