@@ -18,11 +18,18 @@ import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
+import CalorieGoalSheet from "@/components/nutrition/CalorieGoalSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { loadOnboarding } from "@/lib/onboarding";
 import { inputsFromOnboarding, defaultModeForGoal, computeTarget, suggestMacros } from "@/lib/nutritionCalc";
+import {
+  loadCalorieGoal,
+  saveCalorieGoal,
+  MODE_LABEL,
+  type CalorieGoalPref,
+} from "@/lib/calorieGoal";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
   useStudentNutrition,
@@ -324,11 +331,26 @@ export default function Nutrition() {
   // el layout "sin plan del coach"; si hay plan, la meta la pone el coach.
   const ob = loadOnboarding(sid);
   const autoInputs = inputsFromOnboarding(ob);
-  const autoResult = autoInputs
-    ? computeTarget(autoInputs, defaultModeForGoal(ob.goal).mode, defaultModeForGoal(ob.goal).adjust)
-    : null;
-  const autoGoal = autoResult?.target ?? null;
-  const autoMacros = autoResult && autoInputs ? suggestMacros(autoResult.target, autoInputs.weightKg) : null;
+  const preset = defaultModeForGoal(ob.goal);
+  const autoResult = autoInputs ? computeTarget(autoInputs, preset.mode, preset.adjust) : null;
+
+  // Lo que el alumno eligió gana sobre el cálculo: sabe cosas que el
+  // cuestionario no pregunta (viene de volumen, se lo dio un nutricionista…).
+  const [goalPref, setGoalPref] = useState<CalorieGoalPref>(() => loadCalorieGoal(sid));
+  const [goalSheet, setGoalSheet] = useState(false);
+
+  const chosenResult =
+    autoInputs && goalPref.kind === "preset"
+      ? computeTarget(autoInputs, goalPref.mode, goalPref.adjust)
+      : autoResult;
+  const autoGoal =
+    goalPref.kind === "manual" ? goalPref.calories : chosenResult?.target ?? null;
+  const autoMacros = autoGoal != null && autoInputs ? suggestMacros(autoGoal, autoInputs.weightKg) : null;
+
+  const saveGoal = (pref: CalorieGoalPref) => {
+    saveCalorieGoal(sid, pref);
+    setGoalPref(pref);
+  };
 
   const myDietEntry = (
     <motion.button
@@ -367,30 +389,54 @@ export default function Nutrition() {
 
   // Estimación automática (Harris-Benedict) — se muestra SIEMPRE (con o sin plan
   // del coach). Si faltan datos del perfil, cae al CTA de completar el onboarding.
+  const goalLabel =
+    goalPref.kind === "manual"
+      ? "Tu objetivo · a mano"
+      : goalPref.kind === "preset"
+        ? `Tu objetivo · ${MODE_LABEL[goalPref.mode].toLowerCase()}`
+        : "Tu estimación · Harris-Benedict";
+
   const caloriesEstimate =
     autoGoal != null && autoResult ? (
-      <motion.button
-        variants={fadeUp}
-        onClick={() => navigate("/nutrition/my-diet")}
-        className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
-      >
-        <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-          <Sparkles className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
-            Tu estimación · Harris-Benedict
-          </p>
-          <p className="text-base font-semibold text-foreground tabular-nums">
-            {autoGoal} kcal{" "}
-            <span className="text-muted-foreground font-normal">· mantenimiento {autoResult.tdee}</span>
-          </p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-      </motion.button>
+      <motion.div variants={fadeUp} className="rounded-2xl card-elevated p-4 flex items-center gap-3.5">
+        <button
+          onClick={() => navigate("/nutrition/my-diet")}
+          className="flex items-center gap-3.5 flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
+        >
+          <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
+            <p className="text-base font-semibold text-foreground tabular-nums">
+              {autoGoal} kcal{" "}
+              <span className="text-muted-foreground font-normal">· mantenimiento {autoResult.tdee}</span>
+            </p>
+          </div>
+        </button>
+        {/* Botón propio: el tap de la card sigue llevando a Mi dieta. */}
+        <button
+          onClick={() => setGoalSheet(true)}
+          className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
+        >
+          Cambiar
+        </button>
+      </motion.div>
     ) : (
       missingProfileCta
     );
+
+  const goalSheetEl = autoInputs && autoResult && (
+    <CalorieGoalSheet
+      open={goalSheet}
+      onClose={() => setGoalSheet(false)}
+      inputs={autoInputs}
+      autoTarget={autoResult.target}
+      autoPreset={preset}
+      current={goalPref}
+      onSave={saveGoal}
+    />
+  );
 
   const historyEntry = (
     <motion.button
@@ -461,29 +507,34 @@ export default function Nutrition() {
 
             {/* Meta de calorías calculada SOLA desde el onboarding (Harris-Benedict) */}
             {autoGoal != null && autoResult && (
-              <motion.button
-                variants={fadeUp}
-                onClick={() => navigate("/nutrition/my-diet")}
-                className="w-full text-left card-hero rounded-3xl p-5 active:scale-[0.99] transition-transform"
-              >
+              <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
-                    <Sparkles className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
-                      Tus calorías objetivo
-                    </p>
-                    <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
-                      <CountUp value={autoGoal} />
-                      <span className="text-sm font-bold text-muted-foreground"> kcal</span>
-                    </p>
-                    <p className="text-sm text-foreground/70 mt-0.5">
-                      Según tu perfil · mantenimiento{" "}
-                      <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
-                    </p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  <button
+                    onClick={() => navigate("/nutrition/my-diet")}
+                    className="flex items-center gap-4 flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
+                      <Sparkles className="w-6 h-6 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
+                      <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
+                        <CountUp value={autoGoal} />
+                        <span className="text-sm font-bold text-muted-foreground"> kcal</span>
+                      </p>
+                      <p className="text-sm text-foreground/70 mt-0.5">
+                        {goalPref.kind === "auto" ? "Según tu perfil" : "Elegido por vos"} · mantenimiento{" "}
+                        <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                      </p>
+                    </div>
+                  </button>
+                  {/* Botón propio: el tap de la card sigue llevando a Mi dieta. */}
+                  <button
+                    onClick={() => setGoalSheet(true)}
+                    className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
+                  >
+                    Cambiar
+                  </button>
                 </div>
                 {autoMacros && (
                   <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06]">
@@ -501,7 +552,7 @@ export default function Nutrition() {
                     ))}
                   </div>
                 )}
-              </motion.button>
+              </motion.div>
             )}
 
             {autoGoal == null && missingProfileCta}
@@ -512,6 +563,7 @@ export default function Nutrition() {
           </div>
 
           {foodSheet}
+          {goalSheetEl}
         </motion.div>
       </AppShell>
     );
@@ -792,6 +844,7 @@ export default function Nutrition() {
         })()}
 
         {foodSheet}
+        {goalSheetEl}
       </motion.div>
     </AppShell>
   );
