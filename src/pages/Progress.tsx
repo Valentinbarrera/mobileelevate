@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
+  Activity,
   Ruler,
   Camera,
   CalendarCheck,
@@ -354,7 +355,9 @@ const Progress = () => {
               title="Accesos rápidos"
               actions={[
                 { icon: Camera, label: "Fotos", to: "/progress/photos" },
-                { icon: Ruler, label: "Medidas", to: "/measurements" },
+                // "Mediciones" (carga manual) ya está en el header de esta
+                // página, así que acá va la antropometría del informe.
+                { icon: Activity, label: "Antropometría", to: "/antropometria" },
                 { icon: CalendarDays, label: "Actividad", to: "/progress/activity" },
                 { icon: Apple, label: "Nutrición", to: "/nutrition/history" },
               ]}
