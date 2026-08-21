@@ -8,7 +8,8 @@
 -- No hay estados a medias.
 --
 -- Verificado contra la base real antes de generarlo:
---   • Las 9 tablas que crea NO existen hoy.
+--   • Las 9 tablas del cuerpo NO existen hoy (device_tokens, del bloque 0,
+--     puede existir ya: es idempotente).
 --   • Las tablas y columnas que toca (índices, policies) SÍ existen.
 --   • Ningún bloque DO/DECLARE (el auto-RLS del editor los rompe).
 --
@@ -19,6 +20,54 @@
 --                      entrenos propios / antropometría dejan de vivir sólo en el
 --                      teléfono y sobreviven a un cambio de dispositivo.
 -- ############################################################################
+
+
+-- ############################################################################
+-- 0/7 · device_tokens (push notifications)
+-- fuente: scripts/setup-push-tokens.sql
+-- ############################################################################
+-- Va PRIMERO por una razón concreta: el bloque 7/7 le crea un índice a esta
+-- tabla y delete_my_account() la referencia. Si no existiera, ese CREATE INDEX
+-- falla y, como el editor corre todo en UNA transacción, se cae la migración
+-- ENTERA. Con `create table if not exists` no rompe nada si ya estaba.
+
+-- ============================================================================
+-- SETUP: Tokens de dispositivo para push notifications
+-- ----------------------------------------------------------------------------
+-- Ejecutar UNA vez en el SQL Editor del dashboard de Supabase / Lovable Cloud
+-- (proyecto gssgoeaupfssexhliazy).
+--
+-- La app (src/lib/pushNotifications.ts) guarda acá el device token de cada
+-- alumno. El backend del coach usa estos tokens para enviar avisos (nueva
+-- rutina, feedback, mensaje) vía APNs/FCM. Se vincula por EMAIL, igual que el
+-- resto del modelo (los alumnos no tienen user_id).
+-- ============================================================================
+
+create table if not exists public.device_tokens (
+  token      text primary key,
+  email      text not null,
+  platform   text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.device_tokens enable row level security;
+
+-- El alumno solo puede ver/gestionar SUS propios tokens (email = auth.email()).
+drop policy if exists "device_tokens_select_own" on public.device_tokens;
+create policy "device_tokens_select_own" on public.device_tokens
+  for select to authenticated using (email = auth.email());
+
+drop policy if exists "device_tokens_insert_own" on public.device_tokens;
+create policy "device_tokens_insert_own" on public.device_tokens
+  for insert to authenticated with check (email = auth.email());
+
+drop policy if exists "device_tokens_update_own" on public.device_tokens;
+create policy "device_tokens_update_own" on public.device_tokens
+  for update to authenticated using (email = auth.email()) with check (email = auth.email());
+
+drop policy if exists "device_tokens_delete_own" on public.device_tokens;
+create policy "device_tokens_delete_own" on public.device_tokens
+  for delete to authenticated using (email = auth.email());
 
 
 -- ############################################################################
