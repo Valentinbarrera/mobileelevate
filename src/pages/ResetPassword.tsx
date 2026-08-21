@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { getAppOrigin } from "@/lib/appUrl";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const ResetPassword = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
+        redirectTo: `${getAppOrigin()}/update-password`,
       });
 
       if (error) throw error;
