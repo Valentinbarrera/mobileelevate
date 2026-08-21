@@ -254,3 +254,33 @@ drop trigger if exists trg_anthro_measurements_updated_at on public.anthropometr
 create trigger trg_anthro_measurements_updated_at
   before update on public.anthropometry_measurements
   for each row execute function public.set_evaluations_updated_at();
+
+
+-- =====================================================
+-- 5. STORAGE: bucket privado para los archivos originales
+-- =====================================================
+-- Lo usa la WEB del coach, que guarda el Excel que subió: la ruta es
+-- {coach_id}/{student_id}/{archivo}. La app del alumno hoy NO sube el PDF
+-- (sólo guarda el nombre del archivo en `source_file_name`), pero el alumno
+-- necesita poder LEER el archivo que subió su coach.
+insert into storage.buckets (id, name, public)
+values ('evaluations', 'evaluations', false)
+on conflict (id) do nothing;
+
+drop policy if exists "Coaches manage evaluation files" on storage.objects;
+create policy "Coaches manage evaluation files"
+  on storage.objects
+  for all
+  using (bucket_id = 'evaluations' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'evaluations' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Students read their evaluation files" on storage.objects;
+create policy "Students read their evaluation files"
+  on storage.objects
+  for select
+  using (
+    bucket_id = 'evaluations'
+    and (storage.foldername(name))[2] in (
+      select id::text from public.students where email = auth.email()
+    )
+  );

@@ -42,7 +42,31 @@ const toRow = (studentId: string, d: OnboardingData): Record<string, unknown> =>
   program_weeks: d.programWeeks,
   completed_at: d.completedAt,
   updated_at: new Date().toISOString(),
+  // Los tres que usa el generador de plan. Sus columnas las agrega
+  // scripts/add-onboarding-plan-fields.sql; si todavía no se corrió, el upsert
+  // reintenta sin ellas (ver saveOnboardingRemote) en vez de perder todo el
+  // cuestionario por una columna que no existe.
+  session_minutes: d.sessionMinutes,
+  injury_severity: d.injurySeverity,
+  avoided_exercises: d.avoidedExercises,
 });
+
+/** Las tres columnas que puede no tener todavía la tabla. */
+const PLAN_FIELDS = ["session_minutes", "injury_severity", "avoided_exercises"] as const;
+
+const withoutPlanFields = (row: Record<string, unknown>): Record<string, unknown> => {
+  const copy = { ...row };
+  for (const f of PLAN_FIELDS) delete copy[f];
+  return copy;
+};
+
+/** ¿El error es "esa columna no existe"? (Postgres 42703 / mensaje de PostgREST) */
+const isUndefinedColumn = (error: unknown): boolean => {
+  const e = error as { code?: string; message?: string } | null;
+  if (!e) return false;
+  if (e.code === "42703") return true;
+  return typeof e.message === "string" && /column .* does not exist/i.test(e.message);
+};
 
 const num = (v: unknown): number | null => (v == null ? null : Number(v));
 const str = (v: unknown): string => (v == null ? "" : String(v));
@@ -70,6 +94,9 @@ const fromRow = (r: Record<string, unknown>): OnboardingData => ({
   split: (r.split as string) ?? null,
   programWeeks: num(r.program_weeks),
   completedAt: (r.completed_at as string) ?? null,
+  sessionMinutes: num(r.session_minutes),
+  injurySeverity: (r.injury_severity as OnboardingData["injurySeverity"]) ?? null,
+  avoidedExercises: arr(r.avoided_exercises),
 });
 
 /** Trae el cuestionario del alumno desde Supabase (null si no hay o falla). */
@@ -86,8 +113,15 @@ export async function fetchOnboardingRemote(studentId: string): Promise<Onboardi
 /** Guarda (upsert) el cuestionario del alumno en Supabase. */
 export async function saveOnboardingRemote(studentId: string, d: OnboardingData): Promise<boolean> {
   try {
-    const { error } = await sb.from(TABLE).upsert(toRow(studentId, d), { onConflict: "student_id" });
+    const row = toRow(studentId, d);
+    const { error } = await sb.from(TABLE).upsert(row, { onConflict: "student_id" });
     if (error) {
+      // Todavía no se corrió add-onboarding-plan-fields.sql: guardamos igual el
+      // resto del cuestionario en vez de perderlo entero por tres columnas.
+      if (isUndefinedColumn(error)) {
+        const retry = await sb.from(TABLE).upsert(withoutPlanFields(row), { onConflict: "student_id" });
+        if (!retry.error) return true;
+      }
       if (import.meta.env.DEV) console.warn("onboarding remote save failed:", error);
       return false;
     }

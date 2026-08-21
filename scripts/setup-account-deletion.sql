@@ -53,10 +53,17 @@ begin
   -- van primero: cuelgan de la sesión.
   begin delete from public.own_workout_sets where session_id in (select id from public.own_workout_sessions where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
   begin delete from public.own_workout_sessions where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
+  -- Evaluaciones de antropometría (scripts/setup-evaluations.sql). Las mediciones
+  -- cuelgan de la evaluación, así que van primero.
+  begin delete from public.anthropometry_measurements where evaluation_id in (select id from public.evaluations where student_id in (select id from public.students where email = auth.email())); exception when others then null; end;
+  begin delete from public.evaluations where student_id in (select id from public.students where email = auth.email()); exception when others then null; end;
   begin delete from public.students where email = auth.email(); exception when others then null; end;
 
-  -- ── Fotos del storage (bucket privado, carpeta = uid) ────────────────────
+  -- ── Archivos del storage (buckets privados) ──────────────────────────────
+  -- Fotos de progreso: la carpeta es el uid del alumno.
   begin delete from storage.objects where bucket_id = 'progress-photos' and owner = auth.uid(); exception when others then null; end;
+  -- Informes de antropometría: los sube el alumno (owner) o el coach.
+  begin delete from storage.objects where bucket_id = 'evaluations' and owner = auth.uid(); exception when others then null; end;
 
   -- ── El usuario de auth (login + identidades + sesiones) ──────────────────
   delete from auth.users where id = auth.uid();
