@@ -1,21 +1,28 @@
 /**
- * Check-ins post-entreno. El alumno registra cómo le fue (esfuerzo/RPE, energía,
- * sueño + nota). Son datos de recuperación que el coach usa para ajustar el plan.
- * Guardado LOCAL + dual-write best-effort a Supabase (tabla daily_tracking) para
- * que el coach los vea — requiere correr scripts/setup-daily-tracking.sql.
+ * Check-ins post-entreno. El alumno registra cómo le fue (esfuerzo/RPE, cómo
+ * terminó y cómo se sintieron las cargas + nota). Son datos que el coach usa
+ * para ajustar el plan. Guardado LOCAL + dual-write best-effort a Supabase
+ * (tabla daily_tracking) — requiere correr scripts/setup-daily-tracking.sql.
  */
 import { upsertCheckInRemote } from "./dailyTrackingApi";
 
 export interface CheckInData {
   rpe: number; // 1-10 esfuerzo percibido
-  energy: number; // 1-5
-  sleep: number; // 1-5
+  energy: number; // 1-5 cómo terminó
+  /**
+   * 1-5, cómo se sintieron los pesos (1 muy livianos … 5 no pude).
+   * Reemplazó a "¿cómo dormiste?": el sueño ya se pregunta ANTES de entrenar en
+   * el readiness, que es cuando sirve, y acá no decía nada del entreno.
+   */
+  load: number;
   note: string;
 }
 
 export interface CheckIn extends CheckInData {
   date: string; // YYYY-MM-DD
   workoutName: string;
+  /** Check-ins viejos, de cuando se preguntaba el sueño acá. Sólo de lectura. */
+  sleep?: number;
 }
 
 const keyFor = (studentId: string) => `elevate_checkins_${studentId}`;
@@ -42,7 +49,7 @@ export function saveCheckIn(studentId: string, entry: CheckIn) {
     date: entry.date,
     rpe: entry.rpe,
     energy: entry.energy,
-    sleep: entry.sleep,
+    load: entry.load,
     note: entry.note,
     workoutName: entry.workoutName,
   });

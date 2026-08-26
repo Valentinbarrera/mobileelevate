@@ -40,9 +40,23 @@ export interface CheckInRemote {
   date: string;
   rpe: number;
   energy: number;
-  sleep: number;
+  /** Cómo se sintieron las cargas (1-5). Ver abajo por qué viaja en la nota. */
+  load: number;
   note: string;
   workoutName: string;
+}
+
+const LOAD_LABEL = ["", "muy livianas", "livianas", "justas", "pesadas", "no pude"];
+
+/**
+ * `daily_tracking` no tiene columna para las cargas y la base está congelada,
+ * así que el dato viaja al principio de la nota para que el coach lo vea igual.
+ * Cuando se pueda tocar el schema, esto sale de acá y se va a su columna.
+ */
+export function composeNote(c: CheckInRemote): string | null {
+  const carga = c.load > 0 ? `Cargas: ${c.load}/5 (${LOAD_LABEL[c.load]})` : "";
+  const partes = [carga, c.note].filter(Boolean);
+  return partes.length ? partes.join(" · ") : null;
 }
 
 /** Guarda el check-in de bienestar del día (no toca el agua). */
@@ -55,8 +69,7 @@ export async function upsertCheckInRemote(studentId: string, c: CheckInRemote): 
         date: c.date,
         rpe: c.rpe,
         energy: c.energy,
-        sleep: c.sleep,
-        note: c.note || null,
+        note: composeNote(c),
         workout_name: c.workoutName || null,
       },
       { onConflict: "student_id,date" }

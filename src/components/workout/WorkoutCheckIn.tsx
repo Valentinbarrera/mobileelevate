@@ -1,46 +1,71 @@
 /**
- * Check-in post-entreno: el alumno registra esfuerzo (RPE), energía, sueño y una
- * nota para el coach. Rápido y dopamínico (pocos toques). Estilo bottom-sheet.
+ * Check-in post-entreno: el alumno registra esfuerzo (RPE), cómo terminó, cómo
+ * se sintieron las cargas y una nota para el coach. Rápido (pocos toques).
+ *
+ * Dos decisiones que se ven raras si no se cuentan:
+ *  - Números, no emojis. Un 😐 no es una medida: cada uno lo lee distinto y el
+ *    coach no puede comparar dos entrenos. Los números sí, y encima quedan
+ *    consistentes con el RPE, que siempre fue 1-10.
+ *  - No se pregunta el sueño. Ya lo pregunta el readiness ANTES de entrenar,
+ *    que es cuando sirve para decidir la sesión; repetirlo al final era pedir
+ *    dos veces el mismo dato y no decía nada del entreno que acababa de pasar.
+ *    En su lugar va cómo se sintieron los pesos, que es lo que el coach usa
+ *    para subir o bajar la carga la próxima vez.
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X } from "lucide-react";
 import type { CheckInData } from "@/lib/checkins";
 
-const ENERGY = ["😫", "😕", "😐", "🙂", "🔥"];
-const SLEEP = ["😵", "😞", "😐", "😌", "😴"];
+const ENERGY_LABEL = ["", "Fundido", "Flojo", "Normal", "Bien", "Enchufado"];
+const LOAD_LABEL = ["", "Muy livianas", "Livianas", "Justas", "Pesadas", "No pude"];
 
 const rpeLabel = (v: number) => (v <= 3 ? "Fácil" : v <= 6 ? "Moderado" : v <= 8 ? "Duro" : "Al límite");
 
+/** Escala 1-5 en números, con el significado del elegido al lado del título. */
 const ScaleRow = ({
   label,
-  emojis,
+  labels,
   value,
   onChange,
 }: {
   label: string;
-  emojis: string[];
+  labels: string[];
   value: number;
   onChange: (v: number) => void;
 }) => (
   <div className="mb-5">
-    <p className="text-sm font-bold text-foreground mb-2">{label}</p>
+    <div className="flex items-center justify-between gap-3 mb-2">
+      <p className="text-sm font-bold text-foreground">{label}</p>
+      {value > 0 && (
+        <span className="text-sm font-bold text-primary shrink-0">
+          {value} · {labels[value]}
+        </span>
+      )}
+    </div>
     <div className="flex gap-2">
-      {emojis.map((e, i) => {
+      {labels.slice(1).map((_, i) => {
         const v = i + 1;
         const on = value === v;
         return (
           <button
             key={v}
             onClick={() => onChange(v)}
-            className={`flex-1 h-12 rounded-xl text-xl transition-all ${
-              on ? "bg-primary/15 ring-2 ring-primary scale-105" : "bg-secondary/60 active:bg-secondary"
+            aria-label={`${v} · ${labels[v]}`}
+            aria-pressed={on}
+            className={`flex-1 h-12 rounded-xl text-base font-bold transition-colors ${
+              on ? "bg-gradient-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
             }`}
           >
-            {e}
+            {v}
           </button>
         );
       })}
+    </div>
+    {/* Los extremos, para que el número signifique algo sin tener que tocarlo. */}
+    <div className="flex justify-between mt-1.5">
+      <span className="text-[11px] text-muted-foreground">{labels[1]}</span>
+      <span className="text-[11px] text-muted-foreground">{labels[5]}</span>
     </div>
   </div>
 );
@@ -54,10 +79,10 @@ interface WorkoutCheckInProps {
 const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
   const [rpe, setRpe] = useState(0);
   const [energy, setEnergy] = useState(0);
-  const [sleep, setSleep] = useState(0);
+  const [load, setLoad] = useState(0);
   const [note, setNote] = useState("");
 
-  const canSave = rpe > 0 || energy > 0 || sleep > 0;
+  const canSave = rpe > 0 || energy > 0 || load > 0;
 
   return (
     <AnimatePresence>
@@ -114,8 +139,18 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
               </div>
             </div>
 
-            <ScaleRow label="¿Cómo te sentís?" emojis={ENERGY} value={energy} onChange={setEnergy} />
-            <ScaleRow label="¿Cómo dormiste?" emojis={SLEEP} value={sleep} onChange={setSleep} />
+            <ScaleRow
+              label="¿Cómo terminaste?"
+              labels={ENERGY_LABEL}
+              value={energy}
+              onChange={setEnergy}
+            />
+            <ScaleRow
+              label="¿Cómo se sintieron las cargas?"
+              labels={LOAD_LABEL}
+              value={load}
+              onChange={setLoad}
+            />
 
             <textarea
               value={note}
@@ -130,7 +165,7 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
                 Saltar
               </button>
               <button
-                onClick={() => onComplete({ rpe, energy, sleep, note: note.trim() })}
+                onClick={() => onComplete({ rpe, energy, load, note: note.trim() })}
                 disabled={!canSave}
                 className="flex-1 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-transform"
               >

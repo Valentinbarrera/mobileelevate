@@ -291,17 +291,23 @@ const Progress = () => {
                   </p>
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">RPE</p>
                 </div>
+                {/* En números, igual que el check-in: un emoji no se compara
+                    contra el del entreno pasado. */}
                 <div className="text-center">
-                  <p className="text-2xl leading-none">
-                    {["—", "😫", "😕", "😐", "🙂", "🔥"][latestCheckIn.energy] || "—"}
+                  <p className="text-2xl font-black text-foreground tabular-nums leading-none">
+                    {latestCheckIn.energy ? `${latestCheckIn.energy}/5` : "—"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">Energía</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">
+                    Cómo terminó
+                  </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl leading-none">
-                    {["—", "😵", "😞", "😐", "😌", "😴"][latestCheckIn.sleep] || "—"}
+                  <p className="text-2xl font-black text-foreground tabular-nums leading-none">
+                    {latestCheckIn.load ? `${latestCheckIn.load}/5` : "—"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">Sueño</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide mt-1">
+                    Cargas
+                  </p>
                 </div>
               </div>
               {latestCheckIn.note && (
