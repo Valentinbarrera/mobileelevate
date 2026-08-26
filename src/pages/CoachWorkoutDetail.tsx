@@ -545,6 +545,16 @@ const CoachWorkoutDetail = () => {
     });
   };
 
+  /**
+   * Bloques de biserie/superserie de la sesión de HOY (los del coach + los que
+   * unió el alumno). Se calcula acá arriba porque lo necesitan tanto el render
+   * como la lógica de completar una serie.
+   */
+  const exerciseGroups = useMemo(
+    () => computeExerciseGroupsWithLinks(sessionExercises, new Set(plan.links)),
+    [sessionExercises, plan.links],
+  );
+
   const handleCompleteSet = useCallback(async (
     exerciseId: string,
     setNumber: number,
@@ -600,17 +610,46 @@ const CoachWorkoutDetail = () => {
 
       // Handle rest timer or show exercise completed modal
       if (!isCompleted) {
-        // Not completed yet - show rest timer
-        setRestDuration(exercise.restSeconds || 60);
-        
-        // Set current exercise as next for rest timer hint
-        setNextExerciseForRest({
-          name: exercise.name,
-          sets: exercise.sets,
-          reps: exercise.reps,
-        });
-        
-        setShowRestTimer(true);
+        // Una biserie se entrena alternando: A1, A2 y RECIÉN AHÍ el descanso.
+        // Hasta acá el bloque era sólo una etiqueta — la app te hacía las 3
+        // series de A1 con descanso entre medio y después las de A2, que es
+        // justo lo contrario de lo que el coach pidió.
+        const group = exerciseGroups.get(exerciseId);
+        const partner = group && group.position < group.size
+          ? sessionExercises[sessionExercises.findIndex((e) => e.id === exerciseId) + 1]
+          : null;
+        // Sólo se salta al compañero si todavía le queda algo por hacer: si ya
+        // lo terminaste (o lo salteaste), mandarte ahí sería un callejón.
+        const partnerState = partner ? newStates.get(partner.id) : null;
+        const partnerPendiente =
+          !!partner &&
+          !partnerState?.completed &&
+          (partnerState?.completedSets.length ?? 0) <
+            partner.sets + (partnerState?.extraSets || 0);
+
+        if (partner && partnerPendiente) {
+          setActiveExerciseId(partner.id);
+          toast(`Sin descanso · seguí con ${group!.letter}${group!.position + 1} · ${partner.name}`);
+        } else {
+          // Fuera de un bloque, o cerrando la vuelta: descanso normal. El cartel
+          // apunta al primero del bloque, que es con lo que se sigue.
+          const blockStart =
+            group && group.position === group.size
+              ? sessionExercises[
+                  sessionExercises.findIndex((e) => e.id === exerciseId) - (group.size - 1)
+                ]
+              : null;
+          const next = blockStart ?? exercise;
+
+          setRestDuration(exercise.restSeconds || 60);
+          setNextExerciseForRest({
+            name: next.name,
+            sets: next.sets,
+            reps: next.reps,
+          });
+          setShowRestTimer(true);
+          if (blockStart) setActiveExerciseId(blockStart.id);
+        }
       } else {
         // Exercise completed - show celebration modal
         const currentIndex = sessionExercises.findIndex(e => e.id === exerciseId);
@@ -636,7 +675,7 @@ const CoachWorkoutDetail = () => {
     });
 
     return savedSuccessfully;
-  }, [routineDay, sessionExercises, plan, session, persistSet]);
+  }, [routineDay, sessionExercises, plan, session, persistSet, exerciseGroups]);
 
   // Editar una serie ya cargada (modificar kg/reps sobre la marcha)
   const handleUpdateSet = useCallback(async (
@@ -982,7 +1021,6 @@ const CoachWorkoutDetail = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
   const hasPlanChanges = planHasChanges(plan);
-  const exerciseGroups = computeExerciseGroupsWithLinks(exercises, new Set(plan.links));
   const completedExercises = exercises.filter(e => exerciseStates.get(e.id)?.completed).length;
   const totalSets = exercises.reduce((acc, e) => acc + e.sets, 0);
   const completedSets = exercises.reduce((acc, e) => {

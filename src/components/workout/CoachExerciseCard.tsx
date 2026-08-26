@@ -135,6 +135,14 @@ const CoachExerciseCard = ({
   const [noteOpen, setNoteOpen] = useState(false);
   const [athleteNote, setAthleteNote] = useState<ExerciseNote | null>(null);
   const [expanded, setExpanded] = useState(isActive);
+
+  // Cuando la card pasa a ser la activa se abre sola. `useState(isActive)` sólo
+  // corre al montar, así que el ejercicio al que te manda la app —el salto de
+  // una biserie, sin ir más lejos— quedaba marcado como activo pero cerrado, y
+  // había que tocarlo igual para registrar la serie.
+  useEffect(() => {
+    if (isActive) setExpanded(true);
+  }, [isActive]);
   const [lastPerformance, setLastPerformance] = useState<PerformanceRecord | null>(null);
   const [personalRecord, setPersonalRecord] = useState<PerformanceRecord | null>(null);
 
