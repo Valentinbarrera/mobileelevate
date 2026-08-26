@@ -173,3 +173,27 @@ export function getLoggedHistory(studentId: string): LoggedDay[] {
 export function countSetsOn(studentId: string, exerciseId: string, date: string): number {
   return read(studentId).filter((s) => s.exerciseId === exerciseId && s.date === date).length;
 }
+
+/**
+ * Nombre del ultimo ejercicio anotado. Lo usa el anotador cuando el mensaje no
+ * lo repite: escribis "sentadilla 100x8" y despues solo "100x7".
+ */
+export function getLastLoggedName(studentId: string): string | null {
+  const all = read(studentId);
+  for (let i = all.length - 1; i >= 0; i--) {
+    const name = all[i].name ?? nameFromId(all[i].exerciseId);
+    if (name) return name;
+  }
+  return null;
+}
+
+/** Las ultimas series anotadas, de la mas nueva a la mas vieja. */
+export function getRecentLoggedSets(studentId: string, limit = 3): (LoggedSet & { name: string })[] {
+  const out: (LoggedSet & { name: string })[] = [];
+  const all = read(studentId);
+  for (let i = all.length - 1; i >= 0 && out.length < limit; i--) {
+    const name = all[i].name ?? nameFromId(all[i].exerciseId);
+    if (name) out.push({ ...all[i], name });
+  }
+  return out;
+}

@@ -10,6 +10,8 @@ import {
   Dumbbell,
   CheckCircle2,
   Apple,
+  NotebookPen,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
@@ -32,6 +34,7 @@ import { useLocalBodyLog } from "@/hooks/useLocalBodyLog";
 import { usePRData } from "@/hooks/usePRData";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getLatestCheckIn } from "@/lib/checkins";
+import { getRecentLoggedSets } from "@/lib/workoutLog";
 import { getLatestReadiness } from "@/lib/readiness";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { useIsDesktop } from "@/hooks/use-media-query";
@@ -53,6 +56,7 @@ const Progress = () => {
   const { student, isAdminMode } = useAuthContext();
   const sid = student?.id || (isAdminMode ? "admin" : "anon");
   const latestCheckIn = getLatestCheckIn(sid);
+  const anotadas = getRecentLoggedSets(sid, 3);
   const latestReadiness = getLatestReadiness(sid);
   const [range, setRange] = useState(0); // 0 = todo · 30 = 1M · 90 = 3M
 
@@ -277,6 +281,38 @@ const Progress = () => {
             </motion.div>
           );
 
+          // Lo que el alumno anota suelto también es progreso: sin esto, el
+          // anotador era un cuaderno que no le contaba nada al resto de la app.
+          const anotador = anotadas.length > 0 && (
+            <motion.button
+              variants={fadeUp}
+              onClick={() => navigate("/anotador")}
+              className="w-full text-left card-elevated rounded-2xl p-4 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="accent-bar" />
+                <h3 className="text-sm font-black text-foreground tracking-tight">Anotador</h3>
+                <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
+                  últimas series <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {anotadas.map((s) => (
+                  <div
+                    key={s.exerciseId + s.date + s.setNumber}
+                    className="flex items-center gap-2.5"
+                  >
+                    <NotebookPen className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-sm font-semibold text-foreground truncate">{s.name}</span>
+                    <span className="ml-auto text-sm text-foreground/70 tabular-nums shrink-0">
+                      {s.weight > 0 ? s.weight + " kg × " + s.reps : s.reps + " reps"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.button>
+          );
+
           const wellbeing = latestCheckIn && (
             <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -390,6 +426,7 @@ const Progress = () => {
                     {prs}
                     {energyDaily}
                     {wellbeing}
+                    {anotador}
                   </div>
                 </div>
               </div>
@@ -411,6 +448,7 @@ const Progress = () => {
               {historyList}
               {energyDaily}
               {wellbeing}
+              {anotador}
             </div>
           );
         })()}
