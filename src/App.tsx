@@ -37,6 +37,7 @@ const Profile = React.lazy(() => import("./pages/Profile"));
 const QuestionnaireSummary = React.lazy(() => import("./pages/QuestionnaireSummary"));
 const Messages = React.lazy(() => import("./pages/Messages"));
 const Measurements = React.lazy(() => import("./pages/Measurements"));
+const QuickLog = React.lazy(() => import("./pages/QuickLog"));
 const Anthropometry = React.lazy(() => import("./pages/Anthropometry"));
 const AnthropometryUpload = React.lazy(() => import("./pages/AnthropometryUpload"));
 const Nutrition = React.lazy(() => import("./pages/Nutrition"));
@@ -117,6 +118,7 @@ const App = () => {
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/progress/photos" element={<ProtectedRoute><ProgressPhotos /></ProtectedRoute>} />
               <Route path="/progress/activity" element={<ProtectedRoute><ActivityHistory /></ProtectedRoute>} />
+              <Route path="/anotador" element={<ProtectedRoute><QuickLog /></ProtectedRoute>} />
               <Route path="/measurements" element={<ProtectedRoute><Measurements /></ProtectedRoute>} />
               <Route path="/antropometria" element={<ProtectedRoute><Anthropometry /></ProtectedRoute>} />
               <Route path="/antropometria/subir" element={<ProtectedRoute><AnthropometryUpload /></ProtectedRoute>} />

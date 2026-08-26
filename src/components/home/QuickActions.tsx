@@ -5,7 +5,7 @@
  */
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Scale, Ruler, Dumbbell, type LucideIcon } from "lucide-react";
+import { Scale, Ruler, Dumbbell, NotebookPen, type LucideIcon } from "lucide-react";
 import { fadeUp } from "@/lib/animations";
 
 export type QuickAction = {
@@ -17,6 +17,10 @@ export type QuickAction = {
 // Sin "Nutrición": ya es una pestaña de la barra inferior, y repetirla acá
 // hacía que el alumno no encontrara la diferencia entre una y otra.
 const DEFAULT_ACTIONS: QuickAction[] = [
+  // Primero el anotador: es lo único de acá que se usa CON el celular en la
+  // mano en medio de la serie, y hasta ahora vivía enterrado adentro de la card
+  // de programas propios.
+  { icon: NotebookPen, label: "Anotador", to: "/anotador" },
   { icon: Dumbbell, label: "Ejercicios", to: "/exercises" },
   { icon: Scale, label: "Peso", to: "/progress" },
   { icon: Ruler, label: "Medidas", to: "/measurements" },

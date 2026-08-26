@@ -12,6 +12,13 @@ export interface LoggedSet {
   setNumber: number;
   weight: number;
   reps: number;
+  /**
+   * Nombre legible del ejercicio. Opcional porque las series viejas no lo
+   * tienen: sin esto el historial del anotador mostraría UUIDs. Para los
+   * ejercicios libres se puede reconstruir del id (`free:press-banca`), pero
+   * pierde acentos y mayúsculas, así que las nuevas lo guardan tal cual.
+   */
+  name?: string;
 }
 
 const keyFor = (studentId: string) => `elevate_workoutlog_${studentId}`;
@@ -116,4 +123,53 @@ export function getPR(
   if (!sets.length) return null;
   const pr = sets.reduce((max, s) => (s.weight > max.weight ? s : max), sets[0]);
   return { maxWeight: pr.weight, maxReps: pr.reps };
+}
+
+/** Id de un ejercicio anotado a mano. Igual que en el entreno libre. */
+export const freeExerciseId = (name: string) =>
+  "free:" + name.trim().toLowerCase().replace(/\s+/g, "-");
+
+/** Reconstruye un nombre presentable de un id libre: `free:press-banca` → "Press banca". */
+function nameFromId(exerciseId: string): string | null {
+  if (!exerciseId.startsWith("free:")) return null;
+  const raw = exerciseId.slice(5).replace(/-/g, " ").trim();
+  return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : null;
+}
+
+export interface LoggedDay {
+  date: string;
+  sets: (LoggedSet & { name: string })[];
+}
+
+/**
+ * Todo lo anotado, agrupado por día (del más reciente al más viejo).
+ *
+ * Deja afuera las series sin nombre resoluble: son las del plan del coach,
+ * cuyo id es un uuid de `routine_exercises` que acá no significa nada. Ésas ya
+ * se ven dentro de su rutina; el anotador muestra lo que anotaste vos.
+ */
+export function getLoggedHistory(studentId: string): LoggedDay[] {
+  const byDate = new Map<string, (LoggedSet & { name: string })[]>();
+
+  // Se recorre al revés para que dentro del día quede primero lo último
+  // anotado. Ordenar por `setNumber` no sirve: es por ejercicio, así que la
+  // serie 1 de lo que acabás de anotar caía abajo de la serie 3 de lo anterior.
+  const all = read(studentId);
+  for (let i = all.length - 1; i >= 0; i--) {
+    const s = all[i];
+    const name = s.name ?? nameFromId(s.exerciseId);
+    if (!name) continue;
+    const list = byDate.get(s.date) ?? [];
+    list.push({ ...s, name });
+    byDate.set(s.date, list);
+  }
+
+  return [...byDate.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([date, sets]) => ({ date, sets }));
+}
+
+/** Cuántas series lleva ese ejercicio ese día (para numerar la siguiente). */
+export function countSetsOn(studentId: string, exerciseId: string, date: string): number {
+  return read(studentId).filter((s) => s.exerciseId === exerciseId && s.date === date).length;
 }
