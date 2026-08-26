@@ -21,15 +21,8 @@ import FoodLogSection from "@/components/nutrition/FoodLogSection";
 import CalorieGoalSheet from "@/components/nutrition/CalorieGoalSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { loadOnboarding } from "@/lib/onboarding";
-import { inputsFromOnboarding, defaultModeForGoal, computeTarget, suggestMacros } from "@/lib/nutritionCalc";
-import {
-  loadCalorieGoal,
-  saveCalorieGoal,
-  MODE_LABEL,
-  type CalorieGoalPref,
-} from "@/lib/calorieGoal";
+import { useCalorieGoal } from "@/hooks/useCalorieGoal";
+import { AUTO, MODE_LABEL, scaleMacros } from "@/lib/calorieGoal";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import {
   useStudentNutrition,
@@ -324,33 +317,23 @@ export default function Nutrition() {
   const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
     useDailyNutritionTracking();
   const [showFoodSheet, setShowFoodSheet] = useState(false);
-  const { student, isAdminMode } = useAuthContext();
-  const sid = student?.id || (isAdminMode ? "admin" : "anon");
-
-  // Meta automática desde el onboarding (Harris-Benedict, sin IA). Sólo se usa en
-  // el layout "sin plan del coach"; si hay plan, la meta la pone el coach.
-  const ob = loadOnboarding(sid);
-  const autoInputs = inputsFromOnboarding(ob);
-  const preset = defaultModeForGoal(ob.goal);
-  const autoResult = autoInputs ? computeTarget(autoInputs, preset.mode, preset.adjust) : null;
-
-  // Lo que el alumno eligió gana sobre el cálculo: sabe cosas que el
-  // cuestionario no pregunta (viene de volumen, se lo dio un nutricionista…).
-  const [goalPref, setGoalPref] = useState<CalorieGoalPref>(() => loadCalorieGoal(sid));
+  // Meta calórica del alumno, ya resuelta contra el plan del coach: con plan
+  // asignado manda el coach, salvo que el alumno haya elegido la suya a
+  // propósito. El Historial pide exactamente lo mismo al mismo hook.
+  const coachTarget = plan?.calories_target ?? null;
+  const {
+    pref: goalPref,
+    save: saveGoal,
+    inputs: autoInputs,
+    autoPreset: preset,
+    autoResult,
+    estimate: autoGoal,
+    macros: autoMacros,
+    resolved: goal,
+  } = useCalorieGoal(coachTarget);
   const [goalSheet, setGoalSheet] = useState(false);
-
-  const chosenResult =
-    autoInputs && goalPref.kind === "preset"
-      ? computeTarget(autoInputs, goalPref.mode, goalPref.adjust)
-      : autoResult;
-  const autoGoal =
-    goalPref.kind === "manual" ? goalPref.calories : chosenResult?.target ?? null;
-  const autoMacros = autoGoal != null && autoInputs ? suggestMacros(autoGoal, autoInputs.weightKg) : null;
-
-  const saveGoal = (pref: CalorieGoalPref) => {
-    saveCalorieGoal(sid, pref);
-    setGoalPref(pref);
-  };
+  /** Sin datos del perfil no hay cálculo, así que no hay nada que elegir. */
+  const canChooseGoal = Boolean(autoInputs && autoResult);
 
   const myDietEntry = (
     <motion.button
@@ -433,6 +416,7 @@ export default function Nutrition() {
       inputs={autoInputs}
       autoTarget={autoResult.target}
       autoPreset={preset}
+      coachTarget={coachTarget}
       current={goalPref}
       onSave={saveGoal}
     />
@@ -593,12 +577,26 @@ export default function Nutrition() {
       return next;
     });
 
-  const caloriesLeft = Math.round((plan.calories_target ?? 0) - dayTotals.calories);
+  // El número que manda sale del hook, no del plan a secas: la card grande
+  // seguía diciendo "de 2500" aunque el alumno hubiera elegido 2800.
+  const usingOwnGoal = goal.source === "own";
+  const effectiveGoal = goal.calories ?? 0;
+
+  const caloriesLeft = Math.round(effectiveGoal - dayTotals.calories);
 
   const caloriesPct =
-    plan.calories_target && plan.calories_target > 0
-      ? Math.min(100, (dayTotals.calories / plan.calories_target) * 100)
-      : 0;
+    effectiveGoal > 0 ? Math.min(100, (dayTotals.calories / effectiveGoal) * 100) : 0;
+
+  // Con meta propia los macros del coach ya no cierran con el total: se sugieren
+  // desde el peso y, si faltan datos del perfil, se reescalan al nuevo objetivo.
+  const planMacros = {
+    protein: plan.protein_target,
+    carbs: plan.carbs_target,
+    fats: plan.fats_target,
+  };
+  const macroTargets = usingOwnGoal
+    ? autoMacros ?? scaleMacros(planMacros, plan.calories_target, effectiveGoal)
+    : planMacros;
 
   return (
     <AppShell>
@@ -631,7 +629,7 @@ export default function Nutrition() {
             </div>
           );
 
-          const macroSummary = plan.calories_target && (
+          const macroSummary = effectiveGoal > 0 && (
             <motion.div
               variants={fadeUp}
               className="card-hero rounded-3xl p-5"
@@ -654,7 +652,7 @@ export default function Nutrition() {
                     <span className="text-sm font-bold text-muted-foreground"> kcal</span>
                   </p>
                   <p className="text-sm text-foreground/70 mt-0.5 tabular-nums">
-                    {Math.round(dayTotals.calories)} de {plan.calories_target} · {checkedCount}/{totalMeals} comidas
+                    {Math.round(dayTotals.calories)} de {effectiveGoal} · {checkedCount}/{totalMeals} comidas
                   </p>
                 </div>
               </div>
@@ -664,24 +662,63 @@ export default function Nutrition() {
                 <MacroPill
                   label="Proteína"
                   value={dayTotals.protein}
-                  target={plan.protein_target}
+                  target={macroTargets.protein}
                   color="text-blue-400"
                   bar="bg-blue-400"
                 />
                 <MacroPill
                   label="Carbos"
                   value={dayTotals.carbs}
-                  target={plan.carbs_target}
+                  target={macroTargets.carbs}
                   color="text-amber-400"
                   bar="bg-amber-400"
                 />
                 <MacroPill
                   label="Grasas"
                   value={dayTotals.fats}
-                  target={plan.fats_target}
+                  target={macroTargets.fats}
                   color="text-rose-400"
                   bar="bg-rose-400"
                 />
+              </div>
+
+              {/* De quién es el número. Antes convivían dos cards con metas
+                  distintas y ninguna decía cuál mandaba. */}
+              <div className="pt-3.5 mt-3.5 border-t border-white/[0.06]">
+                {usingOwnGoal ? (
+                  // Volver ocupa su propio renglón: al lado del texto quedaba a
+                  // 150px y tanto el rótulo como el número del coach envolvían.
+                  <>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      {goalLabel}
+                    </p>
+                    {goal.coachCalories != null && (
+                      <p className="text-sm text-foreground/70 tabular-nums mt-0.5">
+                        Tu coach sugiere {goal.coachCalories} kcal
+                      </p>
+                    )}
+                    <button
+                      onClick={() => saveGoal(AUTO)}
+                      className="w-full min-h-11 mt-2.5 rounded-xl bg-secondary/50 border border-white/[0.06] text-sm font-bold text-primary active:scale-[0.98] transition-transform"
+                    >
+                      Volver a la meta de tu coach
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Meta de tu coach
+                    </p>
+                    {canChooseGoal && (
+                      <button
+                        onClick={() => setGoalSheet(true)}
+                        className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
+                      >
+                        Cambiar
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           );
@@ -812,7 +849,7 @@ export default function Nutrition() {
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {daySelector}
                     {macroSummary}
-                    {caloriesEstimate}
+                    {!canChooseGoal && missingProfileCta}
                     {myDietEntry}
                     {historyEntry}
                     {waterTracker}
@@ -834,7 +871,7 @@ export default function Nutrition() {
               {dayNotes}
               {mealsBlock}
               {foodLogSection}
-              {caloriesEstimate}
+              {!canChooseGoal && missingProfileCta}
               {myDietEntry}
               {historyEntry}
               {waterTracker}

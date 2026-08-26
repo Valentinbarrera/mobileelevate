@@ -36,11 +36,25 @@ interface Props {
   autoTarget: number;
   /** Modo y ajuste que derivó el cuestionario, para abrir mostrando ese número. */
   autoPreset: { mode: CalorieGoalMode; adjust: number };
+  /**
+   * Meta del plan del coach, si hay. Cambia qué significa "volver": con plan
+   * asignado, resetear devuelve el mando al coach, no al cuestionario.
+   */
+  coachTarget?: number | null;
   current: CalorieGoalPref;
   onSave: (pref: CalorieGoalPref) => void;
 }
 
-const CalorieGoalSheet = ({ open, onClose, inputs, autoTarget, autoPreset, current, onSave }: Props) => {
+const CalorieGoalSheet = ({
+  open,
+  onClose,
+  inputs,
+  autoTarget,
+  autoPreset,
+  coachTarget,
+  current,
+  onSave,
+}: Props) => {
   const [choice, setChoice] = useState<Choice>("maintain");
   const [adjust, setAdjust] = useState(500);
   const [manual, setManual] = useState("");
@@ -89,9 +103,11 @@ const CalorieGoalSheet = ({ open, onClose, inputs, autoTarget, autoPreset, curre
     onClose();
   };
 
+  const hayPlan = coachTarget != null && coachTarget > 0;
+
   const volverAlAutomatico = () => {
     onSave(AUTO);
-    toast("Volviste al objetivo del cuestionario");
+    toast(hayPlan ? "Volviste a la meta de tu coach" : "Volviste al objetivo del cuestionario");
     onClose();
   };
 
@@ -220,7 +236,10 @@ const CalorieGoalSheet = ({ open, onClose, inputs, autoTarget, autoPreset, curre
               onClick={volverAlAutomatico}
               className="w-full min-h-11 mt-2 flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground"
             >
-              <RotateCcw className="w-4 h-4" /> Volver al del cuestionario ({autoTarget} kcal)
+              <RotateCcw className="w-4 h-4" />{" "}
+              {hayPlan
+                ? `Volver a la de tu coach (${coachTarget} kcal)`
+                : `Volver al del cuestionario (${autoTarget} kcal)`}
             </button>
           )}
         </motion.div>

@@ -14,6 +14,7 @@ import NutritionHistoryList from "@/components/nutrition/NutritionHistoryList";
 import { useNutritionHistory } from "@/hooks/useNutritionHistory";
 import { useStudentNutrition } from "@/hooks/useStudentNutrition";
 import { useCustomDiet } from "@/hooks/useCustomDiet";
+import { useCalorieGoal } from "@/hooks/useCalorieGoal";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -45,10 +46,13 @@ export default function NutritionHistory() {
   const { isAdminMode } = useAuthContext();
   const { days, summary, loading } = useNutritionHistory();
   const { data: plan } = useStudentNutrition();
-  const { calorieGoal: ownGoal } = useCustomDiet();
+  const { calorieGoal: dietGoal } = useCustomDiet();
+  const { resolved: goal } = useCalorieGoal(plan?.calories_target ?? null);
 
-  // Objetivo para el anillo diario: plan del coach → dieta propia → fallback demo
-  const calorieGoal = plan?.calories_target ?? ownGoal ?? (isAdminMode ? 3000 : null);
+  // Objetivo para el anillo diario. Sale del MISMO hook que la card grande de
+  // Nutrición: si el alumno pisó la meta del coach, los dos anillos tienen que
+  // medir contra su número, no uno contra cada meta.
+  const calorieGoal = goal.calories ?? dietGoal ?? (isAdminMode ? 3000 : null);
 
   const statsRow = (
     <motion.div variants={fadeUp} className="flex gap-3">
