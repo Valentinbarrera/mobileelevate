@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator, Sparkles, SlidersHorizontal, UserPlus } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator, Sparkles, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
@@ -17,9 +17,7 @@ import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorShee
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useCustomDiet, sumFoods, type DietFood } from "@/hooks/useCustomDiet";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { loadOnboarding } from "@/lib/onboarding";
-import { inputsFromOnboarding, defaultModeForGoal, computeTarget, suggestMacros } from "@/lib/nutritionCalc";
+import { useCalorieGoal } from "@/hooks/useCalorieGoal";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
 const toMealType = (name: string): MealType => {
@@ -59,37 +57,33 @@ export default function MyDiet() {
     seedDefault,
   } = useCustomDiet();
   const { addFood: logFood } = useDailyNutritionTracking();
-  const { student, isAdminMode } = useAuthContext();
-  const sid = student?.id || (isAdminMode ? "admin" : "anon");
 
-  // Meta automática calculada SOLA desde el onboarding (Harris-Benedict, sin IA).
-  // No se persiste: se recalcula en cada render a partir del perfil del alumno.
-  const ob = loadOnboarding(sid);
-  const autoInputs = inputsFromOnboarding(ob);
-  const autoPreset = defaultModeForGoal(ob.goal);
-  const autoResult = autoInputs ? computeTarget(autoInputs, autoPreset.mode, autoPreset.adjust) : null;
-  const autoGoal = autoResult?.target ?? null;
-  const autoMacros = autoResult && autoInputs ? suggestMacros(autoResult.target, autoInputs.weightKg) : null;
+  // La meta sale del MISMO hook que Nutrición. Antes esta pantalla tenía su
+  // propio objetivo (useCustomDiet) y su propio editor: el alumno podía fijar
+  // 2800 acá y ver 2400 en Nutrición sin entender por qué.
+  const {
+    pref: goalPref,
+    save: saveGoalPref,
+    inputs: autoInputs,
+    autoResult,
+    estimate: autoGoal,
+    macros: autoMacros,
+    resolved: goal,
+  } = useCalorieGoal(null);
 
-  // La meta MANUAL (useCustomDiet) sigue ganando; sólo si es null se usa la automática.
-  const effectiveGoal = calorieGoal ?? autoGoal;
-  const usingAuto = calorieGoal == null && autoGoal != null;
-  const missingProfile = autoInputs == null && calorieGoal == null;
+  // `calorieGoal` es la meta vieja de esta pantalla: sigue valiendo para quien
+  // ya la tenía puesta, hasta que elija una nueva.
+  const effectiveGoal = goal.calories ?? calorieGoal;
+  const usingAuto = goalPref.kind === "auto" && calorieGoal == null && autoGoal != null;
+  const missingProfile = autoInputs == null && effectiveGoal == null;
 
   const [foodSheetMeal, setFoodSheetMeal] = useState<{ id: string; name: string } | null>(null);
   const [addingMeal, setAddingMeal] = useState(false);
   const [newMeal, setNewMeal] = useState("");
-  const [editingGoal, setEditingGoal] = useState(false);
-  const [goalInput, setGoalInput] = useState(calorieGoal ? String(calorieGoal) : "");
   const [calcOpen, setCalcOpen] = useState(false);
 
   const hasDiet = meals.length > 0;
   const goalPct = effectiveGoal ? Math.min(100, Math.round((totals.calories / effectiveGoal) * 100)) : 0;
-
-  const saveGoal = () => {
-    setCalorieGoal(parseFloat(goalInput) || null);
-    setEditingGoal(false);
-  };
 
   const confirmAddMeal = () => {
     if (newMeal.trim()) {
@@ -164,45 +158,14 @@ export default function MyDiet() {
                     </span>
                   </p>
 
-                  {/* Meta editable */}
-                  {editingGoal ? (
-                    <div className="flex items-center gap-2 mt-2">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={goalInput}
-                        onChange={(e) => setGoalInput(e.target.value)}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="kcal meta"
-                        autoFocus
-                        className="w-28 min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground focus:border-primary focus:outline-none"
-                      />
-                      <button onClick={saveGoal} className="h-11 px-4 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold flex items-center">
-                        <Check className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <button
-                        onClick={() => {
-                          setGoalInput(calorieGoal ? String(calorieGoal) : "");
-                          setEditingGoal(true);
-                        }}
-                        className="flex items-center gap-1.5 min-h-11 text-sm font-semibold text-primary"
-                      >
-                        <Target className="w-5 h-5" />
-                        {calorieGoal ? "Editar meta" : "Definí tu meta"}
-                      </button>
-                      <span className="w-px h-3.5 bg-white/10" />
-                      <button
-                        onClick={() => setCalcOpen(true)}
-                        className="flex items-center gap-1.5 min-h-11 text-sm font-semibold text-primary"
-                      >
-                        <Calculator className="w-5 h-5" />
-                        Calcular
-                      </button>
-                    </div>
-                  )}
+                  {/* Un solo camino al objetivo: el mismo sheet que Nutrición. */}
+                  <button
+                    onClick={() => setCalcOpen(true)}
+                    className="flex items-center gap-1.5 min-h-11 mt-1.5 text-sm font-semibold text-primary"
+                  >
+                    <Target className="w-5 h-5" />
+                    {effectiveGoal ? "Cambiar mi meta" : "Definí tu meta"}
+                  </button>
                 </div>
               </div>
 
@@ -467,9 +430,12 @@ export default function MyDiet() {
         <CalorieCalculatorSheet
           open={calcOpen}
           onClose={() => setCalcOpen(false)}
-          onApply={(target) => {
-            setCalorieGoal(target);
-            toast.success(`Meta fijada en ${target} kcal 🎯`);
+          current={goalPref}
+          onSave={(pref) => {
+            saveGoalPref(pref);
+            // Se limpia la meta vieja de esta pantalla para que no queden dos
+            // números compitiendo por ser el objetivo.
+            setCalorieGoal(null);
           }}
         />
       </motion.div>

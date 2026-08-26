@@ -9,7 +9,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, UserPlus } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -18,7 +18,7 @@ import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
-import CalorieGoalSheet from "@/components/nutrition/CalorieGoalSheet";
+import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useCalorieGoal } from "@/hooks/useCalorieGoal";
@@ -332,8 +332,6 @@ export default function Nutrition() {
     resolved: goal,
   } = useCalorieGoal(coachTarget);
   const [goalSheet, setGoalSheet] = useState(false);
-  /** Sin datos del perfil no hay cálculo, así que no hay nada que elegir. */
-  const canChooseGoal = Boolean(autoInputs && autoResult);
 
   const myDietEntry = (
     <motion.button
@@ -352,24 +350,6 @@ export default function Nutrition() {
     </motion.button>
   );
 
-  // CTA cuando faltan datos del perfil para el cálculo automático.
-  const missingProfileCta = (
-    <motion.button
-      variants={fadeUp}
-      onClick={() => navigate("/onboarding")}
-      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
-    >
-      <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-        <UserPlus className="w-5 h-5 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Calorías</p>
-        <p className="text-base font-semibold text-foreground">Completá tu perfil para calcularlas solas</p>
-      </div>
-      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-    </motion.button>
-  );
-
   // Estimación automática (Harris-Benedict) — se muestra SIEMPRE (con o sin plan
   // del coach). Si faltan datos del perfil, cae al CTA de completar el onboarding.
   const goalLabel =
@@ -379,47 +359,35 @@ export default function Nutrition() {
         ? `Tu objetivo · ${MODE_LABEL[goalPref.mode].toLowerCase()}`
         : "Tu estimación · Harris-Benedict";
 
-  const caloriesEstimate =
-    autoGoal != null && autoResult ? (
-      <motion.div variants={fadeUp} className="rounded-2xl card-elevated p-4 flex items-center gap-3.5">
-        <button
-          onClick={() => navigate("/nutrition/my-diet")}
-          className="flex items-center gap-3.5 flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
-        >
-          <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-            <Sparkles className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
-            <p className="text-base font-semibold text-foreground tabular-nums">
-              {autoGoal} kcal{" "}
-              <span className="text-muted-foreground font-normal">· mantenimiento {autoResult.tdee}</span>
-            </p>
-          </div>
-        </button>
-        {/* Botón propio: el tap de la card sigue llevando a Mi dieta. */}
-        <button
-          onClick={() => setGoalSheet(true)}
-          className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
-        >
-          Cambiar
-        </button>
-      </motion.div>
-    ) : (
-      missingProfileCta
-    );
-
-  const goalSheetEl = autoInputs && autoResult && (
-    <CalorieGoalSheet
+  // Se monta siempre: si faltan datos del perfil, el propio sheet ofrece
+  // completar el cuestionario en vez de que la entrada desaparezca.
+  const goalSheetEl = (
+    <CalorieCalculatorSheet
       open={goalSheet}
       onClose={() => setGoalSheet(false)}
-      inputs={autoInputs}
-      autoTarget={autoResult.target}
-      autoPreset={preset}
-      coachTarget={coachTarget}
       current={goalPref}
       onSave={saveGoal}
+      coachTarget={coachTarget}
     />
+  );
+
+  // Entrada de menú, al lado de "Mi dieta": el alumno puede llegar al objetivo
+  // sin depender de la card de arriba.
+  const calcGoalEntry = (
+    <motion.button
+      variants={fadeUp}
+      onClick={() => setGoalSheet(true)}
+      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:scale-[0.99] hover:bg-secondary/30 transition-all"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+        <Calculator className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wider">Tu objetivo</p>
+        <p className="text-base font-semibold text-foreground">Calculá tus calorías</p>
+      </div>
+      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+    </motion.button>
   );
 
   const historyEntry = (
@@ -492,34 +460,29 @@ export default function Nutrition() {
             {/* Meta de calorías calculada SOLA desde el onboarding (Harris-Benedict) */}
             {autoGoal != null && autoResult && (
               <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => navigate("/nutrition/my-diet")}
-                    className="flex items-center gap-4 flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
-                  >
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
-                      <Sparkles className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
-                      <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
-                        <CountUp value={autoGoal} />
-                        <span className="text-sm font-bold text-muted-foreground"> kcal</span>
-                      </p>
-                      <p className="text-sm text-foreground/70 mt-0.5">
-                        {goalPref.kind === "auto" ? "Según tu perfil" : "Elegido por vos"} · mantenimiento{" "}
-                        <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
-                      </p>
-                    </div>
-                  </button>
-                  {/* Botón propio: el tap de la card sigue llevando a Mi dieta. */}
-                  <button
-                    onClick={() => setGoalSheet(true)}
-                    className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
-                  >
-                    Cambiar
-                  </button>
-                </div>
+                {/* Un solo destino: tocar tu objetivo lleva a la calculadora.
+                    Antes el tap iba a Mi dieta y el número se cambiaba desde un
+                    botón aparte. */}
+                <button
+                  onClick={() => setGoalSheet(true)}
+                  className="w-full flex items-center gap-4 text-left active:scale-[0.99] transition-transform"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
+                    <Sparkles className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
+                    <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
+                      <CountUp value={autoGoal} />
+                      <span className="text-sm font-bold text-muted-foreground"> kcal</span>
+                    </p>
+                    <p className="text-sm text-foreground/70 mt-0.5">
+                      {goalPref.kind === "auto" ? "Según tu perfil" : "Elegido por vos"} · mantenimiento{" "}
+                      <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </button>
                 {autoMacros && (
                   <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06]">
                     {[
@@ -539,8 +502,8 @@ export default function Nutrition() {
               </motion.div>
             )}
 
-            {autoGoal == null && missingProfileCta}
             {myDietEntry}
+            {calcGoalEntry}
             {historyEntry}
             {foodLogSection}
             {disclaimer}
@@ -705,19 +668,15 @@ export default function Nutrition() {
                     </button>
                   </>
                 ) : (
-                  <div className="flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => setGoalSheet(true)}
+                    className="w-full flex items-center justify-between gap-3 min-h-11 -my-1 text-left active:scale-[0.99] transition-transform"
+                  >
                     <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Meta de tu coach
                     </p>
-                    {canChooseGoal && (
-                      <button
-                        onClick={() => setGoalSheet(true)}
-                        className="shrink-0 min-h-11 px-3 -mr-1 rounded-xl text-sm font-bold text-primary active:scale-95 transition-transform"
-                      >
-                        Cambiar
-                      </button>
-                    )}
-                  </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  </button>
                 )}
               </div>
             </motion.div>
@@ -849,8 +808,8 @@ export default function Nutrition() {
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {daySelector}
                     {macroSummary}
-                    {!canChooseGoal && missingProfileCta}
                     {myDietEntry}
+                    {calcGoalEntry}
                     {historyEntry}
                     {waterTracker}
                   </div>
@@ -871,8 +830,8 @@ export default function Nutrition() {
               {dayNotes}
               {mealsBlock}
               {foodLogSection}
-              {!canChooseGoal && missingProfileCta}
               {myDietEntry}
+              {calcGoalEntry}
               {historyEntry}
               {waterTracker}
               {disclaimer}
