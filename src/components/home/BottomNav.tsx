@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, LayoutGrid, X, Plus } from "lucide-react";
+import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, Plus, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
@@ -18,7 +18,9 @@ const triggerHaptic = () => {
   hapticLight();
 };
 
-/* Acciones del "speed-dial" del botón central Entrenar */
+/* Acciones del "speed-dial" del botón central Entrenar.
+   Sin "Templates": era la misma idea que "Mis programas" con otro nombre (y en
+   inglés), y los planes ya armados siguen a un toque desde el Home. */
 interface TrainAction {
   icon: typeof Home;
   label: string;
@@ -37,18 +39,9 @@ const TRAIN_ACTIONS: TrainAction[] = [
   {
     icon: PencilRuler,
     label: "Armar el mío",
-    desc: "Vos definís días, ejercicios y series.",
+    desc: "Vos elegís días y ejercicios.",
     path: "/programas/nuevo",
     hue: "217 91% 60%",
-  },
-  {
-    // Los planes ya armados existían, pero quedaban a dos toques adentro de
-    // "Mis programas": el camino más fácil para empezar era el menos visible.
-    icon: LayoutGrid,
-    label: "Templates",
-    desc: "Programas ya armados, para arrancar hoy.",
-    path: "/programas/templates",
-    hue: "142 71% 45%",
   },
   {
     icon: Flame,
@@ -228,34 +221,48 @@ const BottomNav = React.forwardRef<HTMLElement>((_, ref) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
+            {/* Filas anchas y no pastillas centradas: todas del mismo largo y
+                alineadas a la izquierda, el ojo no salta de renglón en renglón
+                y el área para tocar es la fila entera. El texto pasa a 18px con
+                su explicación abajo — antes eran 14px y la explicación estaba
+                escrita en el código pero no se mostraba. */}
             <div
-              className="absolute inset-x-0 flex flex-col items-center gap-2.5"
-              style={{ bottom: "calc(98px + env(safe-area-inset-bottom, 0px))" }}
+              className="absolute inset-x-0 px-5 flex flex-col items-center gap-2.5"
+              // 126px = la cápsula (78) + lo que el botón flotante sobresale (34) + aire.
+                style={{ bottom: "calc(126px + env(safe-area-inset-bottom, 0px))" }}
             >
               {TRAIN_ACTIONS.map((a, i) => (
                 <motion.button
                   key={a.path}
                   onClick={() => runAction(a.path)}
-                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.96 }}
                   transition={{ ...SPRING, delay: (TRAIN_ACTIONS.length - 1 - i) * 0.05 }}
-                  className="flex items-center gap-2.5 rounded-full pl-2 pr-4 py-2 active:scale-95 transition-transform"
+                  className="w-full max-w-sm min-h-[76px] flex items-center gap-3.5 rounded-3xl pl-3.5 pr-3 py-3 text-left active:scale-[0.98] transition-transform"
                   style={{
-                    background: "hsl(240 6% 12% / 0.92)",
+                    background: "hsl(240 6% 14% / 0.98)",
                     backdropFilter: "blur(20px)",
                     WebkitBackdropFilter: "blur(20px)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
+                    border: "1px solid rgba(255,255,255,0.16)",
+                    boxShadow: "0 10px 28px rgba(0,0,0,0.55)",
                   }}
                 >
                   <span
-                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: `hsl(${a.hue} / 0.18)`, border: `1px solid hsl(${a.hue} / 0.35)` }}
+                    className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center shrink-0"
+                    style={{ background: `hsl(${a.hue} / 0.20)`, border: `1px solid hsl(${a.hue} / 0.45)` }}
                   >
-                    <a.icon className="w-[17px] h-[17px]" style={{ color: `hsl(${a.hue})` }} strokeWidth={2.3} />
+                    <a.icon className="w-7 h-7" style={{ color: `hsl(${a.hue})` }} strokeWidth={2.2} />
                   </span>
-                  <span className="text-sm font-bold text-foreground whitespace-nowrap pr-0.5">{a.label}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-lg font-black text-foreground leading-tight">
+                      {a.label}
+                    </span>
+                    <span className="block text-sm text-foreground/70 leading-snug mt-0.5">
+                      {a.desc}
+                    </span>
+                  </span>
+                  <ChevronRight className="w-6 h-6 text-foreground/40 shrink-0" />
                 </motion.button>
               ))}
             </div>
