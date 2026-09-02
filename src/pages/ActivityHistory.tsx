@@ -8,7 +8,7 @@
  */
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, Flame, CalendarDays } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageLoading from "@/components/ui/page-loading";
@@ -46,7 +46,8 @@ const bestConsecutive = (days: number[]): number => {
 };
 
 export default function ActivityHistory() {
-  const navigate = useNavigate();
+  // Vuelve a Progreso si no hay historial (deep link / notificacion).
+  const goBack = useGoBack("/progress");
   const { sessions, loading } = useWorkoutDetails();
 
   const months = useMemo<MonthActivity[]>(() => {
@@ -110,16 +111,19 @@ export default function ActivityHistory() {
         initial="initial"
         animate="animate"
       >
-        {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
-          <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 py-3">
-            <button onClick={() => navigate(-1)} className="-ml-2 w-11 h-11 flex items-center justify-center text-muted-foreground" aria-label="Volver">
+        {/* Header. Estaba escrito a mano y era el único sin safe-area: en
+            iPhone el botón de volver quedaba debajo de la isla dinámica y no
+            se podía tocar. `header-safe-lg` es lo que ya usa PageHeader en el
+            resto de la app. */}
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 header-safe-lg pb-3">
+          <div className="max-w-3xl mx-auto flex items-center gap-3 px-5">
+            <button onClick={goBack} className="-ml-2 w-11 h-11 flex items-center justify-center text-muted-foreground" aria-label="Volver">
               <ArrowLeft className="w-6 h-6" />
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <Flame className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Actividad</span>
+                <span className="text-[13px] font-bold text-primary uppercase tracking-wider">Actividad</span>
               </div>
               <h1 className="text-xl font-black tracking-tight text-foreground">Historial</h1>
             </div>
@@ -143,7 +147,7 @@ export default function ActivityHistory() {
                 {/* Encabezado del mes */}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight capitalize">{m.label}</h3>
+                  <h3 className="text-lg font-black text-foreground tracking-tight capitalize">{m.label}</h3>
                   <span className="ml-auto text-sm font-black text-primary tabular-nums">{m.consistency}%</span>
                 </div>
 
