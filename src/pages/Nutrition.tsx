@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator, Pencil } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator, Pencil, ScanBarcode } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -511,6 +511,39 @@ export default function Nutrition() {
     </motion.div>
   );
 
+  // Escanear tiene card propia y grande. Estaba metido adentro de "Agregar
+  // comida" y como un cuadradito al lado del +: para lo que es —el camino más
+  // rápido que hay para registrar algo— quedaba escondido. Va en el naranja de
+  // la marca porque es la acción que más se repite en el día.
+  const scanEntry = (
+    <motion.button
+      variants={fadeUp}
+      onClick={openScanner}
+      className="w-full text-left rounded-3xl p-5 flex items-center gap-4 active:scale-[0.99] transition-transform glass-tile-accent"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-primary-foreground/20 border border-primary-foreground/30 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.25)] flex items-center justify-center shrink-0">
+        <ScanBarcode className="w-7 h-7 text-primary-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-black uppercase tracking-widest text-primary-foreground/75">
+          Lo más rápido
+        </p>
+        <p className="text-xl font-black text-primary-foreground tracking-tight leading-tight">
+          Escanear un producto
+        </p>
+        <p className="text-[13px] text-primary-foreground/80 leading-tight mt-0.5">
+          Apuntá al código de barras y se registra solo
+        </p>
+      </div>
+      <ChevronRight className="w-6 h-6 text-primary-foreground/80 shrink-0" />
+    </motion.button>
+  );
+
+  // Progreso del día contra la meta calculada (rama SIN plan del coach).
+  const autoPct =
+    autoGoal && autoGoal > 0 ? Math.min(100, (loggedTotals.calories / autoGoal) * 100) : 0;
+  const autoLeft = autoGoal ? Math.round(autoGoal - loggedTotals.calories) : 0;
+
   if (isLoading) return <PageLoading message="Cargando plan nutricional..." />;
 
   // ── Sin plan asignado: igual puede registrar lo que comió ──
@@ -539,51 +572,83 @@ export default function Nutrition() {
               </p>
             </div>
 
-            {/* Meta de calorías calculada SOLA desde el onboarding (Harris-Benedict) */}
+            {/* Meta calculada SOLA desde el cuestionario (Harris-Benedict).
+                Esta card era ESTÁTICA: mostraba el objetivo y los macros a
+                alcanzar, pero registrar comida no la movía y el alumno tenía
+                que restar de cabeza. Ahora es la misma card viva que con plan
+                del coach — anillo, lo que te queda y barras por macro — y trae
+                el botón de editar, que acá no existía. */}
             {autoGoal != null && autoResult && (
               <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
-                {/* Un solo destino: tocar tu objetivo lleva a la calculadora.
-                    Antes el tap iba a Mi dieta y el número se cambiaba desde un
-                    botón aparte. */}
-                <button
-                  onClick={() => setGoalSheet(true)}
-                  className="w-full flex items-center gap-4 text-left active:scale-[0.99] transition-transform"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0">
-                    <Sparkles className="w-6 h-6 text-primary-foreground" />
-                  </div>
+                <div className="flex items-center gap-4 mb-4">
+                  <ProgressRing progress={autoPct} size={72} stroke={7} gradientId="kcalRingAuto">
+                    <span className="text-sm font-black text-foreground leading-none tabular-nums">
+                      <CountUp value={Math.round(autoPct)} />%
+                    </span>
+                  </ProgressRing>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-primary uppercase tracking-wider">{goalLabel}</p>
+                    <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">
+                      {autoLeft >= 0 ? "Te quedan" : "Te pasaste"}
+                    </p>
                     <p className="text-3xl font-black text-foreground tabular-nums leading-tight">
-                      <CountUp value={autoGoal} />
+                      {Math.abs(autoLeft)}
                       <span className="text-sm font-bold text-muted-foreground"> kcal</span>
                     </p>
-                    <p className="text-sm text-foreground/70 mt-0.5">
-                      {goalPref.kind === "auto" ? "Según tu perfil" : "Elegido por vos"} · mantenimiento{" "}
-                      <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                    <p className="text-sm text-foreground/70 mt-0.5 tabular-nums">
+                      {Math.round(loggedTotals.calories)} de {autoGoal}
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                </button>
+                </div>
+
                 {autoMacros && (
-                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06]">
-                    {[
-                      { l: "Proteína", v: autoMacros.protein, c: "text-blue-400" },
-                      { l: "Carbos", v: autoMacros.carbs, c: "text-amber-400" },
-                      { l: "Grasas", v: autoMacros.fats, c: "text-rose-400" },
-                    ].map((m) => (
-                      <div key={m.l} className="text-center">
-                        <p className={`text-base font-black tabular-nums ${m.c}`}>{m.v}g</p>
-                        <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">
-                          {m.l}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/[0.06]">
+                    <MacroPill
+                      label="Proteína"
+                      value={loggedTotals.protein}
+                      target={autoMacros.protein}
+                      color="text-blue-400"
+                      bar="bg-blue-400"
+                    />
+                    <MacroPill
+                      label="Carbos"
+                      value={loggedTotals.carbs}
+                      target={autoMacros.carbs}
+                      color="text-amber-400"
+                      bar="bg-amber-400"
+                    />
+                    <MacroPill
+                      label="Grasas"
+                      value={loggedTotals.fats}
+                      target={autoMacros.fats}
+                      color="text-rose-400"
+                      bar="bg-rose-400"
+                    />
                   </div>
                 )}
+
+                <div className="pt-3.5 mt-3.5 border-t border-white/[0.06]">
+                  {/* Sin repetir el número: ya está arriba en "63 de 2834" y
+                      abajo en el mantenimiento. Puesto al lado del rótulo lo
+                      partía en dos líneas y lo decía tres veces. */}
+                  <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {goalLabel}
+                  </p>
+                  <p className="text-sm text-foreground/70 mt-1">
+                    {goalPref.kind === "auto" ? "Según tu perfil" : "Elegido por vos"} · mantenimiento{" "}
+                    <span className="font-bold text-foreground/80 tabular-nums">{autoResult.tdee}</span>
+                  </p>
+                  <button
+                    onClick={() => setGoalSheet(true)}
+                    className="w-full min-h-12 mt-3 rounded-2xl bg-primary/12 border border-primary/25 text-[15px] font-bold text-primary flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Editar objetivo
+                  </button>
+                </div>
               </motion.div>
             )}
 
+            {scanEntry}
             {myDietEntry}
             {calcGoalEntry}
             {historyEntry}
@@ -894,6 +959,7 @@ export default function Nutrition() {
                   <div className="col-span-5 space-y-4 lg:sticky lg:top-20">
                     {daySelector}
                     {macroSummary}
+                    {scanEntry}
                     {myDietEntry}
                     {calcGoalEntry}
                     {historyEntry}
@@ -912,6 +978,7 @@ export default function Nutrition() {
                   todavía de qué día se habla dejaba el número sin contexto. */}
               {daySelector}
               {macroSummary}
+              {scanEntry}
               {noDays}
               {dayNotes}
               {mealsBlock}
