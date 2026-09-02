@@ -281,7 +281,17 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                             inputMode="numeric"
                             value={manualValue}
                             onChange={(e) => setManualValue(e.target.value)}
-                            onFocus={(e) => e.target.select()}
+                            onFocus={(e) => {
+                              e.target.select();
+                              // El teclado tarda en levantarse; sin esperarlo, el
+                              // scroll se calcula contra la pantalla entera y el
+                              // campo vuelve a quedar tapado.
+                              const el = e.currentTarget;
+                              setTimeout(
+                                () => el.scrollIntoView({ block: "center", behavior: "smooth" }),
+                                350
+                              );
+                            }}
                             placeholder="2400"
                             className="w-full min-h-12 rounded-xl bg-background border border-white/10 px-4 text-lg font-black text-foreground tabular-nums focus:border-primary/60 focus:outline-none"
                           />
@@ -377,25 +387,34 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                     nutricionista antes de sostener un déficit o superávit.
                   </p>
 
-                  <button
-                    onClick={apply}
-                    className="w-full h-12 rounded-2xl bg-gradient-primary text-primary-foreground font-bold flex items-center justify-center gap-2 active:scale-[0.99] transition-transform mt-4"
-                  >
-                    <Check className="w-5 h-5" />
-                    {target ? `Usar ${target} kcal como meta` : "Poné un número"}
-                  </button>
-
-                  {current.kind !== "auto" && (
+                  {/* Guardar queda PEGADO al borde de abajo del sheet. Este
+                      panel es largo y el botón vivía al final de todo: con el
+                      teclado abierto había que escribir el número, cerrar el
+                      teclado y recién ahí scrollear para poder guardar.
+                      Los márgenes negativos lo sangran hasta los bordes, y el
+                      color es el del final del degradado de `card-elevated`
+                      para que no se vea el corte. */}
+                  <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 px-6 pt-3 pb-6 bg-[hsl(0_0%_6.5%)] border-t border-white/[0.06]">
                     <button
-                      onClick={volverAlAutomatico}
-                      className="w-full min-h-11 mt-2 flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground"
+                      onClick={apply}
+                      className="w-full h-12 rounded-2xl bg-gradient-primary text-primary-foreground font-bold flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
                     >
-                      <RotateCcw className="w-4 h-4" />
-                      {hayPlan
-                        ? `Volver a la meta de tu coach (${coachTarget} kcal)`
-                        : `Volver al objetivo del cuestionario (${autoTarget} kcal)`}
+                      <Check className="w-5 h-5" />
+                      {target ? `Usar ${target} kcal como meta` : "Poné un número"}
                     </button>
-                  )}
+
+                    {current.kind !== "auto" && (
+                      <button
+                        onClick={volverAlAutomatico}
+                        className="w-full min-h-11 mt-2 flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        {hayPlan
+                          ? `Volver a la meta de tu coach (${coachTarget} kcal)`
+                          : `Volver al objetivo del cuestionario (${autoTarget} kcal)`}
+                      </button>
+                    )}
+                  </div>
                 </>
               )
             )}
