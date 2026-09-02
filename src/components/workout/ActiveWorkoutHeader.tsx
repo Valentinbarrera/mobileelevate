@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Pause, Play, X, Check, Video, Eye, EyeOff, Maximize2, Minimize2 } from "lucide-react";
+import { Pause, Play, X, Check, Video, Eye, EyeOff, Maximize2, Minimize2, ChevronUp, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -59,13 +59,26 @@ interface ActiveWorkoutHeaderProps {
   onDiscard?: () => void;
 }
 
-// Preferencia local: ocultar el cronómetro de "tiempo activo" durante el entreno
+// Preferencias locales del entreno. Dos cosas distintas y a propósito:
+//  - HIDE_TIMER    → oculta SOLO el reloj, la barra sigue entera.
+//  - COLLAPSE_BAR  → pliega la BARRA COMPLETA y deja apenas el progreso.
+// Las dos se recuerdan: si alguien pliega la barra es porque le molesta, y
+// volver a plegarla en cada entreno sería pedirle lo mismo todos los días.
 const HIDE_TIMER_KEY = "elevate_hide_active_timer";
-const readHideTimer = () => {
+const COLLAPSE_BAR_KEY = "elevate_collapse_active_bar";
+
+const readFlag = (key: string) => {
   try {
-    return localStorage.getItem(HIDE_TIMER_KEY) === "1";
+    return localStorage.getItem(key) === "1";
   } catch {
     return false;
+  }
+};
+const writeFlag = (key: string, on: boolean) => {
+  try {
+    localStorage.setItem(key, on ? "1" : "0");
+  } catch {
+    /* almacenamiento no disponible */
   }
 };
 
@@ -84,19 +97,22 @@ const ActiveWorkoutHeader = ({
 }: ActiveWorkoutHeaderProps) => {
   const navigate = useNavigate();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [timerHidden, setTimerHidden] = useState(readHideTimer);
+  const [timerHidden, setTimerHidden] = useState(() => readFlag(HIDE_TIMER_KEY));
+  const [collapsed, setCollapsed] = useState(() => readFlag(COLLAPSE_BAR_KEY));
   const [fullscreen, setFullscreen] = useState(false); // cronómetro en modo foco
   const exerciseProgress = (completedExercises / totalExercises) * 100;
 
   const toggleTimer = () => {
     setTimerHidden((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(HIDE_TIMER_KEY, next ? "1" : "0");
-      } catch {
-        /* almacenamiento no disponible */
-      }
-      return next;
+      writeFlag(HIDE_TIMER_KEY, !prev);
+      return !prev;
+    });
+  };
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      writeFlag(COLLAPSE_BAR_KEY, !prev);
+      return !prev;
     });
   };
 
@@ -135,10 +151,23 @@ const ActiveWorkoutHeader = ({
           />
         </div>
 
-        <div className="px-5 py-3">
-          <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
+        {/* Todo el cuerpo de la barra se pliega. Lo único que sobrevive es la
+            línea de progreso de arriba y el tirador: querés sacarte la barra de
+            encima, no perder de vista cómo venís. */}
+        <motion.div
+          className="overflow-hidden"
+          initial={false}
+          animate={{ height: collapsed ? 0 : "auto", opacity: collapsed ? 0 : 1 }}
+          transition={{ duration: 0.22, ease: "easeInOut" }}
+          aria-hidden={collapsed}
+        >
+        {/* px-3 y no px-5: entre salir, reloj, video, dos contadores, pausa y
+            finalizar, esta barra pide más ancho del que tiene un iPhone de
+            390px y los controles se montaban unos sobre otros. */}
+        <div className="px-3 py-3">
+          <div className="max-w-5xl mx-auto flex items-center justify-between gap-1.5">
             {/* Exit Button + Timer */}
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               <motion.button
                 onClick={handleExit}
                 className="w-11 h-11 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
@@ -147,22 +176,26 @@ const ActiveWorkoutHeader = ({
                 <X className="w-5 h-5" />
               </motion.button>
 
+              {/* Acá NO va un botón para ocultar el reloj: probado, no entra —
+                  se encimaba con "Tiempo activo" y con el video. Para sacarte
+                  el tiempo de encima está el tirador de abajo, que pliega la
+                  barra entera; ocultar sólo el reloj sigue estando adentro del
+                  modo pantalla completa. */}
+              {/* Sin el rótulo "Tiempo activo": con 14 series y 4 ejercicios
+                  los contadores crecen y el rótulo empujaba al botón de video
+                  encima del texto. Un cronómetro corriendo no necesita que le
+                  aclaren que es un cronómetro. */}
               <button
                 onClick={() => setFullscreen(true)}
-                className="min-w-0 text-left flex items-center gap-1.5 shrink"
+                className="shrink-0 flex items-center gap-1"
                 aria-label="Ver cronómetro en pantalla completa"
               >
-                <div className="min-w-0">
-                  <ActiveClock
-                    getElapsedSeconds={getElapsedSeconds}
-                    isPaused={isPaused}
-                    hidden={timerHidden}
-                  />
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none flex items-center gap-1">
-                    Tiempo activo
-                    <Maximize2 className="w-3 h-3" />
-                  </p>
-                </div>
+                <ActiveClock
+                  getElapsedSeconds={getElapsedSeconds}
+                  isPaused={isPaused}
+                  hidden={timerHidden}
+                />
+                <Maximize2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               </button>
 
               {/* Video del ejercicio en curso, a mano desde acá arriba */}
@@ -179,7 +212,7 @@ const ActiveWorkoutHeader = ({
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               {/* Sets Counter */}
               <div className="text-center">
                 <div className="flex items-center gap-0.5">
@@ -189,8 +222,10 @@ const ActiveWorkoutHeader = ({
                 <p className="text-[11px] text-muted-foreground">Series</p>
               </div>
 
-              {/* Exercises Counter */}
-              <div className="text-center">
+              {/* Exercises Counter — se esconde en pantallas angostas, como
+                  "Finalizar". El avance de ejercicios ya lo cuenta la barra de
+                  progreso de arriba; las series no las cuenta nadie más. */}
+              <div className="text-center hidden min-[430px]:block">
                 <div className="flex items-center gap-0.5">
                   <span className="text-base font-bold text-primary tabular-nums">{completedExercises}</span>
                   <span className="text-sm text-foreground/70">/{totalExercises}</span>
@@ -231,6 +266,25 @@ const ActiveWorkoutHeader = ({
             </div>
           </div>
         </div>
+        </motion.div>
+
+        {/* Tirador: pliega y despliega la barra entera. Va a lo ancho y no
+            flotando encima del contenido, para que no tape la primera serie. */}
+        <button
+          onClick={toggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Mostrar la barra del entreno" : "Minimizar la barra del entreno"}
+          className="w-full h-7 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 active:bg-white/[0.04] transition-colors"
+        >
+          {collapsed ? (
+            <>
+              <ChevronDown className="w-4 h-4" />
+              {completedSets}/{totalSets} series
+            </>
+          ) : (
+            <ChevronUp className="w-4 h-4" />
+          )}
+        </button>
       </motion.header>
 
       {/* Cronómetro a pantalla completa (modo foco). Reusa el mismo reloj vivo:

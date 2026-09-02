@@ -104,8 +104,11 @@ export async function pushExerciseFeedback(
       date: entry.date,
       exercise_id: entry.exerciseId,
       exercise_name: entry.exerciseName || null,
-      stimulus: entry.stimulus,
-      joint_pain: entry.jointPain,
+      effort: entry.effort ?? null,
+      comment: entry.comment || null,
+      // Escalas viejas: sólo viajan si la entrada las trae (feedback anterior).
+      stimulus: entry.stimulus ?? null,
+      joint_pain: entry.jointPain ?? null,
     },
     "student_id,date,exercise_id"
   );

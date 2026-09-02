@@ -4,9 +4,11 @@
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ArrowRight, Trophy, Sparkles, Activity, ShieldAlert } from "lucide-react";
+import { Check, ArrowRight, Trophy, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Confetti from "@/components/summary/Confetti";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
+import type { ExerciseEffort } from "@/lib/exerciseFeedback";
 
 interface ExerciseCompletedModalProps {
   isOpen: boolean;
@@ -21,38 +23,15 @@ interface ExerciseCompletedModalProps {
   isLastExercise?: boolean;
   totalCompleted: number;
   totalExercises: number;
-  onSubmitFeedback?: (stimulus: number, jointPain: number) => void;
+  onSubmitFeedback?: (effort: ExerciseEffort | null, comment: string) => void;
 }
 
-/** Escala compacta 1-5 para el feedback del ejercicio. */
-const MiniScale = ({
-  value,
-  onChange,
-  tone,
-}: {
-  value: number | null;
-  onChange: (n: number) => void;
-  tone: "primary" | "amber";
-}) => (
-  <div className="grid grid-cols-5 gap-1">
-    {[1, 2, 3, 4, 5].map((n) => {
-      const active = value === n;
-      const activeCls = tone === "amber" ? "bg-amber-500 border-amber-500 text-white" : "bg-primary border-primary text-primary-foreground";
-      return (
-        <button
-          key={n}
-          type="button"
-          onClick={() => onChange(n)}
-          className={`h-11 rounded-lg text-sm font-black tabular-nums border transition-all active:scale-95 ${
-            active ? activeCls : "bg-secondary/60 border-white/[0.06] text-muted-foreground"
-          }`}
-        >
-          {n}
-        </button>
-      );
-    })}
-  </div>
-);
+/** Las tres respuestas posibles, en el orden en que se sienten. */
+const EFFORTS: { value: ExerciseEffort; label: string }[] = [
+  { value: "liviano", label: "Liviano" },
+  { value: "intermedio", label: "Intermedio" },
+  { value: "pesado", label: "Pesado" },
+];
 
 const ExerciseCompletedModal = ({
   isOpen,
@@ -65,21 +44,22 @@ const ExerciseCompletedModal = ({
   totalExercises,
   onSubmitFeedback,
 }: ExerciseCompletedModalProps) => {
-  const [stimulus, setStimulus] = useState<number | null>(null);
-  const [jointPain, setJointPain] = useState<number | null>(null);
+  const [effort, setEffort] = useState<ExerciseEffort | null>(null);
+  const [comment, setComment] = useState("");
+  const kb = useKeyboardInset();
 
   // Reinicia el feedback cada vez que se abre para un ejercicio nuevo
   useEffect(() => {
     if (isOpen) {
-      setStimulus(null);
-      setJointPain(null);
+      setEffort(null);
+      setComment("");
     }
   }, [isOpen, completedExerciseName]);
 
   // Guarda el feedback (si el usuario tocó algo) antes de seguir
   const withFeedback = (next: () => void) => () => {
-    if (onSubmitFeedback && (stimulus != null || jointPain != null)) {
-      onSubmitFeedback(stimulus ?? 0, jointPain ?? 0);
+    if (onSubmitFeedback && (effort != null || comment.trim() !== "")) {
+      onSubmitFeedback(effort, comment.trim());
     }
     next();
   };
@@ -102,7 +82,14 @@ const ExerciseCompletedModal = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="w-full max-w-sm bg-card rounded-3xl border border-border p-6 text-center"
+            className="w-full max-w-sm bg-card rounded-3xl border border-border p-6 text-center max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            /* Ahora hay un campo de texto acá adentro: sin esto el teclado
+               tapa el comentario y los botones. */
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             onClick={(e) => e.stopPropagation()}
           >
             {/* Success Icon */}
@@ -189,24 +176,52 @@ const ExerciseCompletedModal = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.32 }}
-                className="mb-6 space-y-3"
+                className="mb-6 space-y-3 text-left"
               >
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">
-                  ¿Cómo sentiste el ejercicio? <span className="normal-case font-medium">· opcional</span>
+                <p className="text-[15px] font-black text-foreground tracking-tight text-center">
+                  ¿Cómo sentiste el ejercicio?{" "}
+                  <span className="font-medium text-muted-foreground">· opcional</span>
                 </p>
-                <div className="text-left">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Activity className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-bold text-foreground">Estímulo muscular</span>
-                  </div>
-                  <MiniScale value={stimulus} onChange={setStimulus} tone="primary" />
+
+                <div className="grid grid-cols-3 gap-2">
+                  {EFFORTS.map(({ value, label }) => {
+                    const active = effort === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={active}
+                        // Volver a tocar la misma opción la desmarca: es opcional
+                        // y sin esto una elección por error no se puede deshacer.
+                        onClick={() => setEffort(active ? null : value)}
+                        className={`min-h-12 px-2 rounded-xl text-sm font-bold border transition-all active:scale-95 ${
+                          active
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "bg-secondary/60 border-white/[0.06] text-muted-foreground"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <ShieldAlert className="w-4 h-4 text-amber-400" />
-                    <span className="text-sm font-bold text-foreground">Dolor articular</span>
-                  </div>
-                  <MiniScale value={jointPain} onChange={setJointPain} tone="amber" />
+
+                <div>
+                  <label
+                    htmlFor="comentario-ejercicio"
+                    className="block text-sm font-bold text-foreground mb-1.5"
+                  >
+                    Comentario del ejercicio
+                  </label>
+                  <textarea
+                    id="comentario-ejercicio"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Ej. me molestó el hombro derecho, la última serie la hice sola…"
+                    className="w-full rounded-xl bg-secondary/60 border border-white/[0.06] px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none resize-none"
+                  />
                 </div>
               </motion.div>
             )}

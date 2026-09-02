@@ -276,16 +276,13 @@ export const TechniqueBlock = ({
   if (!hasDesc && steps.length === 0) return null;
 
   return (
-    <div className="rounded-xl bg-secondary/30 border border-white/[0.06] p-3 space-y-2.5">
-      {hasDesc && (
-        <div>
-          <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1">Técnica y ejecución</p>
-          <p className="text-sm text-foreground/85 leading-relaxed">{description}</p>
-        </div>
-      )}
+    /* La posición inicial va PRIMERO: es lo que hacés antes de la primera
+       repetición. La técnica describe el movimiento, que viene después. Estaba
+       al revés y se leía fuera de secuencia. */
+    <div className="rounded-xl bg-secondary/30 border border-white/[0.06] p-3 space-y-3">
       {steps.length > 0 && (
         <div>
-          <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1.5">Posición inicial</p>
+          <p className="text-[13px] font-bold text-primary uppercase tracking-wider mb-2">Posición inicial</p>
           <ol className="space-y-1.5">
             {steps.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground/85 leading-relaxed">
@@ -296,6 +293,12 @@ export const TechniqueBlock = ({
               </li>
             ))}
           </ol>
+        </div>
+      )}
+      {hasDesc && (
+        <div>
+          <p className="text-[13px] font-bold text-primary uppercase tracking-wider mb-1.5">Técnica y ejecución</p>
+          <p className="text-sm text-foreground/85 leading-relaxed">{description}</p>
         </div>
       )}
     </div>

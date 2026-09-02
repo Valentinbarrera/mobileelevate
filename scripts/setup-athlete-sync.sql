@@ -57,8 +57,10 @@ CREATE TABLE IF NOT EXISTS public.exercise_feedback (
   date          date NOT NULL,
   exercise_id   text NOT NULL,   -- id del ejercicio de la rutina (no siempre uuid)
   exercise_name text,
-  stimulus      integer,         -- 1-5 estímulo muscular (5 = mucho)
-  joint_pain    integer,         -- 1-5 dolor articular (1 = nada)
+  stimulus      integer,         -- 1-5 estimulo muscular (LEGADO, ya no se pide)
+  joint_pain    integer,         -- 1-5 dolor articular (LEGADO, ya no se pide)
+  effort        text,            -- liviano | intermedio | pesado
+  comment       text,            -- comentario libre del alumno sobre el ejercicio
   created_at    timestamptz NOT NULL DEFAULT now(),
   updated_at    timestamptz NOT NULL DEFAULT now(),
   UNIQUE (student_id, date, exercise_id)

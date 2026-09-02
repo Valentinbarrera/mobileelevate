@@ -34,7 +34,7 @@ import {
   markReadinessSkipped,
   type ReadinessData,
 } from "@/lib/readiness";
-import { saveExerciseFeedback } from "@/lib/exerciseFeedback";
+import { saveExerciseFeedback, type ExerciseEffort } from "@/lib/exerciseFeedback";
 import { hydrateExerciseNotes } from "@/lib/exerciseNotes";
 import ExercisePickerSheet, {
   type ExercisePickerResult,
@@ -532,16 +532,16 @@ const CoachWorkoutDetail = () => {
     beginWorkout();
   };
 
-  // Guarda el feedback (estímulo/dolor) del ejercicio recién completado.
-  const handleExerciseFeedback = (stimulus: number, jointPain: number) => {
+  // Guarda cómo se sintió el ejercicio recién completado + el comentario.
+  const handleExerciseFeedback = (effort: ExerciseEffort | null, comment: string) => {
     if (!completedExerciseInfo) return;
     const sid = student?.id || (isAdminMode ? "admin" : "anon");
     saveExerciseFeedback(sid, {
       date: getLocalDateString(),
       exerciseId: completedExerciseInfo.id,
       exerciseName: completedExerciseInfo.name,
-      stimulus,
-      jointPain,
+      effort,
+      comment,
     });
   };
 
@@ -1134,14 +1134,17 @@ const CoachWorkoutDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
         >
-          <h2 className="text-[11px] font-bold text-primary uppercase tracking-wider">
-            Lista de Ejercicios
+          {/* Encabezado de sección de verdad: en 11px competía de igual a igual
+              con los datos de cada ejercicio y no se leía como el título de lo
+              que viene abajo. */}
+          <h2 className="text-lg font-black text-foreground tracking-tight">
+            Lista de ejercicios
           </h2>
           <button
             onClick={() => setShowLibrary(true)}
-            className="flex items-center gap-1.5 px-3.5 min-h-11 py-2 rounded-xl card-elevated text-sm font-bold text-foreground active:scale-95 transition-transform"
+            className="flex items-center gap-2 px-4 min-h-12 py-2 rounded-2xl card-elevated text-[15px] font-bold text-foreground active:scale-95 transition-transform"
           >
-            <LayoutGrid className="w-4 h-4 text-primary" />
+            <LayoutGrid className="w-5 h-5 text-primary" />
             Ver todos
           </button>
         </motion.div>
@@ -1232,7 +1235,11 @@ const CoachWorkoutDetail = () => {
           <>
             {/* Ajustes del día: reordenar y sumar ejercicios. Disponibles también
                 con el entreno en curso (la máquina ocupada aparece a mitad de sesión). */}
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            {/* Eran texto naranja suelto del mismo tamaño que todo lo demás:
+                no se leían como botones y se confundían con "Volver a la rutina
+                del coach", que es una acción distinta. Ahora son chips con
+                borde y cuerpo propio. */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               {hasPlanChanges ? (
                 <button
                   type="button"
@@ -1245,24 +1252,26 @@ const CoachWorkoutDetail = () => {
               ) : (
                 <span />
               )}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPicker({ mode: "add" })}
-                  className="flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                  className="flex items-center gap-2 text-[15px] font-bold px-4 min-h-12 py-2 rounded-2xl border border-primary/25 bg-primary/10 text-primary active:scale-95 transition-transform"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                   Agregar ejercicio
                 </button>
                 {exercises.length > 1 && (
                   <button
                     type="button"
                     onClick={() => setReorderMode((v) => !v)}
-                    className={`flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg transition-colors ${
-                      reorderMode ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10"
+                    className={`flex items-center gap-2 text-[15px] font-bold px-4 min-h-12 py-2 rounded-2xl border active:scale-95 transition-transform ${
+                      reorderMode
+                        ? "bg-primary border-primary text-primary-foreground"
+                        : "border-primary/25 bg-primary/10 text-primary"
                     }`}
                   >
-                    <ArrowUpDown className="w-4 h-4" />
+                    <ArrowUpDown className="w-5 h-5" />
                     {reorderMode ? "Listo" : "Reordenar"}
                   </button>
                 )}

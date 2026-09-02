@@ -50,23 +50,26 @@ const WorkoutHero = ({
           <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
             <ArrowLeft className="w-5 h-5" />
           </div>
-          <span className="text-xs font-medium uppercase tracking-wider">
+          <span className="text-sm font-semibold uppercase tracking-wider">
             Vista previa
           </span>
         </motion.button>
 
         {/* Title Section */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-6">
-          <motion.p 
-            className="text-xs text-primary font-semibold uppercase tracking-wider mb-2"
+          {/* El nombre del programa iba en 12px debajo de un título de 36:
+              era el dato que te ubica en qué rutina estás y se leía como letra
+              chica. Sube a 14 con peso black. */}
+          <motion.p
+            className="text-sm text-primary font-black uppercase tracking-wider mb-2"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
             {subtitle}
           </motion.p>
-          <motion.h1 
-            className="text-4xl font-black text-white leading-tight tracking-tight"
+          <motion.h1
+            className="text-[2.75rem] font-black text-white leading-[1.05] tracking-tight"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25 }}

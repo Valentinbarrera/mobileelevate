@@ -1,13 +1,30 @@
 /**
- * Feedback rápido al terminar CADA ejercicio: estímulo muscular (1-5) y dolor
- * articular (1-5). Ayuda al alumno (y al coach) a afinar el plan. Es OPCIONAL.
+ * Feedback rápido al terminar CADA ejercicio. Es OPCIONAL.
  * Guardado LOCAL por alumno+fecha+ejercicio + push best-effort a Supabase para
  * que el COACH lo vea. Sin IA.
+ *
+ * Antes eran dos escalas de 1 a 5 (estímulo muscular / dolor articular): el
+ * alumno tenía que traducir una sensación a dos números abstractos en medio de
+ * la serie, y un "3" no quería decir lo mismo para dos personas. Ahora se
+ * pregunta una sola cosa, en palabras, y se deja lugar para que lo cuente —
+ * que es lo que el coach realmente lee.
+ *
+ * `stimulus` y `jointPain` quedan OPCIONALES a propósito: hay feedback viejo
+ * guardado con esa forma y se sigue leyendo sin romper.
  */
 import { pushExerciseFeedback } from "@/lib/athleteSyncApi";
+
+export type ExerciseEffort = "liviano" | "intermedio" | "pesado";
+
 export interface ExerciseFeedbackData {
-  stimulus: number; // 1-5 estímulo/sensación muscular (5 = mucho estímulo)
-  jointPain: number; // 1-5 dolor articular (1 = nada, 5 = mucho)
+  /** Cómo se sintió el ejercicio. */
+  effort?: ExerciseEffort | null;
+  /** Lo que el alumno quiera contar del ejercicio. */
+  comment?: string | null;
+  /** @deprecated escala vieja 1-5. Se lee, ya no se pide. */
+  stimulus?: number;
+  /** @deprecated escala vieja 1-5. Se lee, ya no se pide. */
+  jointPain?: number;
 }
 
 export interface ExerciseFeedbackEntry extends ExerciseFeedbackData {
