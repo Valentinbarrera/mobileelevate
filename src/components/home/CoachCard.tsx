@@ -51,7 +51,7 @@ const CoachCard = () => {
       variants={fadeUp}
       onClick={() => navigate("/messages")}
       whileTap={{ scale: 0.99 }}
-      className="w-full text-left rounded-2xl card-elevated p-4 flex items-center gap-3.5 active:opacity-90 transition-opacity"
+      className="w-full text-left rounded-3xl glass-tile p-4 flex items-center gap-3.5 active:opacity-90 transition-opacity"
     >
       <div className="relative w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
         <MessageCircle className="w-5 h-5 text-primary" />

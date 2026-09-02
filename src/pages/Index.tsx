@@ -204,21 +204,40 @@ const Index = () => {
     key: string;
     icon: typeof Plus;
     label: string;
+    hint: string;
     to: string;
   }[] = [
     // Nombrados por lo que OBTENÉS, no por la tarea que tenés que hacer:
     // "Elegí tus ejercicios" o "Armá tu programa desde 0" describen trabajo, y
     // es justo lo que no queremos que el alumno sienta. Además "template" y
     // "modo libre" son jerga de herramienta: no significan nada para él.
-    { key: "libre", icon: Plus, label: "Entreno suelto", to: "/free-workout" },
-    { key: "templates", icon: LayoutGrid, label: "Planes listos", to: "/programas/templates" },
-    { key: "propio", icon: PenLine, label: "Armar el mío", to: "/programas/nuevo" },
+    {
+      key: "libre",
+      icon: Plus,
+      label: "Entreno suelto",
+      hint: "Elegí sobre la marcha",
+      to: "/free-workout",
+    },
+    {
+      key: "templates",
+      icon: LayoutGrid,
+      label: "Planes listos",
+      hint: "Rutinas para arrancar hoy",
+      to: "/programas/templates",
+    },
+    {
+      key: "propio",
+      icon: PenLine,
+      label: "Armá tu programa de 0",
+      hint: "Elegís los días y los ejercicios",
+      to: "/programas/nuevo",
+    },
   ];
 
   const trainWithElevateCard = (
     <motion.div
       variants={fadeUp}
-      className="card-elevated rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/25"
+      className="glass-tile-warm rounded-3xl overflow-hidden"
     >
       <button
         type="button"
@@ -232,7 +251,7 @@ const Index = () => {
           <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0.5">
             Mis programas
           </p>
-          <p className="text-base font-black text-foreground tracking-tight">
+          <p className="text-lg font-black text-foreground tracking-tight">
             Entrenar por mi cuenta
           </p>
           <p className="text-[12px] text-muted-foreground truncate">
@@ -246,23 +265,23 @@ const Index = () => {
 
       {/* Programas propios: se empiezan directo, sin entrar a Entrenar */}
       {myProgramsOpen.length > 0 && (
-        <div className="px-3 space-y-1.5">
+        <div className="px-3 space-y-2">
           {myProgramsOpen.map((p) => {
             const next = nextProgramDay(overrideSid, p);
             return (
               <div
                 key={p.id}
-                className="flex items-center gap-2 rounded-xl bg-background/40 border border-white/[0.06] pl-3 pr-1.5 py-2"
+                className="flex items-center gap-2 rounded-2xl bg-black/55 border border-white/[0.09] min-h-[60px] pl-3.5 pr-2 py-2.5"
               >
                 <button
                   type="button"
                   onClick={() => navigate(`/programa/${p.id}`)}
                   className="flex-1 min-w-0 text-left"
                 >
-                  <p className="text-sm font-bold text-foreground truncate">
+                  <p className="text-[15px] font-black text-foreground tracking-tight leading-tight truncate">
                     {p.name || "Mi programa"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground truncate">
+                  <p className="text-[11.5px] text-muted-foreground leading-tight truncate">
                     {p.days.length} {p.days.length === 1 ? "día" : "días"}
                     {next ? ` · te toca ${next.day.name}` : ""}
                   </p>
@@ -272,7 +291,7 @@ const Index = () => {
                     type="button"
                     aria-label={`Entrenar ${next.day.name} de ${p.name || "mi programa"}`}
                     onClick={() => navigate(`/programa/${p.id}/dia/${next.day.id}/entrenar`)}
-                    className="shrink-0 h-9 px-3 rounded-lg bg-primary/15 border border-primary/25 text-primary text-xs font-bold active:scale-95 transition-transform"
+                    className="shrink-0 h-11 px-4 rounded-xl bg-primary/15 border border-primary/25 text-primary text-sm font-bold active:scale-95 transition-transform"
                   >
                     Entrenar
                   </button>
@@ -284,9 +303,9 @@ const Index = () => {
       )}
 
       {/* Caminos para empezar algo nuevo, en la misma card */}
-      <div className="mt-3 px-3 pb-3 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between gap-3 px-0.5 mb-2">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="mt-3 px-3 pb-3.5 pt-3.5 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between gap-3 px-0.5 mb-2.5">
+          <p className="text-[11.5px] font-bold uppercase tracking-widest text-muted-foreground">
             ¿Querés entrenar otra cosa?
           </p>
           {myProgramsOpen.length > 0 && (
@@ -297,19 +316,33 @@ const Index = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {createPaths.map(({ key, icon: Icon, label, to }) => (
+        {/* Uno debajo del otro y a lo ancho: tres botones de 74px en una fila
+            dejaban el texto en 11px y sin aire. Como fila, cada camino se lee
+            de un vistazo y se toca sin apuntar. */}
+        <div className="space-y-2">
+          {createPaths.map(({ key, icon: Icon, label, hint, to }) => (
             <button
               key={key}
               type="button"
               aria-label={label}
               onClick={() => navigate(to)}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-xl min-h-[74px] px-2 py-2.5 border bg-background/40 border-white/[0.06] active:scale-95 transition-transform"
+              /* Negras, NO de vidrio: acá el vidrio va adentro de una tarjeta
+                 que ya es de vidrio teñido, y dos capas translúcidas encima
+                 aclaran tanto el fondo que el texto pierde contraste. */
+              className="w-full flex items-center gap-3.5 rounded-2xl min-h-[64px] px-3.5 py-3 border bg-black/55 border-white/[0.09] active:scale-[0.98] transition-transform text-left"
             >
-              <Icon className="w-5 h-5 text-primary" />
-              <span className="text-[11px] font-bold text-foreground leading-tight text-center">
-                {label}
-              </span>
+              <div className="w-11 h-11 rounded-2xl bg-primary/12 border border-primary/20 flex items-center justify-center shrink-0">
+                <Icon className="w-[22px] h-[22px] text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-black text-foreground tracking-tight leading-tight">
+                  {label}
+                </p>
+                <p className="text-[11.5px] text-muted-foreground leading-tight truncate">
+                  {hint}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
             </button>
           ))}
         </div>
@@ -322,13 +355,13 @@ const Index = () => {
     <motion.button
       variants={fadeUp}
       onClick={() => navigate("/aprender")}
-      className="w-full card-elevated rounded-2xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.99] transition-transform text-left"
+      className="w-full glass-tile rounded-3xl px-4 py-4 flex items-center gap-3.5 active:scale-[0.99] transition-transform text-left"
     >
-      <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-        <GraduationCap className="w-5 h-5 text-primary" />
+      <div className="w-12 h-12 rounded-2xl bg-white/[0.07] border border-white/[0.14] flex items-center justify-center shrink-0">
+        <GraduationCap className="w-6 h-6 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-black text-foreground tracking-tight">Aprendé a usar la app</p>
+        <p className="text-[15px] font-black text-foreground tracking-tight">Aprendé a usar la app</p>
         <p className="text-[12px] text-muted-foreground truncate">
           Guía, calentamiento, RPE/RIR, calculadora de RM y material del coach
         </p>
@@ -399,8 +432,12 @@ const Index = () => {
   return (
     <AppShell>
       <div className="relative min-h-screen bg-background pb-nav lg:pb-10">
+        {/* La luz que se ve a través del vidrio de los accesos. Sin esto las
+            baldosas quedan gris sucio: un blanco al 10% sobre negro plano no
+            es vidrio, es gris. */}
+        <div className="ambient-warm" aria-hidden="true" />
         <motion.div
-          className="relative"
+          className="relative z-10"
           variants={staggerContainer}
           initial="initial"
           animate="animate"

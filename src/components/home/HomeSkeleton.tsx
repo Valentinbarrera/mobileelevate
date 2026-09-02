@@ -69,15 +69,16 @@ const HomeSkeleton = () => {
           </ShimmerBlock>
         </motion.div>
 
-        {/* Accesos rápidos — fila de 4 atajos */}
+        {/* Accesos rápidos — 4 atajos en dos columnas (mismo alto que el real,
+            así el Home no salta cuando terminan de cargar los datos) */}
         <motion.div
-          className="grid grid-cols-4 gap-2.5"
+          className="grid grid-cols-2 gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[74px] rounded-2xl" />
+            <Skeleton key={i} className="h-[112px] rounded-3xl" />
           ))}
         </motion.div>
       </div>

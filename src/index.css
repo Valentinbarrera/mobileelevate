@@ -259,6 +259,84 @@
     border: 1px solid hsl(0 0% 18%);
   }
 
+  /* ================================
+     VIDRIO — baldosas de los accesos del Home
+     La primera vez que se probó glass acá quedó gris sucio, y el motivo era
+     que atrás no había NADA: sobre negro plano, un blanco al 5% es gris.
+     El sistema son dos piezas y las dos hacen falta:
+       1. `.ambient-warm`  → la luz que se ve A TRAVÉS del vidrio.
+       2. `.glass-tile`    → el vidrio en sí.
+     El efecto lo hace la TRANSLUCIDEZ (composición alfa), no el blur: si un
+     ancestro tiene transform —y framer-motion pone uno— el backdrop-filter
+     deja de tomar el fondo de la página, así que el blur queda como bonus y
+     nunca como requisito.
+     ================================ */
+
+  /* Luz de marca detrás de todo el Home. Fija al viewport: al scrollear el
+     contenido se mueve y la luz no, que es como se comporta la luz real. */
+  .ambient-warm {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(58% 34% at 8% 4%, hsl(var(--primary) / 0.20), transparent 70%),
+      radial-gradient(46% 28% at 96% 26%, hsl(32 100% 52% / 0.13), transparent 72%),
+      radial-gradient(64% 34% at 46% 70%, hsl(var(--primary) / 0.10), transparent 74%);
+  }
+
+  /* La baldosa. El degradado va en diagonal desde arriba a la izquierda
+     porque es de donde viene la luz ambiente: así el brillo del borde y el
+     del fondo cuentan la misma historia. */
+  .glass-tile {
+    background: linear-gradient(
+      148deg,
+      hsl(0 0% 100% / 0.11) 0%,
+      hsl(0 0% 100% / 0.05) 46%,
+      hsl(0 0% 100% / 0.028) 100%
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid hsl(0 0% 100% / 0.13);
+    box-shadow:
+      0 8px 28px hsl(0 0% 0% / 0.38),
+      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+  }
+
+  /* Vidrio teñido de marca: para los bloques que no son un acceso pero tienen
+     que pertenecer a la misma familia (entrenar por mi cuenta, aprendé). */
+  .glass-tile-warm {
+    background: linear-gradient(
+      148deg,
+      hsl(18 100% 60% / 0.17) 0%,
+      hsl(18 100% 55% / 0.06) 44%,
+      hsl(0 0% 100% / 0.03) 100%
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid hsl(var(--primary) / 0.24);
+    box-shadow:
+      0 10px 30px hsl(0 0% 0% / 0.40),
+      inset 0 1px 0 hsl(0 0% 100% / 0.14);
+  }
+
+  /* El destacado no es vidrio: es la fuente de luz. Naranja con degradado y
+     highlight interno arriba para que tenga volumen y no sea un rectángulo
+     pintado, más un halo que tiñe el vidrio de al lado. */
+  .glass-tile-accent {
+    background: linear-gradient(
+      148deg,
+      hsl(18 100% 63%) 0%,
+      hsl(18 100% 55%) 48%,
+      hsl(26 100% 47%) 100%
+    );
+    border: 1px solid hsl(20 100% 74% / 0.5);
+    box-shadow:
+      0 10px 32px hsl(var(--primary) / 0.35),
+      inset 0 1px 0 hsl(0 0% 100% / 0.32),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.12);
+  }
+
   /* Vidrio esmerilado premium: translúcido + blur + borde de luz + highlight superior.
      Necesita glows ambientales detrás para que el efecto se luzca. */
   .glass-panel {
@@ -308,9 +386,11 @@
   }
 
   /* Barra de acento de marca para títulos de sección */
+  /* Sube con los titulos de seccion: pasaron de 14 a 16px, y la barra tenia
+     que crecer con ellos o quedaba flotando corta al lado del texto. */
   .accent-bar {
     width: 3px;
-    height: 0.9rem;
+    height: 1.15rem;
     border-radius: 9999px;
     background: linear-gradient(180deg, hsl(18 100% 58%), hsl(28 100% 50%));
   }
