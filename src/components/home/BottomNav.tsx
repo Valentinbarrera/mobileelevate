@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, Plus, ChevronRight } from "lucide-react";
+import { Home, Dumbbell, Apple, TrendingUp, User, PencilRuler, Flame, Plus, ChevronRight, LayoutGrid } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
@@ -19,8 +19,10 @@ const triggerHaptic = () => {
 };
 
 /* Acciones del "speed-dial" del botón central Entrenar.
-   Sin "Templates": era la misma idea que "Mis programas" con otro nombre (y en
-   inglés), y los planes ya armados siguen a un toque desde el Home. */
+   "Planes listos" (los templates) volvió acá: se había sacado por parecerse a
+   "Mis programas", pero no son lo mismo — uno son rutinas ya armadas para
+   empezar hoy, el otro son las que creaste vos. Va segundo, detrás de la
+   rutina del coach, porque es el camino más corto a estar entrenando. */
 interface TrainAction {
   icon: typeof Home;
   label: string;
@@ -37,9 +39,16 @@ const TRAIN_ACTIONS: TrainAction[] = [
     hue: "18 100% 55%",
   },
   {
+    icon: LayoutGrid,
+    label: "Planes listos",
+    desc: "Rutinas armadas para arrancar hoy.",
+    path: "/programas/templates",
+    hue: "158 64% 45%",
+  },
+  {
     icon: PencilRuler,
-    label: "Armar el mío",
-    desc: "Vos elegís días y ejercicios.",
+    label: "Armá tu programa de 0",
+    desc: "Vos elegís los días y los ejercicios.",
     path: "/programas/nuevo",
     hue: "217 91% 60%",
   },

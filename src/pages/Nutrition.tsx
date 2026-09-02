@@ -5,11 +5,11 @@
  * - Each meal with foods and per-meal macros
  * - Day selector if the plan has multiple days
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator } from "lucide-react";
+import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator, Pencil } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -18,9 +18,14 @@ import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
+import BarcodeScannerSheet from "@/components/nutrition/BarcodeScannerSheet";
+import ScannedProductSheet from "@/components/nutrition/ScannedProductSheet";
+import type { FoodProduct } from "@/lib/foodProduct";
+import { loadRecentProducts, rememberProduct } from "@/lib/recentProducts";
 import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useCalorieGoal } from "@/hooks/useCalorieGoal";
 import { AUTO, MODE_LABEL, scaleMacros } from "@/lib/calorieGoal";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -278,7 +283,7 @@ const WaterTracker = ({
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
         <span className="accent-bar" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Agua</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Agua</h3>
       </div>
       <span className="text-sm text-muted-foreground">
         <span className="text-foreground font-black tabular-nums">{glasses}</span> / {goal} vasos
@@ -316,7 +321,48 @@ export default function Nutrition() {
   const [expandedMeals, setExpandedMeals] = useState<Set<string>>(new Set());
   const { water, setWater, isMealChecked, toggleMeal, foods, addFood, removeFood, loggedTotals } =
     useDailyNutritionTracking();
+  // Los recientes se guardan por alumno, igual que el resto del registro.
+  const { student, isAdminMode } = useAuthContext();
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+
   const [showFoodSheet, setShowFoodSheet] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState<FoodProduct | null>(null);
+  const [recents, setRecents] = useState<FoodProduct[]>(() => loadRecentProducts(sid));
+
+  // Un producto encontrado sube a recientes ANTES de abrir la ficha: aunque el
+  // alumno se arrepienta y no lo agregue, ya no va a tener que volver a
+  // escanearlo para mirarlo de nuevo.
+  const openProduct = (p: FoodProduct) => {
+    setRecents(rememberProduct(sid, p));
+    setScanned(p);
+  };
+
+  // Se cierra el sheet de carga manual al abrir la camara: son dos caminos del
+  // mismo flujo, no dos ventanas apiladas.
+  const openScanner = () => {
+    setShowFoodSheet(false);
+    setScanning(true);
+  };
+
+  // Llegada directa desde el Home (?escanear=1): abre la cámara al montar y
+  // limpia el parámetro, para que volver atrás no la vuelva a disparar.
+  //
+  // El guard con ref NO es decorativo: `useSearchParams` devuelve un objeto
+  // nuevo en cada render, así que sin él el efecto se relanza para siempre y
+  // la pantalla se cae con "Algo salió mal". Y se escribe una COPIA en vez de
+  // mutar `params`, que es de React Router.
+  const [params, setParams] = useSearchParams();
+  const scanParamHandled = useRef(false);
+  useEffect(() => {
+    if (scanParamHandled.current) return;
+    if (params.get("escanear") !== "1") return;
+    scanParamHandled.current = true;
+    setScanning(true);
+    const next = new URLSearchParams(params);
+    next.delete("escanear");
+    setParams(next, { replace: true });
+  }, [params, setParams]);
   // Meta calórica del alumno, ya resuelta contra el plan del coach: con plan
   // asignado manda el coach, salvo que el alumno haya elegido la suya a
   // propósito. El Historial pide exactamente lo mismo al mismo hook.
@@ -418,10 +464,46 @@ export default function Nutrition() {
       totalCalories={manualCalories}
       onAdd={() => setShowFoodSheet(true)}
       onRemove={removeFood}
+      onScan={openScanner}
     />
   );
   const foodSheet = (
-    <FoodLogSheet open={showFoodSheet} onClose={() => setShowFoodSheet(false)} onAdd={addFood} />
+    <>
+      <FoodLogSheet
+        open={showFoodSheet}
+        onClose={() => setShowFoodSheet(false)}
+        onAdd={addFood}
+        onScan={openScanner}
+        recents={recents}
+        onPickRecent={openProduct}
+      />
+
+      {/* Escáner y ficha del producto. Se montan al lado del sheet de carga
+          manual porque los tres son el MISMO flujo ("agregar comida") visto
+          desde distintas puertas. */}
+      <BarcodeScannerSheet
+        open={scanning}
+        onClose={() => setScanning(false)}
+        onFound={(p) => {
+          setScanning(false);
+          openProduct(p);
+        }}
+        onManual={() => {
+          setScanning(false);
+          setShowFoodSheet(true);
+        }}
+      />
+      <ScannedProductSheet
+        product={scanned}
+        onClose={() => setScanned(null)}
+        onAdd={(food) => {
+          addFood(food);
+          setScanned(null);
+          setShowFoodSheet(false);
+          toast.success(`${food.name} sumado a tu día 🍽️`);
+        }}
+      />
+    </>
   );
   const disclaimer = (
     <motion.div variants={fadeUp}>
@@ -647,35 +729,39 @@ export default function Nutrition() {
 
               {/* De quién es el número. Antes convivían dos cards con metas
                   distintas y ninguna decía cuál mandaba. */}
+              {/* De quién es el número + cómo cambiarlo. "Meta de tu coach ›"
+                  abría el editor, pero se leía como un rótulo y nadie lo
+                  tocaba: ahora el editor es un botón que dice lo que hace. */}
               <div className="pt-3.5 mt-3.5 border-t border-white/[0.06]">
-                {usingOwnGoal ? (
-                  // Volver ocupa su propio renglón: al lado del texto quedaba a
-                  // 150px y tanto el rótulo como el número del coach envolvían.
-                  <>
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      {goalLabel}
-                    </p>
-                    {goal.coachCalories != null && (
-                      <p className="text-sm text-foreground/70 tabular-nums mt-0.5">
-                        Tu coach sugiere {goal.coachCalories} kcal
-                      </p>
-                    )}
-                    <button
-                      onClick={() => saveGoal(AUTO)}
-                      className="w-full min-h-11 mt-2.5 rounded-xl bg-secondary/50 border border-white/[0.06] text-sm font-bold text-primary active:scale-[0.98] transition-transform"
-                    >
-                      Volver a la meta de tu coach
-                    </button>
-                  </>
-                ) : (
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {usingOwnGoal ? goalLabel : "Meta de tu coach"}
+                  </p>
+                  <p className="text-[15px] font-black text-foreground tabular-nums shrink-0">
+                    {effectiveGoal} kcal
+                  </p>
+                </div>
+
+                {usingOwnGoal && goal.coachCalories != null && (
+                  <p className="text-sm text-foreground/70 tabular-nums mt-1">
+                    Tu coach sugiere {goal.coachCalories} kcal
+                  </p>
+                )}
+
+                <button
+                  onClick={() => setGoalSheet(true)}
+                  className="w-full min-h-12 mt-3 rounded-2xl bg-primary/12 border border-primary/25 text-[15px] font-bold text-primary flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Editar objetivo
+                </button>
+
+                {usingOwnGoal && (
                   <button
-                    onClick={() => setGoalSheet(true)}
-                    className="w-full flex items-center justify-between gap-3 min-h-11 -my-1 text-left active:scale-[0.99] transition-transform"
+                    onClick={() => saveGoal(AUTO)}
+                    className="w-full min-h-11 mt-2 rounded-xl bg-secondary/50 border border-white/[0.06] text-sm font-bold text-foreground/70 active:scale-[0.98] transition-transform"
                   >
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Meta de tu coach
-                    </p>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                    Volver a la meta de tu coach
                   </button>
                 )}
               </div>
@@ -729,7 +815,7 @@ export default function Nutrition() {
                 <motion.div variants={fadeUp} className="px-0.5 pt-1">
                   <div className="flex items-center gap-2">
                     <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Comidas del día</h3>
+                    <h3 className="text-lg font-black text-foreground tracking-tight">Comidas del día</h3>
                     <button
                       onClick={() => navigate("/nutrition/history")}
                       className="ml-auto -mr-2 px-2 min-h-11 flex items-center gap-1 text-sm font-bold text-primary active:scale-95 transition-transform"
