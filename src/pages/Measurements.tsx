@@ -91,12 +91,15 @@ export default function Measurements() {
                 Última medición &middot; {new Date(latest.date + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                {/* Mismo orden que la hoja de carga: el de la toma real, de
+                    arriba hacia abajo. El % graso va último porque no se mide
+                    con cinta — sale del informe de antropometría. */}
                 <MeasurementCard label="Peso" value={latest.weight_kg} unit="kg" />
-                <MeasurementCard label="Cintura" value={latest.waist_cm} unit="cm" />
                 <MeasurementCard label="Pecho" value={latest.chest_cm} unit="cm" />
-                <MeasurementCard label="Brazo" value={latest.arm_cm} unit="cm" />
-                <MeasurementCard label="Muslo" value={latest.thigh_cm} unit="cm" />
+                <MeasurementCard label="Brazo relajado" value={latest.arm_cm} unit="cm" />
+                <MeasurementCard label="Cintura" value={latest.waist_cm} unit="cm" />
                 <MeasurementCard label="Cadera" value={latest.hips_cm} unit="cm" />
+                <MeasurementCard label="Muslo" value={latest.thigh_cm} unit="cm" />
                 <MeasurementCard label="Grasa Corp." value={latest.body_fat} unit="%" />
               </div>
             </motion.div>
@@ -145,7 +148,7 @@ export default function Measurements() {
               <motion.div variants={fadeUp} className="xl:col-span-4 card-elevated rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black tracking-tight text-foreground">Historial</h3>
+                <h3 className="text-lg font-black tracking-tight text-foreground">Historial</h3>
               </div>
               <div className="space-y-3">
                 {[...entries].reverse().map(entry => (

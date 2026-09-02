@@ -26,11 +26,14 @@ const Profile = () => {
     avatar: null,
   };
 
+  // `wide` = ocupa las dos columnas. El email es el único dato que no entra en
+  // media tarjeta (los `+alumno@` pasan los 30 caracteres): en media columna se
+  // salía del borde y tapaba el resto.
   const infoItems = [
-    { icon: Mail, label: "Email", value: student?.email || user?.email },
-    { icon: Target, label: "Objetivo", value: student?.goal },
-    { icon: Dumbbell, label: "Nivel", value: student?.level },
-    { icon: Calendar, label: "Edad", value: student?.age ? `${student.age} años` : null },
+    { icon: Mail, label: "Email", value: student?.email || user?.email, wide: true },
+    { icon: Target, label: "Objetivo", value: student?.goal, wide: false },
+    { icon: Dumbbell, label: "Nivel", value: student?.level, wide: false },
+    { icon: Calendar, label: "Edad", value: student?.age ? `${student.age} años` : null, wide: false },
   ].filter(item => item.value);
 
   return (
@@ -91,19 +94,27 @@ const Profile = () => {
                 )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
               </button>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
-                <button
-                  onClick={() => navigate("/perfil/resumen")}
-                  className="text-sm font-bold text-primary active:opacity-70 inline-flex items-center min-h-11 py-2"
-                >
-                  Ver resumen de mi perfil →
-                </button>
-                <button
-                  onClick={() => navigate("/cuestionarios")}
-                  className="text-sm font-bold text-primary active:opacity-70 inline-flex items-center min-h-11 py-2"
-                >
-                  Ver todos los cuestionarios →
-                </button>
+              {/* Eran dos links de texto naranja pegados uno al lado del otro:
+                  no se leían como algo que se toca y en pantalla angosta se
+                  partían en dos renglones. Ahora son tarjetas, como el resto. */}
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {[
+                  { icon: UserCircle, label: "Resumen de mi perfil", to: "/perfil/resumen" },
+                  { icon: ClipboardList, label: "Mis cuestionarios", to: "/cuestionarios" },
+                ].map(({ icon: Icon, label, to }) => (
+                  <button
+                    key={to}
+                    onClick={() => navigate(to)}
+                    className="card-elevated rounded-2xl min-h-[92px] p-3.5 flex flex-col items-start justify-between text-left active:scale-[0.97] transition-transform"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/12 border border-primary/20 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-[15px] font-black text-foreground tracking-tight leading-tight">
+                      {label}
+                    </span>
+                  </button>
+                ))}
               </div>
             </motion.div>
           );
@@ -112,12 +123,17 @@ const Profile = () => {
             <motion.div variants={fadeUp} className="px-5 lg:px-0 mb-6 lg:mb-0">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-3">
                 {infoItems.map(item => (
-                  <div key={item.label} className="card-elevated rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <item.icon className="w-4 h-4 text-primary" />
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                  <div
+                    key={item.label}
+                    className={`card-elevated rounded-2xl p-4 min-w-0 ${item.wide ? "col-span-2 md:col-span-4 lg:col-span-2" : ""}`}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <item.icon className="w-4 h-4 text-primary shrink-0" />
+                      <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
                     </div>
-                    <p className="text-base font-semibold text-foreground">{item.value}</p>
+                    {/* `break-all` y no `truncate`: el mail hay que poder leerlo
+                        entero, no cortado con puntos suspensivos. */}
+                    <p className="text-base font-semibold text-foreground break-all">{item.value}</p>
                   </div>
                 ))}
               </div>
