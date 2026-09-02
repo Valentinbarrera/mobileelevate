@@ -20,6 +20,14 @@ const SOURCES: { label: string; url: string }[] = [
     label: "FAO — Guías alimentarias basadas en alimentos",
     url: "https://www.fao.org/nutrition/educacion-nutricional/food-dietary-guidelines/es/",
   },
+  // De dónde salen los datos de los productos escaneados. Va acá por dos
+  // motivos: la licencia de Open Food Facts (ODbL) exige atribución, y el
+  // 1.4.1 de Apple —el que nos rechazó— pide que las fuentes de información
+  // de salud estén citadas y sean fáciles de encontrar.
+  {
+    label: "Open Food Facts — datos de productos envasados (ODbL)",
+    url: "https://world.openfoodfacts.org/",
+  },
 ];
 
 const NutritionDisclaimer = () => (
