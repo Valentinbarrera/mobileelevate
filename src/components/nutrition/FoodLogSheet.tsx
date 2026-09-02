@@ -4,10 +4,11 @@
  */
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Utensils } from "lucide-react";
+import { X, Check, Utensils, ScanBarcode, ChevronRight, Package } from "lucide-react";
 import { toast } from "sonner";
 import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import type { LoggedFood, MealType } from "@/hooks/useDailyNutritionTracking";
+import type { FoodProduct } from "@/lib/foodProduct";
 
 const MEAL_TYPES: { key: MealType; label: string; emoji: string }[] = [
   { key: "desayuno", label: "Desayuno", emoji: "🌅" },
@@ -22,11 +23,24 @@ interface FoodLogSheetProps {
   onClose: () => void;
   defaultMeal?: MealType;
   onAdd: (food: Omit<LoggedFood, "id">) => void;
+  /** Abre el escáner. Si no se pasa, el sheet queda como el formulario de siempre. */
+  onScan?: () => void;
+  /** Productos ya escaneados, para repetirlos sin cámara. */
+  recents?: FoodProduct[];
+  onPickRecent?: (product: FoodProduct) => void;
 }
 
 const numField = (v: string) => Math.max(0, Math.round((parseFloat(v) || 0) * 10) / 10);
 
-const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLogSheetProps) => {
+const FoodLogSheet = ({
+  open,
+  onClose,
+  defaultMeal = "almuerzo",
+  onAdd,
+  onScan,
+  recents = [],
+  onPickRecent,
+}: FoodLogSheetProps) => {
   const kb = useKeyboardInset();
   const [mealType, setMealType] = useState<MealType>(defaultMeal);
   const [name, setName] = useState("");
@@ -125,6 +139,58 @@ const FoodLogSheet = ({ open, onClose, defaultMeal = "almuerzo", onAdd }: FoodLo
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Escanear va ARRIBA del formulario y no como una pestaña: para el
+                producto envasado es el camino corto, y para lo casero el
+                formulario sigue estando entero abajo, sin un toque de más. */}
+            {onScan && (
+              <button
+                onClick={onScan}
+                className="w-full mb-5 rounded-2xl bg-primary/10 border border-primary/25 px-4 py-3.5 flex items-center gap-3.5 text-left active:scale-[0.98] transition-transform"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <ScanBarcode className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-black text-foreground tracking-tight leading-tight">
+                    Escanear código de barras
+                  </p>
+                  <p className="text-[12px] text-muted-foreground leading-tight">
+                    Para productos envasados, con sus datos ya cargados
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-primary shrink-0" />
+              </button>
+            )}
+
+            {/* Lo que ya escaneaste antes: el yogur de todas las mañanas no
+                debería pedir la cámara nunca más. Dos toques y listo. */}
+            {recents.length > 0 && onPickRecent && (
+              <div className="mb-5">
+                <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  Escaneaste hace poco
+                </p>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+                  {recents.map((p) => (
+                    <button
+                      key={p.barcode}
+                      onClick={() => onPickRecent(p)}
+                      className="shrink-0 max-w-[190px] flex items-center gap-2.5 rounded-xl bg-secondary/60 border border-white/[0.06] pl-2.5 pr-3.5 min-h-[52px] py-2 text-left active:scale-[0.97] transition-transform"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-primary/12 border border-primary/20 flex items-center justify-center shrink-0">
+                        <Package className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate">{p.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {p.per100.calories != null ? `${p.per100.calories} kcal/100${p.unit}` : "sin datos"}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tipo de comida */}
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 mb-5">
