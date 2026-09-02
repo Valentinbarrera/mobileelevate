@@ -225,7 +225,7 @@ const Anthropometry = () => {
                 <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="accent-bar" />
-                    <h3 className="text-sm font-black tracking-tight text-foreground">
+                    <h3 className="text-lg font-black tracking-tight text-foreground">
                       Composición corporal
                     </h3>
                   </div>
@@ -303,7 +303,7 @@ const Anthropometry = () => {
               <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="accent-bar" />
-                  <h3 className="text-sm font-black tracking-tight text-foreground">Evolución</h3>
+                  <h3 className="text-lg font-black tracking-tight text-foreground">Evolución</h3>
                 </div>
                 {evaluations.length < 2 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
@@ -318,7 +318,7 @@ const Anthropometry = () => {
               <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="accent-bar" />
-                  <h3 className="text-sm font-black tracking-tight text-foreground">
+                  <h3 className="text-lg font-black tracking-tight text-foreground">
                     Historial de evaluaciones
                   </h3>
                 </div>
@@ -392,7 +392,7 @@ const IndexList = ({ values }: { values: Record<string, number | string | null> 
     <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <span className="accent-bar" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Índices</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Índices</h3>
       </div>
       <ul className="space-y-2.5">
         {present.map((id) => {

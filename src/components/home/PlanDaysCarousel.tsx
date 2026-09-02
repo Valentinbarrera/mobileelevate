@@ -48,7 +48,7 @@ const PlanDaysCarousel = ({ days, todayId, routineId }: PlanDaysCarouselProps) =
       <div className="flex items-center justify-between px-0.5">
         <div className="flex items-center gap-2">
           <span className="accent-bar" />
-          <h3 className="text-sm font-black text-foreground tracking-tight">Tu plan</h3>
+          <h3 className="text-lg font-black text-foreground tracking-tight">Tu plan</h3>
         </div>
         <span className="text-sm text-muted-foreground">{days.length} días</span>
       </div>

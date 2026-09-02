@@ -146,7 +146,7 @@ export default function ProgressPhotos() {
                 <motion.div key={m.month} variants={fadeUp} className="space-y-2.5">
                   <div className="flex items-center gap-2 px-0.5">
                     <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight capitalize">{m.label}</h3>
+                    <h3 className="text-lg font-black text-foreground tracking-tight capitalize">{m.label}</h3>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {PHOTO_TYPES.map((t) => {

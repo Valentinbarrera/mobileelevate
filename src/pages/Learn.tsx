@@ -101,7 +101,7 @@ const Capsule = ({
       <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-primary" />
       </div>
-      <h2 className="text-sm font-black text-foreground tracking-tight">{title}</h2>
+      <h2 className="text-lg font-black text-foreground tracking-tight">{title}</h2>
     </div>
     <div className="p-4">{children}</div>
   </motion.section>

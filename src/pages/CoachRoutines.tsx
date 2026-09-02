@@ -295,7 +295,7 @@ const CoachRoutines = () => {
                   <div className="flex items-center justify-between gap-3 px-0.5">
                     <div className="flex items-center gap-2">
                       <span className="accent-bar" />
-                      <h3 className="text-sm font-black text-foreground tracking-tight">
+                      <h3 className="text-lg font-black text-foreground tracking-tight">
                         {showCalendar ? "Calendario" : "Esta semana"}
                       </h3>
                     </div>
@@ -328,7 +328,7 @@ const CoachRoutines = () => {
                 <div className="flex items-center justify-between gap-3 px-0.5">
                   <div className="flex items-center gap-2">
                     <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Tus rutinas</h3>
+                    <h3 className="text-lg font-black text-foreground tracking-tight">Tus rutinas</h3>
                   </div>
 
                   {completedAssignments.length > 0 && (

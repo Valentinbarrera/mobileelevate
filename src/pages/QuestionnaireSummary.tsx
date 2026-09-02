@@ -82,7 +82,7 @@ const Section = ({
       <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-primary" />
       </div>
-      <h2 className="text-sm font-black text-foreground tracking-tight">{title}</h2>
+      <h2 className="text-lg font-black text-foreground tracking-tight">{title}</h2>
     </div>
     <div className="px-4 py-1.5">{children}</div>
   </motion.div>

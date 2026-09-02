@@ -90,7 +90,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <section className="space-y-2">
       <div className="flex items-center gap-2">
         <span className="accent-bar" />
-        <h2 className="text-sm font-black text-foreground tracking-tight">{title}</h2>
+        <h2 className="text-lg font-black text-foreground tracking-tight">{title}</h2>
       </div>
       <div className="space-y-2">{children}</div>
     </section>

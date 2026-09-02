@@ -48,7 +48,7 @@ const ProfileSettings = () => {
     >
       <div className="flex items-center gap-2 mb-4">
         <span className="accent-bar" />
-        <h3 className="text-sm font-black text-foreground tracking-tight">Ajustes</h3>
+        <h3 className="text-lg font-black text-foreground tracking-tight">Ajustes</h3>
       </div>
 
       <div className="space-y-2">

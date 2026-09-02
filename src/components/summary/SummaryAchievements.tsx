@@ -41,7 +41,7 @@ const SummaryAchievements = ({ isPersonalBest, completionRate, currentStreak = 0
       >
         <div className="flex items-center gap-2 mb-3">
           <span className="accent-bar" />
-          <h3 className="text-sm font-black text-foreground tracking-tight">Logros desbloqueados</h3>
+          <h3 className="text-lg font-black text-foreground tracking-tight">Logros desbloqueados</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

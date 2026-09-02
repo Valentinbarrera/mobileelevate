@@ -36,7 +36,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
       >
         <div className="flex items-center gap-2 mb-2">
           <span className="accent-bar" />
-          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+          <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
         </div>
         <p className="text-sm text-muted-foreground text-center py-8">
           Sin datos registrados aún
@@ -99,7 +99,7 @@ const BodyMetricChart = ({ data, title, unit, color = "hsl(var(--primary))" }: B
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span className="accent-bar" />
-          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+          <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
         </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />

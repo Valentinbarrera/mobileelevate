@@ -93,7 +93,7 @@ const VolumeProgressChart = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="accent-bar" />
-          <h3 className="text-sm font-black tracking-tight text-foreground">{title}</h3>
+          <h3 className="text-lg font-black tracking-tight text-foreground">{title}</h3>
         </div>
         <div className={`flex items-center gap-1 ${trendColor}`}>
           <TrendIcon className="w-4 h-4" />

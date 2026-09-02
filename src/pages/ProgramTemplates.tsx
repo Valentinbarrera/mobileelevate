@@ -125,7 +125,7 @@ export default function ProgramTemplates() {
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                          <h3 className="text-base font-black text-foreground tracking-tight">
+                          <h3 className="text-lg font-black text-foreground tracking-tight">
                             {t.name}
                           </h3>
                           <LevelChip level={t.level} />

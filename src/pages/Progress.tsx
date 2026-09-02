@@ -249,7 +249,7 @@ const Progress = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 px-0.5">
                   <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">Cuerpo</h3>
+                  <h3 className="text-lg font-black text-foreground tracking-tight">Cuerpo</h3>
                 </div>
                 <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-white/[0.06]">
                   {[
@@ -283,7 +283,11 @@ const Progress = () => {
 
           // Lo que el alumno anota suelto también es progreso: sin esto, el
           // anotador era un cuaderno que no le contaba nada al resto de la app.
-          const anotador = anotadas.length > 0 && (
+          // Se muestra SIEMPRE, aunque todavía no haya nada anotado: el
+          // anotador dejó de estar en los accesos rápidos del Home, así que
+          // esta es su única puerta y si se escondía hasta la primera serie,
+          // el que nunca lo usó no podía llegar a usarlo nunca.
+          const anotador = (
             <motion.button
               variants={fadeUp}
               onClick={() => navigate("/anotador")}
@@ -291,25 +295,35 @@ const Progress = () => {
             >
               <div className="flex items-center gap-2 mb-3">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Anotador</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Anotador</h3>
                 <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                  últimas series <ChevronRight className="w-4 h-4" />
+                  {anotadas.length > 0 ? "últimas series" : "anotá una serie"}
+                  <ChevronRight className="w-4 h-4" />
                 </span>
               </div>
-              <div className="space-y-1.5">
-                {anotadas.map((s) => (
-                  <div
-                    key={s.exerciseId + s.date + s.setNumber}
-                    className="flex items-center gap-2.5"
-                  >
-                    <NotebookPen className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-sm font-semibold text-foreground truncate">{s.name}</span>
-                    <span className="ml-auto text-sm text-foreground/70 tabular-nums shrink-0">
-                      {s.weight > 0 ? s.weight + " kg × " + s.reps : s.reps + " reps"}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {anotadas.length > 0 ? (
+                <div className="space-y-1.5">
+                  {anotadas.map((s) => (
+                    <div
+                      key={s.exerciseId + s.date + s.setNumber}
+                      className="flex items-center gap-2.5"
+                    >
+                      <NotebookPen className="w-4 h-4 text-primary shrink-0" />
+                      <span className="text-sm font-semibold text-foreground truncate">{s.name}</span>
+                      <span className="ml-auto text-sm text-foreground/70 tabular-nums shrink-0">
+                        {s.weight > 0 ? s.weight + " kg × " + s.reps : s.reps + " reps"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5">
+                  <NotebookPen className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-sm text-muted-foreground">
+                    Escribí "sentadilla 100x8" y queda registrado.
+                  </span>
+                </div>
+              )}
             </motion.button>
           );
 
@@ -317,7 +331,7 @@ const Progress = () => {
             <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Bienestar</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Bienestar</h3>
                 <span className="ml-auto text-xs text-muted-foreground">último check-in</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -356,7 +370,7 @@ const Progress = () => {
             <motion.div variants={fadeUp} className="card-elevated rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Energía diaria</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Energía diaria</h3>
                 <span className="ml-auto text-xs text-muted-foreground">último readiness</span>
               </div>
               <div className="flex items-center gap-4">

@@ -322,7 +322,7 @@ export default function MyProgramDetail() {
               {showWeekHeaders && (
                 <div className="flex items-center gap-2 px-0.5">
                   <span className="accent-bar" />
-                  <h3 className="text-sm font-black text-foreground tracking-tight">
+                  <h3 className="text-lg font-black text-foreground tracking-tight">
                     Semana {group.week}
                   </h3>
                 </div>
@@ -336,7 +336,7 @@ export default function MyProgramDetail() {
               >
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
                   <Dumbbell className="w-4 h-4 text-primary" />
-                  <h3 className="flex-1 text-sm font-black text-foreground tracking-tight truncate">
+                  <h3 className="flex-1 text-lg font-black text-foreground tracking-tight truncate">
                     {day.name}
                   </h3>
                   <span className="text-sm font-semibold text-foreground/70">

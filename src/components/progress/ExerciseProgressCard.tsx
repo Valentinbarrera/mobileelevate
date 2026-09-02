@@ -8,7 +8,7 @@
  */
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, TrendingUp, Trophy } from "lucide-react";
+import { Dumbbell, TrendingUp, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Line,
   XAxis,
@@ -30,6 +30,7 @@ const fmtDate = (d: string) =>
 
 const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
   const [selected, setSelected] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
   const idx = exercises.length ? Math.min(selected, exercises.length - 1) : 0;
   const current = exercises[idx];
@@ -96,11 +97,23 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
       <div className="flex items-center gap-2 mb-3">
         <span className="accent-bar" />
         <Dumbbell className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Progreso por ejercicio</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Progreso por ejercicio</h3>
+        {/* Cuántos ejercicios hay en total: en la tira horizontal sólo se veían
+            los 3 primeros y no había nada que dijera que había más. */}
+        <span className="ml-auto text-sm font-bold tabular-nums text-muted-foreground shrink-0">
+          {exercises.length}
+        </span>
       </div>
 
-      {/* Selector de ejercicio */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+      {/* Selector de ejercicio. Plegado es una tira que se desliza; desplegado
+          los acomoda en varias filas para verlos TODOS de una, sin arrastrar. */}
+      <div
+        className={
+          showAll
+            ? "flex flex-wrap gap-2"
+            : "flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
+        }
+      >
         {exercises.map((ex, i) => (
           <button
             key={ex.name}
@@ -115,6 +128,27 @@ const ExerciseProgressCard = ({ exercises }: ExerciseProgressCardProps) => {
           </button>
         ))}
       </div>
+
+      {exercises.length > 3 && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          aria-expanded={showAll}
+          className="w-full min-h-11 mt-2 flex items-center justify-center gap-1.5 text-sm font-bold text-primary active:scale-[0.99] transition-transform"
+        >
+          {showAll ? (
+            <>
+              Ver menos
+              <ChevronUp className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              Ver los {exercises.length} ejercicios
+              <ChevronDown className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      )}
 
       {/* Stats del ejercicio seleccionado */}
       <div className="flex items-center justify-between mt-2 mb-1">

@@ -83,7 +83,7 @@ const MacroTrendChart = ({ days }: MacroTrendChartProps) => {
       <div className="flex items-center gap-2 mb-3">
         <span className="accent-bar" />
         <LineChartIcon className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Macros en el tiempo</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Macros en el tiempo</h3>
       </div>
 
       {/* Selector de métrica */}

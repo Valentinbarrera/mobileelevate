@@ -20,7 +20,7 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
         <div className="flex items-center gap-2 mb-3">
           <span className="accent-bar" />
           <Trophy className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-black tracking-tight text-foreground">Records Personales</h3>
+          <h3 className="text-lg font-black tracking-tight text-foreground">Records Personales</h3>
         </div>
         <p className="text-sm text-muted-foreground text-center py-6">
           Completá entrenamientos para ver tus PRs
@@ -38,7 +38,7 @@ const PersonalRecords = ({ records }: PersonalRecordsProps) => {
       <div className="flex items-center gap-2 mb-4">
         <span className="accent-bar" />
         <Trophy className="w-4 h-4 text-amber-400" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Records Personales</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Records Personales</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">

@@ -179,7 +179,7 @@ const WorkoutHistoryList = ({ sessions }: WorkoutHistoryListProps) => {
         <div className="flex items-center gap-2 mb-3">
           <span className="accent-bar" />
           <History className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-black tracking-tight text-foreground">Entrenos hechos</h3>
+          <h3 className="text-lg font-black tracking-tight text-foreground">Entrenos hechos</h3>
         </div>
         <p className="text-sm text-muted-foreground text-center py-6">
           Cuando completes un entreno va a aparecer acá
@@ -197,7 +197,7 @@ const WorkoutHistoryList = ({ sessions }: WorkoutHistoryListProps) => {
       <div className="flex items-center gap-2 mb-4">
         <span className="accent-bar" />
         <History className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-black tracking-tight text-foreground">Entrenos hechos</h3>
+        <h3 className="text-lg font-black tracking-tight text-foreground">Entrenos hechos</h3>
         <span className="ml-auto text-sm font-bold text-foreground/70 tabular-nums">{sessions.length}</span>
       </div>
 

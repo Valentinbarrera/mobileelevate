@@ -372,7 +372,7 @@ const Routines = () => {
             <motion.div variants={fadeUp} className="space-y-3">
               <div className="flex items-center gap-2 px-0.5">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Hoy</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Hoy</h3>
               </div>
 
               {ownNext && activeOwn ? (
@@ -400,7 +400,7 @@ const Routines = () => {
             <motion.div variants={fadeUp} className="space-y-3">
               <div className="flex items-center gap-2 px-0.5">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Mi plan</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Mi plan</h3>
               </div>
 
               {/* Selector de plan. El del coach es UNA OPCIÓN MÁS, no un "volver
@@ -538,7 +538,7 @@ const Routines = () => {
                       <div className="flex items-center justify-between gap-3 px-0.5">
                         <div className="flex items-center gap-2">
                           <span className="accent-bar" />
-                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                          <h3 className="text-lg font-black text-foreground tracking-tight">
                             {showCalendar ? "Calendario" : "Esta semana"}
                           </h3>
                         </div>
@@ -573,7 +573,7 @@ const Routines = () => {
                       <div className="flex items-center justify-between gap-3 px-0.5">
                         <div className="flex items-center gap-2">
                           <span className="accent-bar" />
-                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                          <h3 className="text-lg font-black text-foreground tracking-tight">
                             De tu coach
                           </h3>
                         </div>
@@ -640,7 +640,7 @@ const Routines = () => {
             <>
               <motion.div variants={fadeUp} className="flex items-center gap-2 px-0.5">
                 <span className="accent-bar" />
-                <h3 className="text-sm font-black text-foreground tracking-tight">Explorar</h3>
+                <h3 className="text-lg font-black text-foreground tracking-tight">Explorar</h3>
               </motion.div>
 
               {/* Entreno libre */}
@@ -659,7 +659,7 @@ const Routines = () => {
                 <div className="flex items-center justify-between gap-3 px-0.5">
                   <div className="flex items-center gap-2">
                     <span className="accent-bar" />
-                    <h3 className="text-sm font-black text-foreground tracking-tight">Mis programas</h3>
+                    <h3 className="text-lg font-black text-foreground tracking-tight">Mis programas</h3>
                   </div>
                   <button
                     onClick={() => navigate("/programas/nuevo")}
@@ -704,7 +704,7 @@ const Routines = () => {
                       <div className="space-y-3 pt-1">
                         <div className="flex items-center gap-2 px-0.5">
                           <span className="accent-bar" />
-                          <h3 className="text-sm font-black text-foreground tracking-tight">
+                          <h3 className="text-lg font-black text-foreground tracking-tight">
                             Terminados
                           </h3>
                         </div>

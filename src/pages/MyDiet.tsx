@@ -301,7 +301,7 @@ export default function MyDiet() {
             return (
               <motion.div key={meal.id} variants={fadeUp} className="card-elevated rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-                  <h3 className="flex-1 text-base font-black text-foreground tracking-tight truncate">{meal.name}</h3>
+                  <h3 className="flex-1 text-lg font-black text-foreground tracking-tight truncate">{meal.name}</h3>
                   <span className="text-sm font-bold text-foreground/70 tabular-nums">
                     {Math.round(mt.calories)} kcal
                   </span>

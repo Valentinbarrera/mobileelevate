@@ -669,7 +669,7 @@ export default function MyProgramBuilder() {
                   onClick={() => chooseSplit(preset)}
                   className="w-full text-left card-elevated rounded-2xl p-4 active:scale-[0.99] hover:border-primary/40 border border-transparent transition-all"
                 >
-                  <h3 className="text-base font-black text-foreground tracking-tight mb-2">{preset.name}</h3>
+                  <h3 className="text-lg font-black text-foreground tracking-tight mb-2">{preset.name}</h3>
                   <div className="flex flex-wrap gap-1.5 mb-2.5">
                     {preset.tags.map((t, i) => (
                       <span
@@ -798,7 +798,7 @@ export default function MyProgramBuilder() {
                     value={activeDay.name}
                     onChange={(e) => patchDay(activeDay.id, { name: e.target.value })}
                     placeholder={`Día ${activeDayIdx + 1}`}
-                    className="flex-1 min-w-0 bg-transparent text-base font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
+                    className="flex-1 min-w-0 bg-transparent text-lg font-black text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/60"
                   />
                   {/* Stepper de semana al lado del nombre: mover el día sin salir del editor */}
                   <div className="flex items-center gap-0.5 shrink-0 rounded-lg bg-secondary/60 border border-white/[0.06] px-1 py-0.5">

@@ -465,7 +465,7 @@ const FreeWorkout = () => {
         <div className="card-elevated rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="accent-bar" />
-            <h2 className="text-sm font-black text-foreground tracking-tight">Agregar ejercicio</h2>
+            <h2 className="text-lg font-black text-foreground tracking-tight">Agregar ejercicio</h2>
           </div>
 
           {/* Buscador de la biblioteca */}
