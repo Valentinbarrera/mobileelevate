@@ -9,6 +9,7 @@ import { X, Search, Dumbbell, Minus, Plus, Check } from "lucide-react";
 import { useExerciseLibrary } from "@/hooks/useExerciseLibrary";
 import type { LibraryExercise } from "@/hooks/useExerciseLibrary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 export interface ExercisePickerResult {
   exercise: LibraryExercise;
@@ -57,6 +58,7 @@ const ExercisePickerSheet = ({
 }: ExercisePickerSheetProps) => {
   const { exercises, loading, error } = useExerciseLibrary();
 
+  const kb = useKeyboardInset();
   const [query, setQuery] = useState("");
   const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
   const [presuggested, setPresuggested] = useState(false);
@@ -132,7 +134,12 @@ const ExercisePickerSheet = ({
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

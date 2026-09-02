@@ -12,6 +12,7 @@ import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { staggerContainer } from '@/lib/animations';
+import { useKeyboardInset } from '@/hooks/useKeyboardInset';
 
 interface Message {
   id: string;
@@ -30,6 +31,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const kb = useKeyboardInset();
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['student-messages', student?.id],
@@ -139,11 +141,13 @@ export default function Messages() {
     },
   });
 
+  // Al fondo con cada mensaje nuevo Y cuando aparece el teclado: si no, al
+  // abrirlo el último mensaje queda escondido detrás y parece que no se envió.
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, kb]);
 
   const handleSend = async () => {
     if (!messageText.trim() || sendMessage.isPending) return;
@@ -232,8 +236,14 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Input */}
-        <div className="sticky bottom-28 lg:bottom-0 bg-background border-t border-border/50 px-5 py-3">
+        {/* Barra de escritura. El `bottom-28` la deja arriba de la nav; cuando
+            aparece el teclado ese hueco ya no existe y el teclado la tapaba
+            entera (no se podía ni escribir ni enviar), así que se ancla a la
+            altura real del teclado. */}
+        <div
+          className="sticky bottom-28 lg:bottom-0 bg-background border-t border-border/50 px-5 py-3 transition-[bottom] duration-200"
+          style={kb > 0 ? { bottom: kb } : undefined}
+        >
           <div className="max-w-2xl lg:max-w-3xl mx-auto flex items-end gap-2">
             <Input
               value={messageText}

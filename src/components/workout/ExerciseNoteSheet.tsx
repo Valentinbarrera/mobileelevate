@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 interface Props {
   open: boolean;
@@ -23,6 +24,7 @@ const ExerciseNoteSheet = ({
   onClose,
   onSave,
 }: Props) => {
+  const kb = useKeyboardInset();
   const [text, setText] = useState(initialText);
   const [pinned, setPinned] = useState(initialPinned);
 
@@ -45,7 +47,8 @@ const ExerciseNoteSheet = ({
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 transition-[margin,max-height] duration-200"
+            style={kb > 0 ? { marginBottom: kb } : undefined}
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

@@ -29,6 +29,7 @@ import {
   type CalorieGoalMode,
 } from "@/lib/nutritionCalc";
 import { AUTO, MANUAL_MIN, MANUAL_MAX, type CalorieGoalPref } from "@/lib/calorieGoal";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 interface Props {
   open: boolean;
@@ -61,6 +62,7 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
   const inputs = useMemo(() => (onboarding ? inputsFromOnboarding(onboarding) : null), [onboarding]);
   const preset = useMemo(() => defaultModeForGoal(onboarding?.goal ?? null), [onboarding]);
 
+  const kb = useKeyboardInset();
   const [mode, setMode] = useState<CalorieGoalMode>(preset.mode);
   const [adjust, setAdjust] = useState<number>(preset.adjust || 500);
   const [manual, setManual] = useState(false);
@@ -153,7 +155,12 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ImagePlus, Check, Loader2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { PHOTO_TYPES, type PhotoType } from "@/hooks/useProgressPhotos";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 interface PhotoUploadSheetProps {
   open: boolean;
@@ -27,6 +28,7 @@ const PhotoUploadSheet = ({
   uploading,
   onUpload,
 }: PhotoUploadSheetProps) => {
+  const kb = useKeyboardInset();
   const [photoType, setPhotoType] = useState<PhotoType>(defaultType);
   const [date, setDate] = useState(defaultDate);
   const [file, setFile] = useState<File | null>(null);
@@ -87,7 +89,12 @@ const PhotoUploadSheet = ({
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

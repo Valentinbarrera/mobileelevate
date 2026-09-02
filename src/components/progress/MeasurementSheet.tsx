@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Loader2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { MeasurementInput } from "@/hooks/useSaveMeasurement";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 interface FieldDef {
   key: keyof Omit<MeasurementInput, "date" | "notes">;
@@ -18,13 +19,18 @@ interface FieldDef {
   unit: string;
 }
 
+// El orden lo fijó el coach y es el de la toma real: se mide de arriba hacia
+// abajo (pecho, brazo, cintura, cadera, muslo), no alfabético ni por
+// importancia. Cambiarlo obliga a saltar de un lado del cuerpo al otro con la
+// cinta en la mano. "% Grasa" va último porque no se mide con cinta: sale del
+// informe de antropometría cuando el alumno lo sube.
 const FIELDS: FieldDef[] = [
   { key: "weight_kg", label: "Peso", unit: "kg" },
-  { key: "waist_cm", label: "Cintura", unit: "cm" },
   { key: "chest_cm", label: "Pecho", unit: "cm" },
-  { key: "arm_cm", label: "Brazo", unit: "cm" },
-  { key: "thigh_cm", label: "Muslo", unit: "cm" },
+  { key: "arm_cm", label: "Brazo relajado", unit: "cm" },
+  { key: "waist_cm", label: "Cintura", unit: "cm" },
   { key: "hips_cm", label: "Cadera", unit: "cm" },
+  { key: "thigh_cm", label: "Muslo", unit: "cm" },
   { key: "body_fat", label: "% Grasa", unit: "%" },
 ];
 
@@ -58,6 +64,7 @@ const MeasurementSheet = ({
   latest,
   onSave,
 }: MeasurementSheetProps) => {
+  const kb = useKeyboardInset();
   const [date, setDate] = useState(today);
   const [values, setValues] = useState<FormState>(emptyForm());
   const [notes, setNotes] = useState("");
@@ -127,7 +134,12 @@ const MeasurementSheet = ({
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}

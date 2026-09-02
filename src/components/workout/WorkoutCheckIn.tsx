@@ -16,6 +16,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X } from "lucide-react";
 import type { CheckInData } from "@/lib/checkins";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 const ENERGY_LABEL = ["", "Fundido", "Flojo", "Normal", "Bien", "Enchufado"];
 const LOAD_LABEL = ["", "Muy livianas", "Livianas", "Justas", "Pesadas", "No pude"];
@@ -77,6 +78,7 @@ interface WorkoutCheckInProps {
 }
 
 const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
+  const kb = useKeyboardInset();
   const [rpe, setRpe] = useState(0);
   const [energy, setEnergy] = useState(0);
   const [load, setLoad] = useState(0);
@@ -94,7 +96,12 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto"
+            className="w-full sm:max-w-md card-elevated rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto transition-[margin,max-height] duration-200"
+            style={
+              kb > 0
+                ? { marginBottom: kb, maxHeight: `calc(100dvh - ${kb + 24}px)` }
+                : undefined
+            }
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
