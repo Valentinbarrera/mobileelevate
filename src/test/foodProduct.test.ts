@@ -15,6 +15,8 @@ import {
   suggestedAmounts,
   productLogName,
   lookupProductByBarcode,
+  emptyProduct,
+  hasNutritionData,
   type FoodProduct,
 } from "@/lib/foodProduct";
 
@@ -332,5 +334,33 @@ describe("lookupProductByBarcode", () => {
       ok: false,
       reason: "timeout",
     });
+  });
+});
+
+describe("emptyProduct / hasNutritionData", () => {
+  it("la ficha para cargar a mano conserva el codigo escaneado", () => {
+    const p = emptyProduct("7790895000997");
+    expect(p.barcode).toBe("7790895000997");
+    expect(p.name).toBe("");
+    expect(hasNutritionData(p)).toBe(false);
+  });
+
+  it("alcanza UN dato para considerarla cargada", () => {
+    const p = emptyProduct("123");
+    expect(hasNutritionData({ ...p, per100: { ...p.per100, calories: 90 } })).toBe(true);
+    expect(hasNutritionData({ ...p, per100: { ...p.per100, protein: 3 } })).toBe(true);
+  });
+
+  it("la fibra sola no cuenta: no alcanza para calcular nada", () => {
+    const p = emptyProduct("123");
+    expect(hasNutritionData({ ...p, per100: { ...p.per100, fiber: 2 } })).toBe(false);
+  });
+
+  it("lo que carga el alumno se escala igual que lo que viene de la base", () => {
+    const p = emptyProduct("123");
+    const cargado = { ...p.per100, calories: 250, protein: 8, carbs: 30, fats: 10 };
+    const r = calculateNutritionForServing(cargado, 50);
+    expect(r.calories).toBe(125);
+    expect(r.protein).toBe(4);
   });
 });

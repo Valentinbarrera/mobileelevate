@@ -34,13 +34,15 @@ interface BarcodeScannerSheetProps {
   onFound: (product: FoodProduct) => void;
   /** "No lo encontré, lo cargo a mano." */
   onManual: () => void;
+  /** Cargar los datos de un producto que la base no tiene, con su código. */
+  onManualProduct?: (barcode: string) => void;
 }
 
 /** Un motivo de fallo → qué le decimos y qué puede hacer. Sin jerga. */
 const FAILURE_COPY: Record<LookupFailure, { title: string; body: string }> = {
   not_found: {
     title: "No tenemos este producto",
-    body: "La base es colaborativa y todavía no lo cargó nadie. Podés anotarlo a mano en 10 segundos.",
+    body: "La base es colaborativa y todavía no lo cargó nadie. Cargá vos los datos del envase y queda guardado con este código: la próxima vez ya aparece.",
   },
   invalid_barcode: {
     title: "Ese código no es de un alimento",
@@ -68,7 +70,13 @@ const FAILURE_COPY: Record<LookupFailure, { title: string; body: string }> = {
   },
 };
 
-const BarcodeScannerSheet = ({ open, onClose, onFound, onManual }: BarcodeScannerSheetProps) => {
+const BarcodeScannerSheet = ({
+  open,
+  onClose,
+  onFound,
+  onManual,
+  onManualProduct,
+}: BarcodeScannerSheetProps) => {
   const [phase, setPhase] = useState<Phase>({ kind: "scanning" });
 
   // Destello de "lo leí". Dura medio segundo y vive aparte de la fase porque
@@ -265,12 +273,17 @@ const BarcodeScannerSheet = ({ open, onClose, onFound, onManual }: BarcodeScanne
               </p>
               <p className="mt-2 text-sm text-muted-foreground tabular-nums">{phase.barcode}</p>
 
+              {/* Cargar los datos del producto es MEJOR que anotar la comida
+                  suelta: queda pegado al código de barras y la próxima vez que
+                  lo escanees ya está. Por eso es la acción principal. */}
               <button
-                onClick={onManual}
+                onClick={() =>
+                  onManualProduct ? onManualProduct(phase.barcode) : onManual()
+                }
                 className="w-full min-h-12 mt-5 rounded-2xl bg-gradient-primary text-primary-foreground font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
               >
                 <PencilLine className="w-5 h-5" />
-                Anotarlo a mano
+                Cargar los datos del envase
               </button>
               <button
                 onClick={retry}

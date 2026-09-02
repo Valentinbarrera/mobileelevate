@@ -20,7 +20,7 @@ import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
 import BarcodeScannerSheet from "@/components/nutrition/BarcodeScannerSheet";
 import ScannedProductSheet from "@/components/nutrition/ScannedProductSheet";
-import type { FoodProduct } from "@/lib/foodProduct";
+import { emptyProduct, type FoodProduct } from "@/lib/foodProduct";
 import { loadRecentProducts, rememberProduct } from "@/lib/recentProducts";
 import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
@@ -492,10 +492,16 @@ export default function Nutrition() {
           setScanning(false);
           setShowFoodSheet(true);
         }}
+        onManualProduct={(barcode) => {
+          setScanning(false);
+          // Ficha vacía con el código: se completa ahí y queda en recientes.
+          setScanned(emptyProduct(barcode));
+        }}
       />
       <ScannedProductSheet
         product={scanned}
         onClose={() => setScanned(null)}
+        onSaveProduct={(p) => setRecents(rememberProduct(sid, p))}
         onAdd={(food) => {
           addFood(food);
           setScanned(null);

@@ -270,3 +270,30 @@ export function suggestedAmounts(product: FoodProduct): { amount: number; label:
 export function productLogName(product: FoodProduct): string {
   return product.brand ? `${product.name} (${product.brand})` : product.name;
 }
+
+/**
+ * Producto vacío para cargar a mano, con el código que se escaneó.
+ *
+ * Es lo que se ofrece cuando Open Food Facts no lo tiene: en vez de mandar al
+ * alumno a un formulario suelto y perder el código, se completa la misma ficha
+ * y el producto queda guardado en SUS recientes. La próxima vez que escanee ese
+ * envase ya aparece con los datos que cargó, aunque la base pública nunca lo
+ * sume.
+ */
+export function emptyProduct(barcode: string): FoodProduct {
+  return {
+    barcode,
+    name: "",
+    brand: null,
+    imageUrl: null,
+    servingSize: null,
+    unit: "g",
+    per100: { calories: null, protein: null, carbs: null, fats: null, fiber: null },
+  };
+}
+
+/** ¿Tiene al menos un dato nutricional cargado? */
+export function hasNutritionData(p: FoodProduct): boolean {
+  const n = p.per100;
+  return n.calories != null || n.protein != null || n.carbs != null || n.fats != null;
+}

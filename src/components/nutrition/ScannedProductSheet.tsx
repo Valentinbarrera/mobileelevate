@@ -9,15 +9,17 @@
  * Lo que el fabricante no declara se muestra como "—" y nunca como 0: en una
  * app de nutrición, un dato inventado es peor que un dato que falta.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Package } from "lucide-react";
+import { X, Check, Package, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import CountUp from "@/components/ui/count-up";
 import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import {
   calculateNutritionForServing,
   suggestedAmounts,
   productLogName,
+  hasNutritionData,
   type FoodProduct,
 } from "@/lib/foodProduct";
 import type { LoggedFood, MealType } from "@/hooks/useDailyNutritionTracking";
@@ -35,6 +37,8 @@ interface ScannedProductSheetProps {
   onClose: () => void;
   defaultMeal?: MealType;
   onAdd: (food: Omit<LoggedFood, "id">) => void;
+  /** El producto tal como quedó tras editarlo, para recordarlo en recientes. */
+  onSaveProduct?: (product: FoodProduct) => void;
 }
 
 /** Valor de un macro ya escalado. `null` se dibuja como "—". */
@@ -55,11 +59,44 @@ const MacroCell = ({
   </div>
 );
 
+/** Campo numérico de "por 100". Vacío = el dato no existe, y eso vale. */
+const Per100Input = ({
+  label,
+  value,
+  onChange,
+  color,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  color: string;
+}) => (
+  <label className="flex flex-col gap-1 min-w-0">
+    <span className={`text-[11px] font-bold uppercase tracking-wider px-1 ${color}`}>{label}</span>
+    <input
+      inputMode="decimal"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onFocus={(e) => e.target.select()}
+      placeholder="—"
+      className="w-full min-w-0 h-11 rounded-lg bg-secondary border border-border text-center text-base font-bold text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+    />
+  </label>
+);
+
+/** "12,5" → 12.5 · "" → null. Vacío es "no sé", no es cero. */
+const parseField = (raw: string): number | null => {
+  const n = parseFloat(raw.replace(",", "."));
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 10) / 10 : null;
+};
+const fieldOf = (v: number | null) => (v == null ? "" : String(v));
+
 const ScannedProductSheet = ({
   product,
   onClose,
   defaultMeal = "snack",
   onAdd,
+  onSaveProduct,
 }: ScannedProductSheetProps) => {
   const kb = useKeyboardInset();
   const [meal, setMeal] = useState<MealType>(defaultMeal);
@@ -67,7 +104,50 @@ const ScannedProductSheet = ({
   const [custom, setCustom] = useState("");
   const [imgFailed, setImgFailed] = useState(false);
 
-  const options = useMemo(() => (product ? suggestedAmounts(product) : []), [product]);
+  // Datos editables. Arrancan en lo que trajo la base y el alumno los puede
+  // corregir o completar: si el envase dice otra cosa, manda el envase.
+  const [name, setName] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [prot, setProt] = useState("");
+  const [carb, setCarb] = useState("");
+  const [fat, setFat] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  // Al cambiar de producto se recarga todo. Un producto sin nombre o sin
+  // ningún dato abre DIRECTO en edición: no tiene sentido mostrar una ficha
+  // vacía y pedir un toque más para poder llenarla.
+  const barcode = product?.barcode ?? null;
+  useEffect(() => {
+    if (!product) return;
+    setName(product.name);
+    setKcal(fieldOf(product.per100.calories));
+    setProt(fieldOf(product.per100.protein));
+    setCarb(fieldOf(product.per100.carbs));
+    setFat(fieldOf(product.per100.fats));
+    setAmount(null);
+    setCustom("");
+    setImgFailed(false);
+    setEditing(!product.name || !hasNutritionData(product));
+  }, [barcode, product]);
+
+  // El producto tal como quedó después de editar. Es lo que se usa para
+  // calcular, para guardar y para recordar en recientes.
+  const edited = useMemo<FoodProduct | null>(() => {
+    if (!product) return null;
+    return {
+      ...product,
+      name: name.trim(),
+      per100: {
+        calories: parseField(kcal),
+        protein: parseField(prot),
+        carbs: parseField(carb),
+        fats: parseField(fat),
+        fiber: product.per100.fiber,
+      },
+    };
+  }, [product, name, kcal, prot, carb, fat]);
+
+  const options = useMemo(() => (edited ? suggestedAmounts(edited) : []), [edited]);
 
   // Al abrir, la cantidad arranca en la porción del fabricante (o la primera
   // sugerida): que el alumno pueda confirmar sin tocar nada es la diferencia
@@ -75,17 +155,14 @@ const ScannedProductSheet = ({
   const effectiveAmount = amount ?? options[0]?.amount ?? 100;
 
   const nutrients = useMemo(
-    () => (product ? calculateNutritionForServing(product.per100, effectiveAmount) : null),
-    [product, effectiveAmount]
+    () => (edited ? calculateNutritionForServing(edited.per100, effectiveAmount) : null),
+    [edited, effectiveAmount]
   );
 
-  if (!product) return null;
+  if (!product || !edited) return null;
 
-  const hasAnyData =
-    product.per100.calories != null ||
-    product.per100.protein != null ||
-    product.per100.carbs != null ||
-    product.per100.fats != null;
+  const hasAnyData = hasNutritionData(edited);
+  const canSave = edited.name !== "" && (nutrients?.calories ?? 0) > 0;
 
   const setCustomAmount = (raw: string) => {
     const clean = raw.replace(/[^0-9.,]/g, "").replace(",", ".");
@@ -95,11 +172,18 @@ const ScannedProductSheet = ({
   };
 
   const confirm = () => {
+    if (!canSave) {
+      toast.error(edited.name === "" ? "Poné el nombre del producto" : "Cargá las calorías");
+      return;
+    }
+    // Se recuerda con lo editado: si cargaste vos los datos de un producto que
+    // la base no tiene, la próxima vez que lo escanees ya están.
+    onSaveProduct?.(edited);
     onAdd({
-      name: `${productLogName(product)} · ${effectiveAmount} ${product.unit}`,
+      name: `${productLogName(edited)} · ${effectiveAmount} ${edited.unit}`,
       mealType: meal,
-      // El registro del día trabaja con números: lo que el producto no declara
-      // entra como 0 para no romper las sumas, pero en pantalla se vio "—" y el
+      // El registro del día trabaja con números: lo que no se declaró entra
+      // como 0 para no romper las sumas, pero en pantalla se vio "—" y el
       // alumno supo que faltaba.
       calories: nutrients?.calories ?? 0,
       protein: nutrients?.protein ?? 0,
@@ -151,10 +235,23 @@ const ScannedProductSheet = ({
                   {product.brand}
                 </p>
               )}
-              <h2 className="text-lg font-black text-foreground tracking-tight leading-tight">
-                {product.name}
-              </h2>
-              <p className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
+              {/* El nombre se escribe cuando el producto no está en la base.
+                  Si ya vino con nombre se muestra como titulo, pero igual se
+                  puede corregir desde "Editar datos". */}
+              {editing ? (
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nombre del producto"
+                  aria-label="Nombre del producto"
+                  className="w-full h-11 rounded-xl bg-secondary border border-border px-3 text-base font-bold text-foreground placeholder:text-muted-foreground/50 placeholder:font-normal focus:border-primary focus:outline-none"
+                />
+              ) : (
+                <h2 className="text-lg font-black text-foreground tracking-tight leading-tight">
+                  {edited.name}
+                </h2>
+              )}
+              <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
                 {product.barcode}
               </p>
             </div>
@@ -167,14 +264,42 @@ const ScannedProductSheet = ({
             </button>
           </div>
 
-          {!hasAnyData && (
-            <div className="mb-5 rounded-2xl bg-amber-400/10 border border-amber-400/25 p-3.5">
-              <p className="text-sm text-amber-200/90 leading-relaxed">
-                Este producto está en la base pero <strong>no tiene información nutricional
-                cargada</strong>. Podés agregarlo igual y completar los valores a mano desde
-                "Agregar comida".
+          {/* Los valores del envase. Se editan acá mismo: antes, cuando el
+              producto no estaba en la base o venía sin datos, el cartel te
+              mandaba a "Agregar comida" — otro formulario, desde cero y
+              perdiendo el código de barras. */}
+          {editing && (
+            <div className="mb-5 rounded-2xl bg-secondary/40 border border-white/[0.06] p-4">
+              <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider">
+                Valores por 100 {edited.unit}
+              </p>
+              <p className="text-[12px] text-muted-foreground leading-tight mt-0.5 mb-3">
+                Como figuran en la tabla nutricional del envase. Lo que no sepas, dejalo vacío.
+              </p>
+              <div className="grid grid-cols-2 gap-2.5 mb-2.5">
+                <Per100Input label="Calorías (kcal)" value={kcal} onChange={setKcal} color="text-foreground/70" />
+                <Per100Input label="Proteína (g)" value={prot} onChange={setProt} color="text-blue-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Per100Input label="Carbos (g)" value={carb} onChange={setCarb} color="text-amber-400" />
+                <Per100Input label="Grasas (g)" value={fat} onChange={setFat} color="text-rose-400" />
+              </div>
+              <p className="text-[12px] text-muted-foreground leading-tight mt-3">
+                Se guarda con este código de barras: la próxima vez que lo escanees, ya va a estar.
               </p>
             </div>
+          )}
+
+          {!editing && !hasAnyData && (
+            <button
+              onClick={() => setEditing(true)}
+              className="w-full mb-5 rounded-2xl bg-amber-400/10 border border-amber-400/25 p-3.5 text-left active:scale-[0.99] transition-transform"
+            >
+              <p className="text-sm text-amber-200/90 leading-relaxed">
+                Este producto está en la base pero <strong>sin información nutricional</strong>.
+                Tocá acá para cargar los valores del envase.
+              </p>
+            </button>
           )}
 
           {/* Cantidad — manda sobre todo lo de abajo */}
@@ -249,6 +374,18 @@ const ScannedProductSheet = ({
               <MacroCell label="Carbos" value={nutrients?.carbs ?? null} color="text-amber-400" />
               <MacroCell label="Grasas" value={nutrients?.fats ?? null} color="text-rose-400" />
             </div>
+
+            {/* Los datos de la base pueden estar mal o incompletos: si el
+                envase dice otra cosa, manda el envase. */}
+            {!editing && (
+              <button
+                onClick={() => setEditing(true)}
+                className="w-full min-h-11 mt-3 flex items-center justify-center gap-1.5 text-sm font-bold text-primary active:scale-[0.99] transition-transform"
+              >
+                <Pencil className="w-4 h-4" />
+                Editar datos del producto
+              </button>
+            )}
           </div>
 
           {/* Comida */}
