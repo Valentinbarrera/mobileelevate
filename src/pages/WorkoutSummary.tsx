@@ -8,6 +8,8 @@ import SummaryActions from "@/components/summary/SummaryActions";
 import SummaryMotivation from "@/components/summary/SummaryMotivation";
 import { useProgressData } from "@/hooks/useProgressData";
 import Confetti from "@/components/summary/Confetti";
+import SummaryExercises from "@/components/summary/SummaryExercises";
+import type { SessionRecap } from "@/lib/sessionRecap";
 
 export interface WorkoutSummaryData {
   workoutName: string;
@@ -18,6 +20,8 @@ export interface WorkoutSummaryData {
   totalSets: number;
   caloriesBurned: number;
   totalVolume?: number;
+  /** Detalle por ejercicio (volumen, récords, vs. la vez pasada). */
+  recap?: SessionRecap;
 }
 
 const WorkoutSummary = () => {
@@ -61,6 +65,8 @@ const WorkoutSummary = () => {
           setsCompleted={summaryData.setsCompleted}
           caloriesBurned={summaryData.caloriesBurned}
         />
+
+        {summaryData.recap && <SummaryExercises recap={summaryData.recap} />}
 
         {/* Achievements */}
         <SummaryAchievements

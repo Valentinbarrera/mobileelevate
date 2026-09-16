@@ -58,6 +58,7 @@ import {
 } from "@/lib/sessionPlan";
 import type { TodayRoutineDay } from "@/hooks/useCoachHomeData";
 import { getLocalDateString } from "@/lib/date";
+import { buildSessionRecap } from "@/lib/sessionRecap";
 import { playStartSound } from "@/lib/sound";
 import {
   saveActiveWorkout,
@@ -922,10 +923,23 @@ const CoachWorkoutDetail = () => {
       setPlanCursorAfter(sid, ownProgram.id, routineDay.dayNumber - 1, ownProgram.days.length);
     }
 
+    // Cómo le fue en cada ejercicio contra la vez pasada (volumen y récords).
+    const recap = buildSessionRecap(
+      sid,
+      getLocalDateString(),
+      exercises.map((e) => ({
+        id: e.id,
+        name: e.name,
+        sets: exerciseStates.get(e.id)?.completedSets ?? [],
+      }))
+    );
+
     navigate("/workout-summary", {
       state: {
         summaryData: {
           workoutName: routineDay?.name || "Entrenamiento",
+          totalVolume: recap.totalVolume,
+          recap,
           duration: elapsedSeconds,
           exercisesCompleted: completedExercises,
           totalExercises: exercises.length,

@@ -19,7 +19,7 @@ const SummaryAchievements = ({ isPersonalBest, completionRate, currentStreak = 0
     ...(isPersonalBest ? [{
       icon: Medal,
       title: "Récord Personal",
-      description: "Tu sesión más larga esta semana",
+      description: "Tu mayor volumen movido en una sesión",
       color: "text-amber-500",
       bgColor: "bg-amber-500/10",
     }] : []),
