@@ -75,9 +75,11 @@ interface WorkoutCheckInProps {
   open: boolean;
   onComplete: (data: CheckInData) => void;
   onSkip: () => void;
+  /** Programa armado por el alumno: el check-in es para él, no para un coach. */
+  ownProgram?: boolean;
 }
 
-const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
+const WorkoutCheckIn = ({ open, onComplete, onSkip, ownProgram = false }: WorkoutCheckInProps) => {
   const kb = useKeyboardInset();
   const [rpe, setRpe] = useState(0);
   const [energy, setEnergy] = useState(0);
@@ -114,7 +116,9 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
               </button>
             </div>
             <p className="text-sm text-foreground/70 mb-5">
-              Un segundo para que tu coach ajuste mejor tu plan.
+              {ownProgram
+                ? "Un segundo para registrar cómo te sentiste y ver tu evolución."
+                : "Un segundo para que tu coach ajuste mejor tu plan."}
             </p>
 
             {/* RPE */}
@@ -162,7 +166,7 @@ const WorkoutCheckIn = ({ open, onComplete, onSkip }: WorkoutCheckInProps) => {
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Nota para tu coach (opcional)"
+              placeholder={ownProgram ? "Nota del entreno (opcional)" : "Nota para tu coach (opcional)"}
               rows={2}
               className="w-full rounded-xl bg-secondary border border-border p-3 text-sm text-foreground focus:border-primary focus:outline-none mb-5 resize-none"
             />

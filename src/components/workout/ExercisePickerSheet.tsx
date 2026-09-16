@@ -109,18 +109,23 @@ const ExercisePickerSheet = ({
     setPresuggested(true);
   }, [open, suggestedMuscle, muscles]);
 
-  const results = useMemo(() => {
+  const { results, gymHidAll } = useMemo(() => {
     const q = norm(query.trim());
     const filtered = exercises.filter((e) => {
       if (excludeExerciseId && e.id === excludeExerciseId) return false;
       if (muscleFilter && e.muscle !== muscleFilter) return false;
       if (q && !norm(e.name).includes(q)) return false;
-      if (hasGym && onlyMyGym && !fitsMyGym(e.equipment, myEquipment)) return false;
       return true;
     });
+    const inGym = hasGym && onlyMyGym ? filtered.filter((e) => fitsMyGym(e.equipment, myEquipment)) : filtered;
+
     // Sin filtros la lista completa marea: mostramos una muestra corta hasta que busque
     const hasFilter = !!q || !!muscleFilter;
-    return filtered.slice(0, hasFilter ? 40 : 12);
+    return {
+      results: inGym.slice(0, hasFilter ? 40 : 12),
+      // Si el gym deja todo afuera, se avisa y se ofrece ver todo.
+      gymHidAll: filtered.length > 0 && inGym.length === 0,
+    };
   }, [exercises, query, muscleFilter, excludeExerciseId, hasGym, onlyMyGym, myEquipment]);
 
   const handleRowClick = (ex: LibraryExercise) => {
@@ -279,7 +284,7 @@ const ExercisePickerSheet = ({
 
               {!loading && !error && results.length === 0 && (
                 <p className="text-sm text-foreground/70 px-1 py-6 text-center">
-                  {hasGym && onlyMyGym ? (
+                  {gymHidAll ? (
                     <>
                       No hay ejercicios así con el equipo de tu gym.{" "}
                       <button type="button" onClick={() => setOnlyMyGym(false)} className="font-bold text-primary underline underline-offset-2">

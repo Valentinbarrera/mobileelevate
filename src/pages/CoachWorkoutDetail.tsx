@@ -1458,6 +1458,7 @@ const CoachWorkoutDetail = () => {
         open={showCheckIn}
         onComplete={completeWorkout}
         onSkip={() => completeWorkout(null)}
+        ownProgram={isOwnMode}
       />
 
       {/* "Ver todos": biblioteca de ejercicios sin salir del entreno */}

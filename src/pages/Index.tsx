@@ -285,7 +285,7 @@ const Index = () => {
           <p className="text-lg font-black text-foreground tracking-tight">
             Entrenar por mi cuenta
           </p>
-          <p className="text-[12px] text-muted-foreground truncate">
+          <p className="text-[12px] text-muted-foreground leading-snug">
             {myProgramsOpen.length
               ? "Tus programas, entreno libre y tu progreso."
               : "Creá tus programas, entrená libre y seguí tu progreso."}
