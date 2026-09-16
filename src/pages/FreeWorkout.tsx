@@ -7,7 +7,8 @@
 import { useState, useEffect, useRef, useMemo, type FocusEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play, Save, Bookmark } from "lucide-react";
+import { ArrowLeft, Plus, Check, X, Dumbbell, Clock, Search, Info, Play, Save, Bookmark, Warehouse } from "lucide-react";
+import { fitsMyGym, loadMyGymEquipment } from "@/lib/gymEquipment";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { logSet, getLastPerformance } from "@/lib/workoutLog";
@@ -266,6 +267,10 @@ const FreeWorkout = () => {
   // Filtros del buscador (para explorar cuando no te acordás el nombre)
   const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
   const [equipFilter, setEquipFilter] = useState<string | null>(null);
+  // Equipamiento del gym del alumno (cuestionario): filtra la biblioteca de arranque.
+  const myEquipment = useMemo(() => loadMyGymEquipment(studentId), [studentId]);
+  const hasGym = myEquipment.length > 0;
+  const [onlyMyGym, setOnlyMyGym] = useState(true);
   // Guardar el entreno actual como programa propio
   const [savingProgram, setSavingProgram] = useState(false);
   const [programName, setProgramName] = useState("");
@@ -295,12 +300,13 @@ const FreeWorkout = () => {
       .filter((e) => {
         if (muscleFilter && (e.muscle || "").toLowerCase() !== muscleFilter.toLowerCase()) return false;
         if (equipFilter && (e.equipment || "").toLowerCase() !== equipFilter.toLowerCase()) return false;
+        if (hasGym && onlyMyGym && !fitsMyGym(e.equipment, myEquipment)) return false;
         if (!query) return true;
         return e.name.toLowerCase().includes(query) || (e.muscle || "").toLowerCase().includes(query);
       })
       // Al explorar por chip (sin texto) mostramos más resultados
       .slice(0, hasFilter ? 40 : 8);
-  }, [library, query, muscleFilter, equipFilter, hasFilter]);
+  }, [library, query, muscleFilter, equipFilter, hasFilter, hasGym, onlyMyGym, myEquipment]);
   // ¿El texto coincide EXACTO con un ejercicio de la biblioteca? (define si ofrecemos el custom)
   const hasExact = query.length > 0 && library.some((e) => e.name.toLowerCase() === query);
 
@@ -520,8 +526,22 @@ const FreeWorkout = () => {
           )}
 
           {/* Chips de filtro por equipamiento (si el dato existe) */}
-          {equipments.length > 0 && (
+          {(equipments.length > 0 || hasGym) && (
             <div className="-mx-1 px-1 mt-1.5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {hasGym && (
+                <button
+                  onClick={() => setOnlyMyGym((v) => !v)}
+                  aria-pressed={onlyMyGym}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-4 min-h-11 rounded-full text-sm font-bold whitespace-nowrap border transition-colors ${
+                    onlyMyGym
+                      ? "bg-primary/20 text-primary border-primary/40"
+                      : "bg-secondary/40 text-muted-foreground border-white/[0.06]"
+                  }`}
+                >
+                  <Warehouse className="w-4 h-4" />
+                  Mi gym
+                </button>
+              )}
               {equipments.map((eq) => (
                 <button
                   key={eq}

@@ -5,7 +5,9 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Dumbbell, Minus, Plus, Check } from "lucide-react";
+import { X, Search, Dumbbell, Minus, Plus, Check, Warehouse } from "lucide-react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { fitsMyGym, loadMyGymEquipment } from "@/lib/gymEquipment";
 import { useExerciseLibrary } from "@/hooks/useExerciseLibrary";
 import type { LibraryExercise } from "@/hooks/useExerciseLibrary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -60,6 +62,12 @@ const ExercisePickerSheet = ({
   onClose,
 }: ExercisePickerSheetProps) => {
   const { exercises, loading, error } = useExerciseLibrary();
+  const { student, isAdminMode } = useAuthContext();
+  const sid = student?.id || (isAdminMode ? "admin" : "anon");
+  // Lo que tiene el gym del alumno (cuestionario). Se relee al abrir por si lo cambió.
+  const myEquipment = useMemo(() => (open ? loadMyGymEquipment(sid) : []), [open, sid]);
+  const hasGym = myEquipment.length > 0;
+  const [onlyMyGym, setOnlyMyGym] = useState(true);
 
   const kb = useKeyboardInset();
   const [query, setQuery] = useState("");
@@ -85,6 +93,7 @@ const ExercisePickerSheet = ({
     setSelected(null);
     setMuscleFilter(null);
     setPresuggested(false);
+    setOnlyMyGym(true);
     setSets(DEFAULT_SETS);
     setReps(DEFAULT_REPS);
     setRestSeconds(DEFAULT_REST);
@@ -106,12 +115,13 @@ const ExercisePickerSheet = ({
       if (excludeExerciseId && e.id === excludeExerciseId) return false;
       if (muscleFilter && e.muscle !== muscleFilter) return false;
       if (q && !norm(e.name).includes(q)) return false;
+      if (hasGym && onlyMyGym && !fitsMyGym(e.equipment, myEquipment)) return false;
       return true;
     });
     // Sin filtros la lista completa marea: mostramos una muestra corta hasta que busque
     const hasFilter = !!q || !!muscleFilter;
     return filtered.slice(0, hasFilter ? 40 : 12);
-  }, [exercises, query, muscleFilter, excludeExerciseId]);
+  }, [exercises, query, muscleFilter, excludeExerciseId, hasGym, onlyMyGym, myEquipment]);
 
   const handleRowClick = (ex: LibraryExercise) => {
     // En "replace" la prescripción la manda el coach, así que resolvemos en un solo toque
@@ -228,6 +238,24 @@ const ExercisePickerSheet = ({
               </div>
             )}
 
+            {/* Filtro por el gym del cuestionario: arranca prendido */}
+            {hasGym && (
+              <button
+                type="button"
+                onClick={() => setOnlyMyGym((v) => !v)}
+                aria-pressed={onlyMyGym}
+                className={`mt-2 inline-flex items-center gap-2 px-3 min-h-11 rounded-full text-sm font-bold border transition-colors ${
+                  onlyMyGym
+                    ? "bg-primary/15 text-primary border-primary/40"
+                    : "bg-secondary/60 text-muted-foreground border-white/[0.06]"
+                }`}
+              >
+                <Warehouse className="w-4 h-4" />
+                {onlyMyGym ? "Solo lo de mi gym" : "Mostrando todo"}
+                {onlyMyGym && <Check className="w-4 h-4" />}
+              </button>
+            )}
+
             {/* Aviso de que el filtro no lo puso el alumno, sino nosotros */}
             {presuggested && muscleFilter && (
               <p className="mt-2 text-sm font-semibold text-primary capitalize">
@@ -251,7 +279,16 @@ const ExercisePickerSheet = ({
 
               {!loading && !error && results.length === 0 && (
                 <p className="text-sm text-foreground/70 px-1 py-6 text-center">
-                  No encontramos ejercicios con ese nombre
+                  {hasGym && onlyMyGym ? (
+                    <>
+                      No hay ejercicios así con el equipo de tu gym.{" "}
+                      <button type="button" onClick={() => setOnlyMyGym(false)} className="font-bold text-primary underline underline-offset-2">
+                        Ver todos
+                      </button>
+                    </>
+                  ) : (
+                    "No encontramos ejercicios con ese nombre"
+                  )}
                 </p>
               )}
 
