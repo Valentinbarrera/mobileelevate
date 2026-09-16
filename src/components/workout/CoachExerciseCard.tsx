@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, Minus, SkipForward, StickyNote, Pin, Youtube, Repeat, Undo2 } from "lucide-react";
+import { Check, Play, ChevronDown, ChevronUp, Dumbbell, Calculator, Trash2, X, Video, Plus, Minus, SkipForward, StickyNote, Pin, Youtube, Repeat, Undo2, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import ExerciseVideoPlayer from "./ExerciseVideoPlayer";
 import ExerciseNoteSheet from "./ExerciseNoteSheet";
@@ -16,7 +16,8 @@ import { getSetRir, saveSetRir } from "@/lib/setRir";
 import type { ExerciseGroupInfo } from "@/lib/exerciseGroups";
 import { calcPlates } from "@/lib/plates";
 import { playSetLoggedSound, playPRSound } from "@/lib/sound";
-import { getLastPerformance, getPR } from "@/lib/workoutLog";
+import { getLastPerformance, getLastSessionSets, getPR } from "@/lib/workoutLog";
+import { suggestLoad, formatKg } from "@/lib/loadSuggestion";
 import { getLocalDateString } from "@/lib/date";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -208,6 +209,19 @@ const CoachExerciseCard = ({
       });
   }, [student, isAdminMode, exercise.id]);
 
+  // Sugerencia de carga para la primera serie, a partir de la última sesión
+  // (peso × reps + el RIR que anotó) contra el rango prescripto de hoy.
+  const suggestion = useMemo(() => {
+    const sid = student?.id || (isAdminMode ? "admin" : "anon");
+    const today = getLocalDateString();
+    const last = getLastSessionSets(sid, exercise.id, today).map((s) => ({
+      weight: s.weight,
+      reps: s.reps,
+      rir: getSetRir(sid, exercise.id, s.date, s.setNumber),
+    }));
+    return suggestLoad(last, exercise.reps, exercise.rir);
+  }, [student, isAdminMode, exercise.id, exercise.reps, exercise.rir]);
+
   // Nota propia del alumno para este ejercicio
   useEffect(() => {
     const sid = student?.id || (isAdminMode ? "admin" : "anon");
@@ -250,14 +264,16 @@ const CoachExerciseCard = ({
 
   // Precargar los inputs cuando avanza la serie o llegan los datos previos
   useEffect(() => {
-    const w = previousSetInSession?.weight ?? lastPerformance?.weight;
-    const r = previousSetInSession?.reps ?? lastPerformance?.reps ?? parseFirstRep(exercise.reps);
+    // Primera serie: manda la sugerencia; después, lo que hizo en la serie anterior.
+    const w = previousSetInSession?.weight ?? suggestion?.weight ?? lastPerformance?.weight;
+    const r =
+      previousSetInSession?.reps ?? suggestion?.reps ?? lastPerformance?.reps ?? parseFirstRep(exercise.reps);
     setEditWeight(w != null ? String(w) : "");
     setEditReps(r != null ? String(r) : "");
     // Sugerimos el RIR que prescribió el coach (si lo hay); el alumno lo puede cambiar
     setEditRir(exercise.rir != null ? String(exercise.rir) : "");
     setShowPlates(false);
-  }, [doneCount, lastPerformance, exercise.reps, previousSetInSession?.weight, previousSetInSession?.reps]);
+  }, [doneCount, lastPerformance, suggestion, exercise.reps, previousSetInSession?.weight, previousSetInSession?.reps]);
 
   const plates = useMemo(() => calcPlates(parseFloat(editWeight) || 0), [editWeight]);
 
@@ -494,6 +510,27 @@ const CoachExerciseCard = ({
                     <span className="flex-1 text-sm font-semibold text-foreground/70">Agregar mi nota</span>
                   )}
                 </button>
+
+                {/* Sugerencia de carga de hoy (solo antes de la primera serie) */}
+                {!isCompleted && doneCount === 0 && suggestion && (
+                  <div className="flex items-start gap-2.5 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2.5">
+                    {suggestion.kind === "subir" ? (
+                      <TrendingUp className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                    ) : suggestion.kind === "bajar" ? (
+                      <TrendingDown className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+                    ) : (
+                      <ArrowRight className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-foreground tabular-nums">
+                        Hoy probá:{" "}
+                        {suggestion.weight > 0 ? `${formatKg(suggestion.weight)} kg × ` : ""}
+                        {suggestion.reps} reps
+                      </p>
+                      <p className="text-[13px] text-foreground/70 leading-snug">{suggestion.reason}</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* ─── Series — MOBILE ─── */}
                 {!isDesktop && (

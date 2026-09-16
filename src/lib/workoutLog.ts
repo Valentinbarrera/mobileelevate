@@ -111,6 +111,23 @@ export function getLastPerformance(
   return { weight: sorted[0].weight, reps: sorted[0].reps };
 }
 
+/**
+ * Todas las series de la última sesión anterior del ejercicio (la fecha más
+ * reciente distinta de `excludeDate`), ordenadas por número de serie.
+ */
+export function getLastSessionSets(
+  studentId: string,
+  exerciseId: string,
+  excludeDate?: string
+): LoggedSet[] {
+  const sets = getExerciseSets(studentId, exerciseId).filter(
+    (s) => !excludeDate || s.date !== excludeDate
+  );
+  if (!sets.length) return [];
+  const lastDate = sets.reduce((max, s) => (s.date > max ? s.date : max), sets[0].date);
+  return sets.filter((s) => s.date === lastDate).sort((a, b) => a.setNumber - b.setNumber);
+}
+
 /** Récord personal (mayor peso) del ejercicio. */
 export function getPR(
   studentId: string,
