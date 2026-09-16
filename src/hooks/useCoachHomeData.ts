@@ -75,7 +75,7 @@ function estimateDuration(exercises: RoutineExercise[]): number {
 
 // Transform routine day to our format
 function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExercise & { exercise: Exercise })[] }): TodayRoutineDay {
-  const exercises = (day.routine_exercises || []).map(re => ({
+  const exercises = (day.routine_exercises || []).filter(re => !re.archived_at).map(re => ({
     id: re.id,
     exerciseId: re.exercise_id,
     name: re.exercise?.name || re.name || "Ejercicio",
@@ -139,7 +139,8 @@ export function useCoachHomeData(): CoachHomeData {
     }
 
     const routine = activeAssignment.routine;
-    const days = routine.routine_days || [];
+    // Sin lo archivado: días que el coach sacó y quedaron sólo por el historial.
+    const days = (routine.routine_days || []).filter((d) => !d.archived_at);
 
     // Transform all days
     const allDays = days.map(day => transformRoutineDay(day as RoutineDay & { routine_exercises: (RoutineExercise & { exercise: Exercise })[] }));

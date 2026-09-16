@@ -20,6 +20,8 @@ export interface Exercise {
 
 export interface RoutineExercise {
   id: string;
+  /** El coach lo sacó de la rutina pero tiene historial: no se muestra. */
+  archived_at?: string | null;
   routine_day_id: string;
   exercise_id: string | null;
   name: string;               // exercise name stored directly on routine_exercise
@@ -40,6 +42,8 @@ export interface RoutineExercise {
 
 export interface RoutineDay {
   id: string;
+  /** El coach lo sacó de la rutina pero tiene historial: no se muestra. */
+  archived_at?: string | null;
   routine_id: string;
   order_index: number;        // actual DB column (was day_number)
   day_number?: number;        // alias kept for compatibility

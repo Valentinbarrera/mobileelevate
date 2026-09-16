@@ -110,13 +110,17 @@ export function useAlumnoRoutines({ studentId, status = 'active' }: UseAlumnoRou
         planned_sessions: assignment.planned_sessions || [],
         routine: assignment.routine ? {
           ...assignment.routine,
+          // Lo archivado es lo que el coach sacó de la rutina y tenía historial:
+          // queda en la base para el registro, pero el alumno ya no lo entrena.
           routine_days: (assignment.routine.routine_days || [])
             .sort((a: RoutineDay, b: RoutineDay) => (a.order_index || 0) - (b.order_index || 0))
             .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
               ...day,
               routine_exercises: (day.routine_exercises || [])
+                .filter((e) => !e.archived_at)
                 .sort((a: RoutineExercise, b: RoutineExercise) => (a.order_index || 0) - (b.order_index || 0))
             }))
+            .filter((d) => !d.archived_at)
         } : null
       })) as AlumnoRoutineWithDetails[];
 
@@ -195,8 +199,10 @@ export function useAlumnoRoutineDetail(routineId: string | null) {
           .map((day: RoutineDay & { routine_exercises: RoutineExercise[] }) => ({
             ...day,
             routine_exercises: (day.routine_exercises || [])
+              .filter((e) => !e.archived_at)
               .sort((a: RoutineExercise, b: RoutineExercise) => (a.order_index || 0) - (b.order_index || 0))
-          }));
+          }))
+          .filter((d) => !d.archived_at);
       }
 
       return result;
