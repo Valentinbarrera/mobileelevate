@@ -6,7 +6,7 @@
  * Los datos ya vienen de routine_exercises (rir, tempo, training_method, type)
  * y de exercises (description, instructions). El coach los carga desde la PC.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Layers, Timer, Target, Gauge, Repeat2, Pencil } from "lucide-react";
 
 export interface PrescriptionData {
@@ -64,6 +64,63 @@ const inputCls =
   "w-full min-h-11 rounded-lg bg-background border border-white/10 px-3 text-base font-bold text-foreground tabular-nums focus:border-primary/60 focus:outline-none";
 
 /**
+ * Input numérico que deja escribir libre y recién acota al salir del campo.
+ *
+ * Antes cada tecla pasaba por el min/max: al borrar para escribir otro número
+ * el campo saltaba solo al mínimo (o al 20 de tope) y no había forma de poner
+ * el valor que querías.
+ */
+const NumInput = ({
+  value,
+  min,
+  max,
+  onCommit,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  onCommit: (n: number) => void;
+}) => {
+  const [draft, setDraft] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setDraft(String(value));
+  }, [value, focused]);
+
+  const clamp = (raw: string) => {
+    const n = Math.round(Number(raw));
+    return Number.isFinite(n) && raw.trim() !== "" ? Math.max(min, Math.min(max, n)) : value;
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onFocus={(e) => {
+        setFocused(true);
+        e.target.select();
+      }}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^0-9]/g, "");
+        setDraft(raw);
+        // Se aplica en vivo solo si ya es válido; si no, espera al blur.
+        const n = Number(raw);
+        if (raw !== "" && n >= min && n <= max) onCommit(n);
+      }}
+      onBlur={() => {
+        setFocused(false);
+        const n = clamp(draft);
+        setDraft(String(n));
+        if (n !== value) onCommit(n);
+      }}
+      className={inputCls}
+    />
+  );
+};
+
+/**
  * Editor de la prescripción para HOY.
  *
  * No pisa lo que armó el coach: el cambio vive en la sesión en curso y se
@@ -97,15 +154,7 @@ const PrescriptionEditor = ({
     <div className="rounded-xl bg-secondary/40 border border-white/[0.06] p-3 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Series">
-          <input
-            type="number"
-            inputMode="numeric"
-            min={minSets}
-            max={20}
-            value={data.sets}
-            onChange={(e) => patch({ sets: Math.max(minSets, Math.min(20, Number(e.target.value) || minSets)) })}
-            className={inputCls}
-          />
+          <NumInput value={data.sets} min={minSets} max={20} onCommit={(n) => patch({ sets: n })} />
         </Field>
         <Field label="Reps">
           <input
@@ -116,27 +165,15 @@ const PrescriptionEditor = ({
           />
         </Field>
         <Field label="Descanso (seg)">
-          <input
-            type="number"
-            inputMode="numeric"
+          <NumInput
+            value={data.restSeconds ?? 0}
             min={0}
             max={600}
-            step={15}
-            value={data.restSeconds ?? 0}
-            onChange={(e) => patch({ restSeconds: Math.max(0, Math.min(600, Number(e.target.value) || 0)) })}
-            className={inputCls}
+            onCommit={(n) => patch({ restSeconds: n })}
           />
         </Field>
         <Field label="RIR">
-          <input
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={10}
-            value={data.rir ?? 0}
-            onChange={(e) => patch({ rir: Math.max(0, Math.min(10, Number(e.target.value) || 0)) })}
-            className={inputCls}
-          />
+          <NumInput value={data.rir ?? 0} min={0} max={10} onCommit={(n) => patch({ rir: n })} />
         </Field>
       </div>
       <Field label="Tempo">
@@ -170,10 +207,13 @@ export const PrescriptionStrip = ({
   minSets,
   onChange,
   onReset,
+  ownProgram = false,
 }: {
   data: PrescriptionData;
   editable?: boolean;
   edited?: boolean;
+  /** Programa armado por el alumno: no hay coach al que "volver". */
+  ownProgram?: boolean;
   /** Piso de series: las que el alumno ya completó en esta sesión. */
   minSets?: number;
   onChange?: (next: PrescriptionEdit) => void;
@@ -229,7 +269,7 @@ export const PrescriptionStrip = ({
               onClick={onReset}
               className="min-h-11 -my-3 text-[11px] font-bold text-muted-foreground underline underline-offset-2"
             >
-              Volver a lo del coach
+              {ownProgram ? "Deshacer el ajuste" : "Volver a lo del coach"}
             </button>
           )}
         </div>

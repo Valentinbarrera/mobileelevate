@@ -64,19 +64,23 @@ export interface CalorieResult {
 /**
  * Aplica el objetivo al mantenimiento con guardrails.
  * `adjust` = kcal a restar (déficit) o sumar (superávit); en "maintain" se ignora.
+ * `base` reemplaza al mantenimiento calculado cuando el alumno escribió su
+ * propio número: el déficit/superávit se aplica sobre ESE, no sobre la fórmula.
  */
 export function computeTarget(
   inputs: CalorieInputs,
   mode: CalorieGoalMode,
-  adjust: number
+  adjust: number,
+  base?: number | null
 ): CalorieResult {
   const bmr = calcBMR(inputs);
   const tdee = calcTDEE(inputs);
   const safeAdjust = Math.min(Math.max(0, Math.abs(adjust)), MAX_ADJUST);
+  const start = base != null && base > 0 ? base : tdee;
 
-  let target = tdee;
-  if (mode === "deficit") target = tdee - safeAdjust;
-  else if (mode === "surplus") target = tdee + safeAdjust;
+  let target = start;
+  if (mode === "deficit") target = start - safeAdjust;
+  else if (mode === "surplus") target = start + safeAdjust;
 
   const floor = CALORIE_FLOOR[inputs.sex];
   const clampedToFloor = mode === "deficit" && target < floor;

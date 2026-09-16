@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { RefreshCw, GraduationCap, ChevronRight, Dumbbell, Plus, LayoutGrid, PenLine } from "lucide-react";
+import { RefreshCw, GraduationCap, ChevronRight, ChevronDown, Dumbbell, Plus, LayoutGrid, PenLine, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/home/Header";
 import Greeting from "@/components/home/Greeting";
@@ -27,6 +27,8 @@ import { isOnboardingComplete } from "@/lib/onboarding";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/use-media-query";
 
+const PROGRAMS_COLLAPSED_KEY = "elevate_home_programs_collapsed";
+
 const Index = () => {
   const isDesktop = useIsDesktop();
   const navigate = useNavigate();
@@ -44,6 +46,25 @@ const Index = () => {
   const overrideSid = student?.id || (isAdminMode ? "admin" : "anon");
   const { setForDate } = useSessionOverrides(overrideSid);
   const [showReschedule, setShowReschedule] = useState(false);
+
+  // La card de "Mis programas" se puede achicar: con varios programas la lista
+  // ocupa media pantalla. Se recuerda, igual que la barra del entreno.
+  const [programsCollapsed, setProgramsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(PROGRAMS_COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleProgramsCollapsed = () =>
+    setProgramsCollapsed((prev) => {
+      try {
+        localStorage.setItem(PROGRAMS_COLLAPSED_KEY, prev ? "0" : "1");
+      } catch {
+        /* almacenamiento no disponible */
+      }
+      return !prev;
+    });
 
   // Plan activo: el del coach por defecto, o uno propio si el alumno lo eligió.
   // Se relee en cada montaje de Inicio, que es cuando puede haber cambiado
@@ -214,7 +235,7 @@ const Index = () => {
     {
       key: "libre",
       icon: Plus,
-      label: "Entreno suelto",
+      label: "Entreno libre",
       hint: "Elegí sobre la marcha",
       to: "/free-workout",
     },
@@ -232,6 +253,15 @@ const Index = () => {
       hint: "Elegís los días y los ejercicios",
       to: "/programas/nuevo",
     },
+    // Medirse va de la mano de entrenar por tu cuenta: el progreso no es solo
+    // cuánto levantás.
+    {
+      key: "mediciones",
+      icon: Ruler,
+      label: "Mediciones",
+      hint: "Cargá tus perímetros",
+      to: "/measurements",
+    },
   ];
 
   const trainWithElevateCard = (
@@ -239,10 +269,11 @@ const Index = () => {
       variants={fadeUp}
       className="glass-tile-warm rounded-3xl overflow-hidden"
     >
+      <div className="flex items-center pr-2">
       <button
         type="button"
         onClick={() => navigate("/routines")}
-        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left"
+        className="flex-1 min-w-0 pl-4 pr-1 py-4 flex items-center gap-4 active:scale-[0.99] transition-transform text-left"
       >
         <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
           <Dumbbell className="w-6 h-6 text-primary" />
@@ -260,11 +291,23 @@ const Index = () => {
               : "Creá tus programas, entrená libre y seguí tu progreso."}
           </p>
         </div>
-        <ChevronRight className="w-5 h-5 text-primary shrink-0" />
       </button>
+      {/* Achicar / desplegar la card: deja solo el encabezado */}
+      <button
+        type="button"
+        onClick={toggleProgramsCollapsed}
+        aria-expanded={!programsCollapsed}
+        aria-label={programsCollapsed ? "Mostrar mis programas" : "Achicar mis programas"}
+        className="w-11 h-11 shrink-0 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary active:scale-95 transition-transform"
+      >
+        <ChevronDown
+          className={`w-5 h-5 transition-transform duration-200 ${programsCollapsed ? "" : "rotate-180"}`}
+        />
+      </button>
+      </div>
 
       {/* Programas propios: se empiezan directo, sin entrar a Entrenar */}
-      {myProgramsOpen.length > 0 && (
+      {!programsCollapsed && myProgramsOpen.length > 0 && (
         <div className="px-3 space-y-2">
           {myProgramsOpen.map((p) => {
             const next = nextProgramDay(overrideSid, p);
@@ -303,6 +346,7 @@ const Index = () => {
       )}
 
       {/* Caminos para empezar algo nuevo, en la misma card */}
+      {!programsCollapsed && (
       <div className="mt-3 px-3 pb-3.5 pt-3.5 border-t border-white/[0.06]">
         <div className="flex items-center justify-between gap-3 px-0.5 mb-2.5">
           <p className="text-[11.5px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -347,6 +391,7 @@ const Index = () => {
           ))}
         </div>
       </div>
+      )}
     </motion.div>
   );
 

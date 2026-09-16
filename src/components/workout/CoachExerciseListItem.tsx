@@ -39,6 +39,8 @@ interface CoachExerciseListItemProps {
   prescriptionEdited?: boolean;
   onPrescriptionChange?: (next: PrescriptionEdit) => void;
   onPrescriptionReset?: () => void;
+  /** Programa armado por el alumno: sin referencias al coach. */
+  ownProgram?: boolean;
 }
 
 const CoachExerciseListItem = ({
@@ -49,6 +51,7 @@ const CoachExerciseListItem = ({
   prescriptionEdited = false,
   onPrescriptionChange,
   onPrescriptionReset,
+  ownProgram = false,
 }: CoachExerciseListItemProps) => {
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -154,6 +157,7 @@ const CoachExerciseListItem = ({
                   edited={prescriptionEdited}
                   onChange={onPrescriptionChange}
                   onReset={onPrescriptionReset}
+                  ownProgram={ownProgram}
                 />
 
                 {/* Técnica / ejecución + paso a paso */}

@@ -143,6 +143,47 @@ export const EQUIPMENT_OPTIONS = [
   "Bandas elásticas", "Kettlebells", "Banco", "Solo peso corporal",
 ];
 
+/**
+ * "¿Dónde entrenás?": tipos de gimnasio que cargan el equipamiento de una.
+ * Nadie quiere tildar ocho casilleros; elige su gym y después ajusta lo que
+ * falte o sobre. No es un campo aparte: el preset queda elegido mientras el
+ * equipamiento coincida exacto, así no hace falta tocar la base.
+ */
+export type GymPreset = "full" | "basic" | "home" | "bodyweight";
+
+export const GYM_PRESETS: { value: GymPreset; label: string; desc: string; equipment: string[] }[] = [
+  {
+    value: "full",
+    label: "Gimnasio completo",
+    desc: "Barras, mancuernas, máquinas y poleas",
+    equipment: ["Gimnasio completo"],
+  },
+  {
+    value: "basic",
+    label: "Gimnasio chico",
+    desc: "El del edificio o el club: mancuernas, banco y alguna máquina",
+    equipment: ["Mancuernas", "Banco", "Máquinas / poleas"],
+  },
+  {
+    value: "home",
+    label: "En casa, con algo de equipo",
+    desc: "Mancuernas, bandas o kettlebell",
+    equipment: ["Mancuernas", "Bandas elásticas"],
+  },
+  {
+    value: "bodyweight",
+    label: "Sin equipo",
+    desc: "Plaza, casa o viaje: solo tu peso corporal",
+    equipment: ["Solo peso corporal"],
+  },
+];
+
+/** El preset que corresponde a este equipamiento, si coincide exacto. */
+export function gymPresetFor(equipment: string[]): GymPreset | null {
+  const have = [...equipment].sort().join("|");
+  return GYM_PRESETS.find((g) => [...g.equipment].sort().join("|") === have)?.value ?? null;
+}
+
 export const ACTIVITY_OPTIONS: Opt<ActivityLevel>[] = [
   { value: "sedentary", label: "Sedentario", desc: "Trabajo de escritorio, poco movimiento" },
   { value: "light", label: "Ligero", desc: "Camino un poco / actividad leve diaria" },

@@ -78,7 +78,8 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
     if (current.kind === "manual") {
       setManual(true);
       setManualValue(String(current.calories));
-      setMode(preset.mode);
+      // El número guardado ya es la meta final: abre en equilibrio sobre él.
+      setMode("maintain");
       setAdjust(preset.adjust || 500);
     } else if (current.kind === "preset") {
       setManual(false);
@@ -92,9 +93,14 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
   }
   if (!open && seededFor !== null) setSeededFor(null);
 
+  const manualNum = Math.round(Number(manualValue) || 0);
+  const manualValid = manualNum >= MANUAL_MIN && manualNum <= MANUAL_MAX;
+  /** Con número a mano, déficit/equilibrio/superávit se aplican sobre ESE número. */
+  const customBase = manual && manualValid ? manualNum : null;
+
   const result = useMemo(
-    () => (inputs ? computeTarget(inputs, mode, adjust) : null),
-    [inputs, mode, adjust]
+    () => (inputs ? computeTarget(inputs, mode, adjust, customBase) : null),
+    [inputs, mode, adjust, customBase]
   );
   const macros = useMemo(
     () => (result && inputs ? suggestMacros(result.target, inputs.weightKg) : null),
@@ -107,14 +113,17 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
   /** Arranca en el número que el alumno tenía a la vista, no en blanco. */
   const toggleManual = () => {
     const next = !manual;
-    if (next && !manualValue) setManualValue(String(result?.target ?? coachTarget ?? ""));
+    if (next) {
+      if (!manualValue) setManualValue(String(result?.target ?? coachTarget ?? ""));
+      // Arranca en equilibrio: el número escrito es la meta tal cual, y desde
+      // ahí el alumno puede pedir déficit o superávit.
+      setMode("maintain");
+    }
     setManual(next);
   };
 
-  const manualNum = Math.round(Number(manualValue) || 0);
-  const manualValid = manualNum >= MANUAL_MIN && manualNum <= MANUAL_MAX;
   /** El número que se va a guardar, venga del cálculo o escrito a mano. */
-  const target = manual ? (manualValid ? manualNum : null) : result?.target ?? null;
+  const target = manual ? (manualValid ? result?.target ?? null : null) : result?.target ?? null;
 
   const autoTarget = useMemo(
     () => (inputs ? computeTarget(inputs, preset.mode, preset.adjust).target : null),
@@ -128,7 +137,8 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
         toast.error(`Poné un número entre ${MANUAL_MIN} y ${MANUAL_MAX} kcal`);
         return;
       }
-      onSave({ kind: "manual", calories: manualNum });
+      if (target == null) return;
+      onSave({ kind: "manual", calories: target });
     } else {
       if (!result) return;
       onSave({ kind: "preset", mode, adjust: mode === "maintain" ? 0 : adjust });
@@ -216,8 +226,20 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                           (×{ACTIVITY_FACTORS[inputs.activityLevel]})
                         </span>
                       </span>
-                      <span className="font-bold text-foreground tabular-nums">{result.tdee} kcal</span>
+                      <span
+                        className={`font-bold tabular-nums ${
+                          customBase != null ? "text-muted-foreground line-through" : "text-foreground"
+                        }`}
+                      >
+                        {result.tdee} kcal
+                      </span>
                     </div>
+                    {customBase != null && (
+                      <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-white/[0.06]">
+                        <span className="text-primary font-bold">Tu número</span>
+                        <span className="font-bold text-foreground tabular-nums">{customBase} kcal</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Selector de objetivo */}
@@ -227,14 +249,11 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     {MODES.map((m) => {
                       const Icon = m.icon;
-                      const active = !manual && mode === m.value;
+                      const active = mode === m.value;
                       return (
                         <button
                           key={m.value}
-                          onClick={() => {
-                            setManual(false);
-                            setMode(m.value);
-                          }}
+                          onClick={() => setMode(m.value)}
                           aria-pressed={active}
                           className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-sm font-bold transition-all ${
                             active
@@ -274,7 +293,7 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                       >
                         <label className="flex flex-col gap-1.5 mb-4">
                           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                            Calorías por día
+                            Tu número base (kcal por día)
                           </span>
                           <input
                             type="number"
@@ -302,7 +321,7 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
 
                   {/* Magnitud del ajuste (solo déficit/superávit) */}
                   <AnimatePresence initial={false}>
-                    {!manual && mode !== "maintain" && (
+                    {mode !== "maintain" && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -360,7 +379,7 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                       {target ?? "—"}
                       <span className="text-base font-bold text-muted-foreground"> kcal</span>
                     </p>
-                    {!manual && macros && (
+                    {target != null && macros && (
                       <p className="text-sm text-muted-foreground tabular-nums mt-1.5">
                         <span className="text-blue-400 font-bold">P {macros.protein}g</span>
                         {" · "}
@@ -372,7 +391,7 @@ const CalorieCalculatorSheet = ({ open, onClose, current, onSave, coachTarget }:
                   </div>
 
                   {/* Aviso de piso de seguridad */}
-                  {!manual && result.clampedToFloor && (
+                  {target != null && result.clampedToFloor && (
                     <div className="flex items-start gap-2 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 py-2.5">
                       <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                       <p className="text-sm text-foreground/80">

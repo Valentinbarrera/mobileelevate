@@ -799,9 +799,9 @@ const CoachWorkoutDetail = () => {
   const handleUndoReplace = useCallback(
     (exerciseId: string) => {
       updatePlan((prev) => undoReplaceInPlan(prev, exerciseId));
-      toast.success("Volviste al ejercicio del coach");
+      toast.success(isOwnMode ? "Volviste al ejercicio original" : "Volviste al ejercicio del coach");
     },
-    [updatePlan]
+    [updatePlan, isOwnMode]
   );
 
   /** Resultado del selector: reemplaza el ejercicio pedido o suma uno nuevo. */
@@ -842,8 +842,8 @@ const CoachWorkoutDetail = () => {
   const handleRestorePlan = useCallback(() => {
     if (routineDayId) clearSessionPlan(sid, routineDayId, getLocalDateString());
     setPlan(emptyPlan());
-    toast.success("Volviste a la rutina de tu coach");
-  }, [sid, routineDayId]);
+    toast.success(isOwnMode ? "Deshiciste los cambios de hoy" : "Volviste a la rutina de tu coach");
+  }, [sid, routineDayId, isOwnMode]);
 
   const handleRestComplete = useCallback(() => {
     setShowRestTimer(false);
@@ -1202,6 +1202,7 @@ const CoachWorkoutDetail = () => {
                     group={exerciseGroups.get(exercise.id)}
                     onSelect={() => setActiveExerciseId(exercise.id)}
                     editablePrescription
+                    ownProgram={isOwnMode}
                     prescriptionEdited={prescriptionEdits.has(exercise.id)}
                     onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
                     onPrescriptionReset={() => resetPrescription(exercise.id)}
@@ -1237,7 +1238,7 @@ const CoachWorkoutDetail = () => {
                   className="flex items-center gap-1.5 text-sm font-bold px-2.5 min-h-11 py-2 rounded-lg text-foreground/70 hover:text-foreground transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Volver a la rutina del coach
+                  {isOwnMode ? "Deshacer cambios de hoy" : "Volver a la rutina del coach"}
                 </button>
               ) : (
                 <span />
@@ -1338,6 +1339,7 @@ const CoachWorkoutDetail = () => {
                       group={exerciseGroups.get(exercise.id)}
                       onSelect={() => setActiveExerciseId(exercise.id)}
                       editablePrescription
+                      ownProgram={isOwnMode}
                       prescriptionEdited={prescriptionEdits.has(exercise.id)}
                       onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
                       onPrescriptionReset={() => resetPrescription(exercise.id)}
@@ -1365,6 +1367,7 @@ const CoachWorkoutDetail = () => {
                     index={index + 1}
                     group={exerciseGroups.get(exercise.id)}
                     editablePrescription
+                    ownProgram={isOwnMode}
                     prescriptionEdited={prescriptionEdits.has(exercise.id)}
                     onPrescriptionChange={(next) => editPrescription(exercise.id, next)}
                     onPrescriptionReset={() => resetPrescription(exercise.id)}
@@ -1483,6 +1486,7 @@ const CoachWorkoutDetail = () => {
       <ExercisePickerSheet
         open={!!picker}
         mode={picker?.mode ?? "add"}
+        ownProgram={isOwnMode}
         currentName={
           picker?.exerciseId
             ? exercises.find((e) => e.id === picker.exerciseId)?.name

@@ -92,6 +92,8 @@ interface CoachExerciseCardProps {
   prescriptionEdited?: boolean;
   onPrescriptionChange?: (next: PrescriptionEdit) => void;
   onPrescriptionReset?: () => void;
+  /** Programa armado por el alumno: sin notas ni referencias al coach. */
+  ownProgram?: boolean;
 }
 
 interface PerformanceRecord {
@@ -128,6 +130,7 @@ const CoachExerciseCard = ({
   prescriptionEdited = false,
   onPrescriptionChange,
   onPrescriptionReset,
+  ownProgram = false,
 }: CoachExerciseCardProps) => {
   const { student, isAdminMode } = useAuthContext();
   const isDesktop = useIsDesktop();
@@ -360,19 +363,9 @@ const CoachExerciseCard = ({
           setExpanded(!expanded);
         }}
       >
-        {/* Completed badge */}
-        {isCompleted && (
-          <motion.div
-            className="absolute top-3 right-3 z-10"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          >
-            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Check className="w-5 h-5 text-white" strokeWidth={3} />
-            </div>
-          </motion.div>
-        )}
+        {/* Sin badge de completado arriba a la derecha: caía justo encima de
+            la flecha de achicar y la tapaba. El check ya está en el círculo de
+            la izquierda y en el "✓ Listo". */}
 
         {/* Chip de biserie/superserie */}
         {group && (
@@ -466,13 +459,14 @@ const CoachExerciseCard = ({
                   edited={prescriptionEdited}
                   onChange={onPrescriptionChange}
                   onReset={onPrescriptionReset}
+                  ownProgram={ownProgram}
                   // A mitad del entreno no se puede bajar de las series ya
                   // hechas: quedarían logueadas pero fuera de la tabla.
                   minSets={Math.max(1, state.completedSets.length)}
                 />
 
                 {/* Nota del coach: cue corto, se mantiene arriba */}
-                {exercise.notes && (
+                {!ownProgram && exercise.notes && (
                   <div className="p-3 bg-primary/5 border border-primary/10 rounded-xl">
                     <p className="text-sm text-foreground">
                       <span className="font-medium">💡 Nota:</span> {exercise.notes}
@@ -971,7 +965,7 @@ const CoachExerciseCard = ({
                         onClick={onUndoReplace}
                         className="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 rounded-xl text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors"
                       >
-                        <Undo2 className="w-4 h-4" /> Volver al del coach
+                        <Undo2 className="w-4 h-4" /> {ownProgram ? "Volver al original" : "Volver al del coach"}
                       </button>
                     )}
 

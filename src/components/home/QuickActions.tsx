@@ -41,7 +41,7 @@ const DEFAULT_ACTIONS: QuickAction[] = [
   },
   { icon: Dumbbell, label: "Ejercicios", to: "/exercises", hint: "Biblioteca" },
   { icon: Scale, label: "Peso", to: "/progress", hint: "Tu registro" },
-  { icon: Ruler, label: "Medidas", to: "/measurements", hint: "Circunferencias" },
+  { icon: Ruler, label: "Medidas", to: "/measurements", hint: "Perímetros" },
 ];
 
 type QuickActionsProps = {

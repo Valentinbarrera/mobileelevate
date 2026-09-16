@@ -11,6 +11,7 @@ import {
   Flame, Dumbbell, RefreshCw, Minus, Zap,
   Armchair, Footprints, PersonStanding, Bike,
   CalendarDays, Repeat, Clock,
+  Building2, Warehouse, Home,
 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding/OnboardingLayout";
 import CompletionCelebration from "@/components/onboarding/CompletionCelebration";
@@ -34,6 +35,8 @@ import {
   GOAL_OPTIONS,
   PRIORITY_MUSCLES,
   EQUIPMENT_OPTIONS,
+  GYM_PRESETS,
+  gymPresetFor,
   ACTIVITY_OPTIONS,
   DIETARY_RESTRICTIONS,
   TRAINING_MODE_OPTIONS,
@@ -55,6 +58,7 @@ const EYEBROWS = [
 const EXPERIENCE_ICONS = { beginner: Sprout, intermediate: TrendingUp, advanced: Trophy } as const;
 const GOAL_ICONS = { lose_fat: Flame, gain_muscle: Dumbbell, recomp: RefreshCw, maintain: Minus, performance: Zap } as const;
 const ACTIVITY_ICONS = { sedentary: Armchair, light: Footprints, moderate: PersonStanding, high: Bike, very_high: Flame } as const;
+const GYM_ICONS = { full: Building2, basic: Warehouse, home: Home, bodyweight: PersonStanding } as const;
 const MODE_ICONS = { weekly: CalendarDays, free_cycle: Repeat } as const;
 
 // Qué significa en la práctica cada duración, para que elija con criterio.
@@ -375,9 +379,28 @@ const Onboarding = () => {
         return (
           <>
             <motion.div variants={fadeUp}>
-              <StepHeader eyebrow={EYEBROWS[7]} title="¿Qué equipamiento tenés?" subtitle="Con qué contás para entrenar. Podés agregar otros." />
+              <StepHeader
+                eyebrow={EYEBROWS[7]}
+                title="¿Dónde entrenás?"
+                subtitle="Elegí tu gym y armamos los ejercicios con lo que hay ahí."
+              />
+            </motion.div>
+            <motion.div variants={fadeUp} className="space-y-2.5">
+              {GYM_PRESETS.map((g) => (
+                <ChoiceCard
+                  key={g.value}
+                  label={g.label}
+                  desc={g.desc}
+                  icon={GYM_ICONS[g.value]}
+                  selected={gymPresetFor(data.equipment) === g.value}
+                  onClick={() => choose({ equipment: [...g.equipment] })}
+                />
+              ))}
             </motion.div>
             <motion.div variants={fadeUp}>
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 mt-2">
+                ¿Falta o sobra algo? Ajustalo
+              </p>
               <ChipMultiSelect
                 options={EQUIPMENT_OPTIONS}
                 selected={data.equipment}

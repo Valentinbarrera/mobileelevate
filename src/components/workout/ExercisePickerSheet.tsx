@@ -32,6 +32,8 @@ interface ExercisePickerSheetProps {
    * puesto, lo tocás y no pasa nada — parece que el cambio no funciona.
    */
   excludeExerciseId?: string | null;
+  /** Programa armado por el alumno: no hay coach que haya puesto las series. */
+  ownProgram?: boolean;
   onSelect: (result: ExercisePickerResult) => void;
   onClose: () => void;
 }
@@ -53,6 +55,7 @@ const ExercisePickerSheet = ({
   currentName,
   suggestedMuscle,
   excludeExerciseId,
+  ownProgram = false,
   onSelect,
   onClose,
 }: ExercisePickerSheetProps) => {
@@ -152,7 +155,7 @@ const ExercisePickerSheet = ({
                 </h2>
                 <p className="text-sm text-foreground/70 leading-snug mt-0.5">
                   {mode === "replace"
-                    ? `En lugar de "${currentName ?? ""}". Se mantienen las series y reps que puso tu coach.`
+                    ? `En lugar de "${currentName ?? ""}". Se mantienen las series y reps${ownProgram ? "" : " que puso tu coach"}.`
                     : "Se suma al final del día, solo por hoy."}
                 </p>
               </div>

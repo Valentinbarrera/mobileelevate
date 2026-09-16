@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Pause, Play, X, Check, Video, Eye, EyeOff, Maximize2, Minimize2, ChevronUp, ChevronDown } from "lucide-react";
+import { Pause, Play, ChevronLeft, Check, Video, Eye, EyeOff, Maximize2, Minimize2, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -116,12 +117,16 @@ const ActiveWorkoutHeader = ({
     });
   };
 
-  const handleExit = () => {
-    setShowExitConfirm(true);
+  // El snapshot de la sesión se guarda solo en cada cambio → volver atrás no
+  // corta nada: el entreno queda listo para retomarlo desde Inicio. Antes esto
+  // abría el "¿Dejar el entrenamiento?" y para ir a otra pantalla te obligaba
+  // a salir del entreno.
+  const handleBack = () => {
+    toast("Tu entreno sigue guardado", { description: "Retomalo desde Inicio cuando quieras." });
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
   };
 
-  // El snapshot de la sesión se guarda solo en cada cambio → salir simplemente
-  // vuelve al Home y deja el entreno listo para reanudar.
   const leaveAndSave = () => {
     navigate("/");
   };
@@ -169,11 +174,12 @@ const ActiveWorkoutHeader = ({
             {/* Exit Button + Timer */}
             <div className="flex items-center gap-1.5 min-w-0">
               <motion.button
-                onClick={handleExit}
-                className="w-11 h-11 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-destructive/20 transition-colors touch-target"
+                onClick={handleBack}
+                aria-label="Volver (el entreno queda guardado)"
+                className="w-11 h-11 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors touch-target"
                 whileTap={{ scale: 0.95 }}
               >
-                <X className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6" />
               </motion.button>
 
               {/* Acá NO va un botón para ocultar el reloj: probado, no entra —
@@ -274,15 +280,40 @@ const ActiveWorkoutHeader = ({
           onClick={toggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Mostrar la barra del entreno" : "Minimizar la barra del entreno"}
-          className="w-full h-7 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 active:bg-white/[0.04] transition-colors"
+          className={`w-full flex items-center justify-center gap-2 active:bg-white/[0.04] transition-colors ${
+            collapsed ? "min-h-12 py-2 px-4" : "h-10"
+          }`}
         >
           {collapsed ? (
+            /* Plegada, lo que queda tiene que leerse de un vistazo: el tiempo
+               entrenando y las series, con rótulo y en tamaño de dato. */
             <>
-              <ChevronDown className="w-4 h-4" />
-              {completedSets}/{totalSets} series
+              <span className="flex items-baseline gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Tiempo entrenando
+                </span>
+                <ActiveClock
+                  getElapsedSeconds={getElapsedSeconds}
+                  isPaused={isPaused}
+                  hidden={timerHidden}
+                  className="text-lg font-black text-foreground tabular-nums tracking-tight"
+                />
+              </span>
+              <span className="w-px h-5 bg-border" />
+              <span className="flex items-baseline gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Series
+                </span>
+                <span className="text-lg font-black text-primary tabular-nums">{completedSets}</span>
+                <span className="text-sm font-bold text-foreground/70 tabular-nums -ml-1">/{totalSets}</span>
+              </span>
+              <ChevronDown className="w-5 h-5 text-foreground/80 shrink-0" />
             </>
           ) : (
-            <ChevronUp className="w-4 h-4" />
+            <span className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-secondary/80 border border-border text-[12px] font-bold uppercase tracking-wider text-foreground/80">
+              <ChevronUp className="w-5 h-5" />
+              Minimizar
+            </span>
           )}
         </button>
       </motion.header>
@@ -346,7 +377,7 @@ const ActiveWorkoutHeader = ({
             </div>
 
             {/* Pie: ocultar/mostrar el cronómetro del header */}
-            <div className="relative p-6">
+            <div className="relative p-6 space-y-2">
               <button
                 onClick={toggleTimer}
                 className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-secondary/60 border border-border text-foreground/80 font-semibold text-sm active:scale-[0.99] transition-transform"
@@ -361,6 +392,17 @@ const ActiveWorkoutHeader = ({
                   </>
                 )}
               </button>
+              {onDiscard && (
+                <button
+                  onClick={() => {
+                    setFullscreen(false);
+                    setShowExitConfirm(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 min-h-11 rounded-xl text-sm font-semibold text-destructive/90"
+                >
+                  <Trash2 className="w-4 h-4" /> Salir del entreno
+                </button>
+              )}
             </div>
           </motion.div>
         )}

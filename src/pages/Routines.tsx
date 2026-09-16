@@ -651,7 +651,7 @@ const Routines = () => {
                 className="w-full flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 py-3.5 text-primary font-bold text-sm hover:bg-primary/15 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                Entreno suelto
+                Entreno libre
               </motion.button>
 
               {/* Mis programas (propios) */}
