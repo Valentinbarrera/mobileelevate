@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator, Sparkles, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Target, Check, X, Soup, CalendarPlus, Calculator, Sparkles, SlidersHorizontal, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";

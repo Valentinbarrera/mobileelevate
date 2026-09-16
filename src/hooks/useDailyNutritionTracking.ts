@@ -154,7 +154,7 @@ export function useDailyNutritionTracking() {
       setLog((prev) => ({ ...prev, foods: [...prev.foods, { ...food, id: localId, source: food.source ?? "manual" }] }));
       // Remoto best-effort: al volver, guardamos el remoteId para poder borrar
       if (canSync) {
-        addNutritionLogRemote(student!.id, { date, mealType: food.mealType, ...food }).then((remoteId) => {
+        addNutritionLogRemote(student!.id, { date, ...food }).then((remoteId) => {
           if (!remoteId) return;
           setLog((prev) => ({
             ...prev,

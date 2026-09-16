@@ -3,7 +3,6 @@
  * pueda pasar al coach. En mobile intenta abrir el menú de compartir con el
  * archivo (WhatsApp/mail); si no se puede, lo descarga. Sin IA, sin backend.
  */
-import { jsPDF } from "jspdf";
 import {
   SEX_OPTIONS,
   EXPERIENCE_OPTIONS,
@@ -21,6 +20,9 @@ const val = (v: number | null, suffix = "") => (v != null ? `${v}${suffix}` : "�
 const list = (arr: string[]) => (arr.length ? arr.join(", ") : "—");
 
 export async function exportQuestionnairePdf(data: OnboardingData, studentName: string) {
+  // jsPDF pesa ~370 kB y sólo hace falta cuando el alumno toca "exportar": si
+  // se importa arriba, esa pantalla arrastra el peso aunque nunca se exporte.
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();

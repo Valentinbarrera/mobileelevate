@@ -5,11 +5,11 @@
  * - Each meal with foods and per-meal macros
  * - Day selector if the plan has multiple days
  */
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Apple, ChevronLeft, ChevronRight, Droplets, Check, Soup, History, Sparkles, Calculator, Pencil, ScanBarcode } from "lucide-react";
+import { Apple, ChevronRight, Droplets, Check, Soup, History, Calculator, Pencil, ScanBarcode } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import PageHeader from "@/components/layout/PageHeader";
 import PageLoading from "@/components/ui/page-loading";
@@ -18,8 +18,11 @@ import CountUp from "@/components/ui/count-up";
 import { useDailyNutritionTracking, type MealType } from "@/hooks/useDailyNutritionTracking";
 import FoodLogSheet from "@/components/nutrition/FoodLogSheet";
 import FoodLogSection from "@/components/nutrition/FoodLogSection";
-import BarcodeScannerSheet from "@/components/nutrition/BarcodeScannerSheet";
 import ScannedProductSheet from "@/components/nutrition/ScannedProductSheet";
+// El escáner arrastra ZXing (~300 kB) y sólo se usa si el alumno toca
+// "escanear": cargarlo aparte saca ese peso de la pantalla de nutrición, que
+// es la que más se abre.
+const BarcodeScannerSheet = lazy(() => import("@/components/nutrition/BarcodeScannerSheet"));
 import { emptyProduct, type FoodProduct } from "@/lib/foodProduct";
 import { loadRecentProducts, rememberProduct } from "@/lib/recentProducts";
 import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
@@ -370,8 +373,6 @@ export default function Nutrition() {
   const {
     pref: goalPref,
     save: saveGoal,
-    inputs: autoInputs,
-    autoPreset: preset,
     autoResult,
     estimate: autoGoal,
     macros: autoMacros,
@@ -481,6 +482,7 @@ export default function Nutrition() {
       {/* Escáner y ficha del producto. Se montan al lado del sheet de carga
           manual porque los tres son el MISMO flujo ("agregar comida") visto
           desde distintas puertas. */}
+      <Suspense fallback={null}>
       <BarcodeScannerSheet
         open={scanning}
         onClose={() => setScanning(false)}
@@ -498,6 +500,7 @@ export default function Nutrition() {
           setScanned(emptyProduct(barcode));
         }}
       />
+      </Suspense>
       <ScannedProductSheet
         product={scanned}
         onClose={() => setScanned(null)}
