@@ -3,15 +3,13 @@
  * feature (coach, entrenamiento, nutrición, progreso), barra de progreso y
  * diseño premium. Termina llevando a /auth.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, type PanInfo } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import { motion, AnimatePresence, type PanInfo, type Variants } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
-  Dumbbell,
   Apple,
   TrendingUp,
-  Sparkles,
   ArrowRight,
   Check,
   Flame,
@@ -258,7 +256,7 @@ const StoryProgress = ({
 };
 
 // Slide direccional + swipe.
-const slideVariants = {
+const slideVariants: Variants = {
   enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 60 : -60, scale: 0.96 }),
   center: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.34, ease: [0.16, 1, 0.3, 1] } },
   exit: (dir: number) => ({ opacity: 0, x: dir >= 0 ? -60 : 60, scale: 0.96, transition: { duration: 0.2 } }),

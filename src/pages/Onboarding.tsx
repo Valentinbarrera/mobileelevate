@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   ArrowRight, Check, Pencil,
   Sprout, TrendingUp, Trophy,
@@ -74,14 +74,11 @@ const buzz = (pattern: number | number[] = 10) => {
 };
 
 // Slide direccional entre pasos (premium): adelante entra desde la derecha.
-const slideVariants = {
+const slideVariants: Variants = {
   enter: (dir: number) => ({ x: dir >= 0 ? 48 : -48, opacity: 0 }),
   center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
   exit: (dir: number) => ({ x: dir >= 0 ? -48 : 48, opacity: 0, transition: { duration: 0.18, ease: "easeIn" } }),
 };
-
-// Pasos de selección única que auto-avanzan al elegir (best practice tipo Typeform).
-const AUTO_ADVANCE_STEPS = new Set([2, 5, 8, 11]);
 
 const Onboarding = () => {
   const navigate = useNavigate();

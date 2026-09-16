@@ -14,7 +14,8 @@ import { logSet, updateLoggedSet, deleteLoggedSet } from "@/lib/workoutLog";
 
 interface CoachExercise {
   id: string;
-  exerciseId: string;
+  /** Null cuando es un ejercicio suelto, sin ficha de biblioteca. */
+  exerciseId: string | null;
   name: string;
   sets: number;
   reps: string;

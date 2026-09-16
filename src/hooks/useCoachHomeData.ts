@@ -16,7 +16,8 @@ export interface TodayRoutineDay {
   description: string | null;
   exercises: {
     id: string;
-    exerciseId: string;
+    /** Null cuando el coach cargo un ejercicio suelto, sin ficha de biblioteca. */
+    exerciseId: string | null;
     name: string;
     sets: number;
     reps: string;

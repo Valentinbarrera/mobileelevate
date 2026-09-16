@@ -153,7 +153,10 @@ export function useBarcodeScanner({ onDetected, active }: UseBarcodeScannerOptio
     if (!track) return;
     const next = !torchOn;
     try {
-      await track.applyConstraints({ advanced: [{ torch: next }] } as MediaTrackConstraints);
+      // `torch` existe en Android/Chrome pero no esta en el lib DOM de TS.
+      await track.applyConstraints({
+        advanced: [{ torch: next }],
+      } as unknown as MediaTrackConstraints);
       setTorchOn(next);
     } catch {
       setTorchAvailable(false);

@@ -123,7 +123,12 @@ const EXERCISES = {
 
 // ─── Routine Days & Exercises ────────────────────────────────────────────────
 
-function makeRoutineExercise(id: string, ex: typeof EXERCISES.benchPress, series: number, reps: string, rest: number, order: number) {
+// El tipo sale de la union de EXERCISES y no de uno solo: tomarlo de
+// benchPress fijaba video_url como string y dejaba afuera a los ejercicios
+// que todavia no tienen video.
+type MockExercise = (typeof EXERCISES)[keyof typeof EXERCISES];
+
+function makeRoutineExercise(id: string, ex: MockExercise, series: number, reps: string, rest: number, order: number) {
   return {
     id: `re-${id}`,
     routine_day_id: "",

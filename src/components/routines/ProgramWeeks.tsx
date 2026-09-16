@@ -13,7 +13,6 @@ import DayExerciseList from "./DayExerciseList";
 import {
   dayTitle,
   estimateSessionMinutes,
-  exerciseCount,
   groupSessionsByWeek,
   type SessionInfo,
 } from "@/lib/routineSession";

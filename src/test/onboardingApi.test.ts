@@ -38,7 +38,7 @@ const SID = "11111111-2222-3333-4444-555555555555";
 
 const datos = () => ({
   ...emptyOnboarding(),
-  sex: "masculino" as const,
+  sex: "male" as const,
   age: 30,
   sessionMinutes: 45,
   injurySeverity: "molestia" as const,
@@ -83,7 +83,7 @@ describe("saveOnboardingRemote", () => {
     expect(upsertCalls[1]).not.toHaveProperty("injury_severity");
     expect(upsertCalls[1]).not.toHaveProperty("avoided_exercises");
     // ...pero con el cuestionario completo.
-    expect(upsertCalls[1]).toMatchObject({ student_id: SID, sex: "masculino", age: 30 });
+    expect(upsertCalls[1]).toMatchObject({ student_id: SID, sex: "male", age: 30 });
   });
 
   it("un error que no sea de columna faltante no dispara reintento", async () => {

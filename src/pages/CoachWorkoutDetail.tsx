@@ -277,11 +277,6 @@ const CoachWorkoutDetail = () => {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(60);
-  const [nextExerciseForRest, setNextExerciseForRest] = useState<{
-    name: string;
-    sets: number;
-    reps: string;
-  } | null>(null);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   // Ajustes del alumno sobre la sesión de HOY (cambiar / sacar / sumar / ordenar).
   // Es una capa aparte: la rutina del coach nunca se toca. Ver lib/sessionPlan.
@@ -631,22 +626,17 @@ const CoachWorkoutDetail = () => {
           setActiveExerciseId(partner.id);
           toast(`Sin descanso · seguí con ${group!.letter}${group!.position + 1} · ${partner.name}`);
         } else {
-          // Fuera de un bloque, o cerrando la vuelta: descanso normal. El cartel
-          // apunta al primero del bloque, que es con lo que se sigue.
+          // Fuera de un bloque, o cerrando la vuelta: descanso normal. Al
+          // cerrar la vuelta el foco vuelve al primero del bloque, que es con
+          // lo que se sigue.
           const blockStart =
             group && group.position === group.size
               ? sessionExercises[
                   sessionExercises.findIndex((e) => e.id === exerciseId) - (group.size - 1)
                 ]
               : null;
-          const next = blockStart ?? exercise;
 
           setRestDuration(exercise.restSeconds || 60);
-          setNextExerciseForRest({
-            name: next.name,
-            sets: next.sets,
-            reps: next.reps,
-          });
           setShowRestTimer(true);
           if (blockStart) setActiveExerciseId(blockStart.id);
         }
