@@ -12,6 +12,7 @@ import {
   Apple,
   NotebookPen,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
@@ -112,6 +113,15 @@ const Progress = () => {
         }
         title="Tu Progreso"
         maxWidth="max-w-5xl lg:max-w-6xl"
+        left={
+          <button
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+            className="text-muted-foreground -ml-2 w-11 h-11 flex items-center justify-center"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+        }
         right={
           <button
             onClick={() => navigate("/measurements")}

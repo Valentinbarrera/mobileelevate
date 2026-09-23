@@ -26,6 +26,7 @@ const BarcodeScannerSheet = lazy(() => import("@/components/nutrition/BarcodeSca
 import { emptyProduct, type FoodProduct } from "@/lib/foodProduct";
 import { loadRecentProducts, rememberProduct } from "@/lib/recentProducts";
 import CalorieCalculatorSheet from "@/components/nutrition/CalorieCalculatorSheet";
+import ReorderableSections from "@/components/nutrition/ReorderableSections";
 import NutritionDisclaimer from "@/components/nutrition/NutritionDisclaimer";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -587,7 +588,13 @@ export default function Nutrition() {
                 que restar de cabeza. Ahora es la misma card viva que con plan
                 del coach — anillo, lo que te queda y barras por macro — y trae
                 el botón de editar, que acá no existía. */}
-            {autoGoal != null && autoResult && (
+            <ReorderableSections
+              storageKey="elevate_nutrition_layout_noplan"
+              sections={[
+                {
+                  id: "goal",
+                  label: "Objetivo del día",
+                  node: autoGoal != null && autoResult && (
               <motion.div variants={fadeUp} className="card-hero rounded-3xl p-5">
                 <div className="flex items-center gap-4 mb-4">
                   <ProgressRing progress={autoPct} size={72} stroke={7} gradientId="kcalRingAuto">
@@ -655,13 +662,15 @@ export default function Nutrition() {
                   </button>
                 </div>
               </motion.div>
-            )}
-
-            {scanEntry}
-            {myDietEntry}
-            {calcGoalEntry}
-            {historyEntry}
-            {foodLogSection}
+                  ),
+                },
+                { id: "scan", label: "Escanear producto", node: scanEntry },
+                { id: "mydiet", label: "Mi dieta", node: myDietEntry },
+                { id: "calc", label: "Calculadora de calorías", node: calcGoalEntry },
+                { id: "history", label: "Historial", node: historyEntry },
+                { id: "foodlog", label: "Lo que comiste hoy", node: foodLogSection },
+              ]}
+            />
             {disclaimer}
           </div>
 
@@ -983,19 +992,33 @@ export default function Nutrition() {
           return (
             <div className="max-w-2xl mx-auto px-5 pt-5 space-y-4">
               {errorBanner}
-              {/* El día antes del resumen: mostrar "0 / 2500 kcal" sin haber dicho
-                  todavía de qué día se habla dejaba el número sin contexto. */}
-              {daySelector}
-              {macroSummary}
-              {scanEntry}
-              {noDays}
-              {dayNotes}
-              {mealsBlock}
-              {foodLogSection}
-              {myDietEntry}
-              {calcGoalEntry}
-              {historyEntry}
-              {waterTracker}
+              {/* El alumno arma el orden a gusto ("Personalizar"). El default es
+                  el de siempre: el día antes del resumen, porque "0 / 2500 kcal"
+                  sin decir de qué día se habla dejaba el número sin contexto. */}
+              <ReorderableSections
+                storageKey="elevate_nutrition_layout"
+                sections={[
+                  { id: "day", label: "Día", node: daySelector },
+                  { id: "summary", label: "Resumen de calorías", node: macroSummary },
+                  { id: "scan", label: "Escanear producto", node: scanEntry },
+                  {
+                    id: "meals",
+                    label: "Comidas del día",
+                    node: (
+                      <div className="space-y-4">
+                        {noDays}
+                        {dayNotes}
+                        {mealsBlock}
+                      </div>
+                    ),
+                  },
+                  { id: "foodlog", label: "Lo que comiste hoy", node: foodLogSection },
+                  { id: "mydiet", label: "Mi dieta", node: myDietEntry },
+                  { id: "calc", label: "Calculadora de calorías", node: calcGoalEntry },
+                  { id: "history", label: "Historial", node: historyEntry },
+                  { id: "water", label: "Agua", node: waterTracker },
+                ]}
+              />
               {disclaimer}
             </div>
           );

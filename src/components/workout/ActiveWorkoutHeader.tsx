@@ -276,11 +276,23 @@ const ActiveWorkoutHeader = ({
 
         {/* Tirador: pliega y despliega la barra entera. Va a lo ancho y no
             flotando encima del contenido, para que no tape la primera serie. */}
+        <div className="flex items-center">
+        {/* Plegada, la flecha de volver también tiene que estar: si no, hay que
+            desplegar la barra sólo para salir. */}
+        {collapsed && (
+          <button
+            onClick={handleBack}
+            aria-label="Volver (el entreno queda guardado)"
+            className="ml-3 w-11 h-11 shrink-0 rounded-xl bg-secondary flex items-center justify-center text-foreground/80 active:scale-95 transition-transform"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
         <button
           onClick={toggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Mostrar la barra del entreno" : "Minimizar la barra del entreno"}
-          className={`w-full flex items-center justify-center gap-2 active:bg-white/[0.04] transition-colors ${
+          className={`flex-1 min-w-0 flex items-center justify-center gap-2 active:bg-white/[0.04] transition-colors ${
             collapsed ? "min-h-12 py-2 px-4" : "h-10"
           }`}
         >
@@ -316,6 +328,7 @@ const ActiveWorkoutHeader = ({
             </span>
           )}
         </button>
+        </div>
       </motion.header>
 
       {/* Cronómetro a pantalla completa (modo foco). Reusa el mismo reloj vivo:
