@@ -67,8 +67,9 @@ export interface CoachHomeData {
 // Estimate workout duration based on exercises
 function estimateDuration(exercises: RoutineExercise[]): number {
   return exercises.reduce((acc, ex) => {
-    const setsTime = ex.series * 1.5; // ~1.5 min per set
-    const restTime = ((ex.rest || 60) * (ex.series - 1)) / 60;
+    const series = ex.series ?? 1;
+    const setsTime = series * 1.5; // ~1.5 min per set
+    const restTime = ((ex.rest || 60) * (series - 1)) / 60;
     return acc + setsTime + restTime;
   }, 0);
 }
@@ -79,7 +80,9 @@ function transformRoutineDay(day: RoutineDay & { routine_exercises: (RoutineExer
     id: re.id,
     exerciseId: re.exercise_id,
     name: re.exercise?.name || re.name || "Ejercicio",
-    sets: re.series,
+    // El coach puede sacar "Series" en el panel (llega vacío). Para entrenar
+    // hace falta un número: sin él el ejercicio se daba por hecho sin series.
+    sets: re.series ?? 1,
     reps: re.reps,
     restSeconds: re.rest,
     rir: re.rir ?? null,

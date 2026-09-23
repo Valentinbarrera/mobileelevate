@@ -102,14 +102,20 @@ const ExerciseRow = ({ ex, letter }: { ex: RoutineExercise; letter: string | nul
         )}
       </div>
 
-      <div className="shrink-0 text-right">
-        <p className="text-base font-black text-foreground tabular-nums leading-none">
-          {ex.series}
-          <span className="text-muted-foreground font-bold"> × </span>
-          {ex.reps}
-        </p>
-        <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">series × reps</p>
-      </div>
+      {/* El coach puede sacar series o reps en el panel: se muestra lo que dejó,
+          sin un "×" suelto. */}
+      {(ex.series != null || !!ex.reps) && (
+        <div className="shrink-0 text-right">
+          <p className="text-base font-black text-foreground tabular-nums leading-none">
+            {ex.series ?? ""}
+            {ex.series != null && !!ex.reps && <span className="text-muted-foreground font-bold"> × </span>}
+            {ex.reps ?? ""}
+          </p>
+          <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">
+            {ex.series != null && ex.reps ? "series × reps" : ex.series != null ? "series" : "reps"}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
