@@ -51,6 +51,10 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Elevate lee tus pasos de Salud (Apple Fitness) para mostrarte cuánto caminaste hoy. Es opcional y sólo se lee: no modificamos tus datos de Salud.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Elevate no escribe datos en Salud.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Elevate usa la cámara para que puedas tomar fotos de tu progreso físico y compartirlas con tu coach, y para leer el código de barras de un alimento y registrarlo en tu día. No se guarda ninguna imagen al escanear.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

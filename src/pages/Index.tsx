@@ -13,6 +13,7 @@ import RestDayCard from "@/components/home/RestDayCard";
 import HeroDaysScroller from "@/components/home/HeroDaysScroller";
 import CoachCard from "@/components/home/CoachCard";
 import QuickActions from "@/components/home/QuickActions";
+import StepsCard from "@/components/home/StepsCard";
 import RescheduleSheet from "@/components/home/RescheduleSheet";
 import ViewAllRoutinesLink from "@/components/home/ViewAllRoutinesLink";
 import AppShell from "@/components/layout/AppShell";
@@ -456,6 +457,7 @@ const Index = () => {
                 </div>
                 {/* Accesos rápidos — pegados al entreno de hoy */}
                 {quickActions}
+                <StepsCard />
               </div>
 
               {/* Rail derecho — glance: entrenar libre, aprender, coach */}
@@ -503,6 +505,9 @@ const Index = () => {
 
             {/* 3. Accesos rápidos — atajos directos, pegados al entreno de hoy */}
             {quickActions}
+
+            {/* 3b. Pasos del día (Apple Salud; sólo iOS) */}
+            <StepsCard />
 
             {/* 4. Entrenar con Elevate — entrenamiento autoguiado (modo libre) */}
             {trainWithElevateCard}
